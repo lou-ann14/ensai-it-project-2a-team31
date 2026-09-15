@@ -1,0 +1,31 @@
+---
+format: pdf
+---
+
+```{mermaid}
+gantt
+    dateFormat DD-MM-YYYY
+    title Diagramme de Gantt
+    section Analyse du sujet
+        Choix des foncionnalités :26-08-2026, 17-09-2026
+        Diagrammes UML : 04-09-2026, 13d
+        Rédaction du dossier d'analyse : 11-09-2026, 6d
+        Rendu du dossier d'analyse : 17-09-2026
+
+    section Développement de l'application
+        Création des classes (+ premmières méthodes) : 18-09-2026, 2w
+        Création de la bdd + (classes) DAO : 
+
+
+    section Tests
+        Session test : 25-09-2026, 2w
+    section Autres options
+
+    section Autres tests
+
+    section rendu
+
+    section Rédaction + diapo
+
+    section Soutenance
+```
