@@ -43,28 +43,28 @@ gantt
     axisFormat %d-%m
     title Diagramme de Gantt
     section Analyse du sujet
-        Choix des foncionnalités :26-08-2026, 17-09-2026
-        Diagrammes : 04-09-2026, 13d
-        Rédaction : 11-09-2026, 6d
+        Choix des foncionnalités : done, 26-08-2026, 17-09-2026
+        Diagrammes : done, 04-09-2026, 13d
+        Rédaction : done, 11-09-2026, 6d
         Rédaction : 13-11-2026, 21-11-2026
         Diaporama : 22-11-2026, 09-12-2026
 
-    section Développement de l'application
+    section Développement
         Classes : 18-09-2026, 1w
-        Session tests : 22-09-2026, 1w
+        Tests : 22-09-2026, 1w
         BDD + DAO : 29-09-2026, 09-10-2026
-        Session tests : 06-10-2026, 1w
+        Tests : 06-10-2026, 1w
         Service API : 13-10-2026, 23-10-2026
-        Session tests : 20-10-2026, 1w
+        Tests : 20-10-2026, 1w
         Fonctionnalités : 27-10-2026, 13-11-2026
-        Session tests : 03-11-2026, 10d
+        Tests : 03-11-2026, 10d
         Autres options : 13-11-2026, 21-11-2026
         Tests : 17-11-2026, 21-11-2026
 
     section Échéances
-        Dossier d'analyse : crit, 17-09-2026, 20h
-        Rapport final : crit, 21-11-2026, 20h
-        Soutenance : crit, 09-12-2026, 1d
+        Dossier d'analyse : milestone, crit, 17-09-2026, 20h
+        Rapport final : milestone, crit, 21-11-2026, 20h
+        Soutenance : milestone, crit, 09-12-2026, 1d
 
 ```
 
