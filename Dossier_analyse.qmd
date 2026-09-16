@@ -444,7 +444,7 @@ confirmation que le trajet vient d’être créer.
 
 
 
-knitr::include_graphics("diagramme_seq_recherche_gare.png")
+knitr::include_graphics("diagramme_seq_recherche_gare1.png")
 ```
 
 ```{r}
@@ -456,7 +456,7 @@ knitr::include_graphics("diagramme_seq_recherche_gare.png")
 #| out-width: "100%"
 
 
-knitr::include_graphics("diagramme_seq_creation_trajet.png")
+knitr::include_graphics("diagramme_seq_creation_trajet1.png")
 ```
 
 # Diagramme de classes
