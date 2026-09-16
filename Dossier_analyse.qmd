@@ -160,7 +160,7 @@ Enfin, le dernier diagramme détaille le cœur de l'activité d'exploitation fer
 #| fig-pos: "H"
 #| echo: false
 #| out-width: "100%"
-#| out-height: "7cm"
+
 
 
 knitr::include_graphics("diagramme_Gantt.png")
