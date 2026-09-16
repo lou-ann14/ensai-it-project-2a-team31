@@ -129,6 +129,7 @@ Le premier schéma illustre le parcours de l'administrateur, dont le rôle de su
 #| fig-pos: "H"
 #| echo: false
 #| out-width: "70%"
+#| out-height: "17cm"
 
 knitr::include_graphics("diagramme_client.png")
 ```
