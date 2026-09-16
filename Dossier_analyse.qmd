@@ -601,3 +601,14 @@ données ou stockent les nouvelles informations créées dans la base.
 
 
 # Diagramme de cas d'utilisation
+
+# Annexe
+
+```{r}
+#| cache: true
+#| echo: false
+#| out-width: "100%"
+
+
+knitr::include_graphics("tablevar.png")
+```
