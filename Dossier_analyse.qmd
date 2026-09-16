@@ -1,7 +1,41 @@
 ---
+title: "Rapport d'analyse - projet informatique"
 format: pdf
+editor: visual
 ---
 
+
+# Introduction
+
+# Diagramme d'architecture
+
+```{r}
+
+```
+
+
+# Diagrammes d'activité 
+
+## Administrateur
+
+```{r}
+
+```
+
+## Client
+
+```{r}
+
+```
+
+## Collaborateur
+
+```{r}
+
+```
+
+
+# Diagramme de Gantt
 ```{mermaid}
 gantt
     todayMarker off
@@ -33,3 +67,5 @@ gantt
         Soutenance : crit, 09-12-2026, 1d
 
 ```
+
+
