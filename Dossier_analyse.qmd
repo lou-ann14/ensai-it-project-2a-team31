@@ -72,6 +72,12 @@ KEVIN LEROY
 
 # Introduction
 
+Dans un monde exigeant une grande mobilité des personnes et des biens, se déplacer est devenu un enjeu majeur pour tous et toutes. Cependant, ces déplacements viennent souvent à l’encontre de préoccupations environnementales grandissantes. En effet, les trajets en avion ou même en voiture sont extrêmement polluants : il est donc pertinent de se pencher sur une de leurs alternatives la plus verte, c’est-à-dire le train.
+
+Notre application s’adresse à ce problème de mobilité, en proposant à ses utilisateurs une alternative à la SNCF. Grâce aux lignes créées avec cette application, nos clients pourront être connectés à la France entière par train, et rechercher leurs trajets en toute simplicité, n’ayant qu’à entrer une gare d’arrivée et de départ. Notre application permettra aussi une gestion facile et en toute simplicité des lignes et trajets proposés, afin de proposer un réseau ferroviaire adapté aux besoins de ses clients.
+
+Afin d’accomplir cela, nous avons complété un dossier d’analyse qui nous permettra de cibler les fonctionnalités de cette application, ainsi que la structure de code nécessaire pour les mettre en place. Nous commencerons ainsi par un cahier des charges décomposant les différents buts de l’application et les réflexions et questionnements effectués par l’équipe autour de ceux-ci, en plus de l’organisation mise en place de ladite équipe. Puis nous verrons les différents diagrammes qui nous ont permis de modéliser les besoins de notre application, que cela soit en terme d’architecture de code, de classes ou encore de structure de la base de données utilisées. Nous verrons ainsi les diagrammes d’architecture, d’activité, de Gantt, de séquences, de classe, de base de données et de cas d’utilisation.
+
 # Cahier des charges
 
 Notre sujet s’intitule Concurrence SNCF : il s’agit donc bien de créer
@@ -590,3 +596,8 @@ Service orchestrent les traitements et appellent les méthodes de
 création, modification, suppression ou recherche exposées par leur DAO,
 et ce sont ensuite les classes DAO elles-mêmes qui font appel aux
 données ou stockent les nouvelles informations créées dans la base.
+
+# Diagramme de base de données
+
+
+# Diagramme de cas d'utilisation
