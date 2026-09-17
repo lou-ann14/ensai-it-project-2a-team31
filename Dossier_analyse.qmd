@@ -599,8 +599,32 @@ données ou stockent les nouvelles informations créées dans la base.
 
 # Diagramme de base de données
 
+Le schéma suivant présente la structure de la base de données conçue pour l'application. Celle ci a été pensée pour répondre aux quatre fonctionnalités principales du cahier des charges : la gestion des comptes, la gestion des lignes d'exploitation, la planification des trajets et la gestion des réservations.
+```{r}
+#| cache: true
+#| echo: false
+#| out-width: "60%"
+
+knitr::include_graphics("diagramme de base de données.png")
+```
+La table utilisateurs centralise l'ensemble des comptes de l'application, qu'il s'agisse d'un client, d'un collaborateur ou d'un administrateur. Plutôt que de créer une table par type de compte, nous avons choisi de les regrouper au sein d'une même entité et de les distinguer par l'attribut role. Ce choix se justifie par le fait qu'un compte peut changer de niveau d'habilitation au cours de son existence, un administrateur pouvant promouvoir ou rétrograder un utilisateur, ce qui aurait été plus contraignant à gérer si chaque rôle correspondait à une table distincte.
+
+La table gares constitue une table de référence : elle sert à stocker localement les gares déjà validées auprès de l'API SNCF, afin d'éviter de solliciter systématiquement le service externe à chaque utilisation. Chaque ligne d'exploitation, stockée dans la table lignes, référence une gare de départ et une gare de terminus grâce à deux clés étrangères pointant toutes deux vers la table gares (gare_depart_id et gare_arrivee_id), ce qui explique le double lien visible sur le schéma. Chaque ligne est par ailleurs rattachée au compte collaborateur qui l'a créée, par l'intermédiaire de la clé id_collaborateur.
+
+Une fois une ligne créée, un collaborateur peut y planifier un ou plusieurs trajets, stockés dans la table trajets. Chaque trajet reprend l'identifiant de sa ligne d'exploitation ainsi que les horaires de départ et d'arrivée, et conserve le temps de trajet calculé automatiquement à partir de l'API SNCF. Enfin, la table reservations enregistre les réservations effectuées sur un trajet donné : elle conserve le nombre de places restantes au moment de la réservation, ainsi que le prix et le tarif selon la classe de voyage appliqués à cette réservation.
 
 # Diagramme de cas d'utilisation
+Le diagramme de cas d'utilisation ci-dessous présente l'ensemble des fonctionnalités offertes par l'application ainsi que les droits d'accès associés à chaque type d'utilisateur.
+```{r}
+#| cache: true
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics("diagramme use case.jpg")
+```
+Quatre acteurs ont été distingués : l'utilisateur, qui représente toute personne non connectée pouvant créer un compte ou se connecter, le client, le collaborateur et l'administrateur. Ces quatre acteurs sont organisés de façon hiérarchique : le client hérite des actions disponibles pour l'utilisateur, le collaborateur hérite de celles du client, et l'administrateur hérite à son tour de celles du collaborateur. Cette hiérarchie permet de représenter simplement, au niveau du diagramme de cas d'utilisation, la progression des droits d'accès d'un rôle à l'autre ; elle n'implique pas pour autant que ces rôles soient représentés par des classes distinctes au niveau de la base de données, où un même compte reste stocké dans une seule table et où son rôle est simplement modifié par un attribut.
+
+Le client peut notamment rechercher un trajet, ce qui inclut nécessairement la récupération des informations relatives à ce trajet. Cette récupération d'informations se décline ensuite en plusieurs extensions optionnelles : la récupération des tarifs, celle des places restantes, celle de la durée du trajet, ainsi que celle de la date et de l'heure de départ, qui permettent ensemble de visualiser la date de départ et la date d'arrivée. Le collaborateur dispose quant à lui des droits nécessaires pour créer, modifier et supprimer une ligne d'exploitation. Enfin, l'administrateur est seul habilité à gérer les comptes utilisateurs, ce qui recouvre notamment la modification de leur niveau d'habilitation.
 
 # Annexe
 
@@ -608,7 +632,6 @@ données ou stockent les nouvelles informations créées dans la base.
 #| cache: true
 #| echo: false
 #| out-width: "100%"
-
 
 knitr::include_graphics("tablevar.png")
 ```
