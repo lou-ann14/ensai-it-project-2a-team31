@@ -465,7 +465,7 @@ knitr::include_graphics("diagramme_seq_creation_trajet1.png")
 
 Pour concevoir cette application, il est nécessaire d'implémenter les
 classes correspondant aux fonctionnalités attendues. La première étape
-consiste à définir les classes représentant les objets métier manipulés
+consiste à définir les classes représentant les objets manipulés
 par l'application.
 
 ```{r}
