@@ -388,6 +388,8 @@ chaque classe) ou de supprimer une ligne.
 
 # Diagramme de Gantt
 
+Le diagramme ci-dessous permet de visualiser les futurs avancements dans le développement de l'application. Le but est de créer une première structure, en commençant par les classes, puis la base de données et la DAO, et enfin le service API. Une fois la structure réalisée et les différents liens entre la base de données, la DAO et l'utilisateur mis en place, le développement des fonctionnalités pourra commencer. Entre chaque session de développement, est organisé des sessions de tests, afin de créer ces derniers tout au long de la création de l'application. Les derniers jours seront dédiés à t'eventuels ajouts de fonctionnalités, ou de la correction de bugs. Cet emploi du temps pourra cependant évoluer en fonction de l'avancement des différentes phases de développement.
+
 ```{r}
 #| cache: true
 #| label: fig-gantt
