@@ -1,6 +1,6 @@
 class Reservation:
 
-    def __init__(self, id_reservation: int, id_client: int, id_trajet: int, place: str, classe: str, prix: float):
+    def __init__(self, id_reservation: int, id_client:int, id_trajet: int, place: str, classe: int, prix: float):
         self.id_reservation = id_reservation
         self.id_client = id_client
         self.id_trajet = id_trajet
