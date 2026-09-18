@@ -1,4 +1,11 @@
+from Classes_Objets import Client
+
+from . import Trajet
+
+
 class Reservation:
+    """Modélise les réservations de trajet des clients."""
+
 
     def __init__(self, id_reservation: int, id_client: int, id_trajet: int, place: str, classe: int, prix: float):
         self.id_reservation = id_reservation
