@@ -11,4 +11,3 @@ class Utilisateur:
 
     def __str__(self):
         return f"L'utilisateur {self.nom_utilisateur} (#{self.id}) est un {self.role}"
-    
