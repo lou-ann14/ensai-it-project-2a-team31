@@ -7,6 +7,6 @@ class Reservation:
         self.place = place
         self.classe = classe
         self.prix = prix
-    
+
     def __str__(self):
         return f"La réservation #{self.id_reservation} du client #{self.id_client} pour le trajet #{self.id_trajet}, en {self.classe} à la place{self.place} a coûté {self.prix} euros"
