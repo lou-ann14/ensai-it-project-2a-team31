@@ -1,6 +1,7 @@
 ---
 format:
   pdf:
+    fontsize: "9pt"
     include-in-header: 
       text: |
         \usepackage{graphicx}
@@ -76,9 +77,9 @@ Dans un monde exigeant une grande mobilité des personnes et des biens, se dépl
 
 Notre application s’adresse à ce problème de mobilité, en proposant à ses utilisateurs une alternative à la SNCF. Grâce aux lignes créées avec cette application, nos clients pourront être connectés à la France entière par train, et rechercher leurs trajets en toute simplicité, n’ayant qu’à entrer une gare d’arrivée et de départ. Notre application permettra aussi une gestion facile et en toute simplicité des lignes et trajets proposés, afin de proposer un réseau ferroviaire adapté aux besoins de ses clients.
 
-Afin d’accomplir cela, nous avons complété un dossier d’analyse qui nous permettra de cibler les fonctionnalités de cette application, ainsi que la structure de code nécessaire pour les mettre en place. Nous commencerons ainsi par un cahier des charges décomposant les différents buts de l’application et les réflexions et questionnements effectués par l’équipe autour de ceux-ci, en plus de l’organisation mise en place de ladite équipe. Puis nous verrons les différents diagrammes qui nous ont permis de modéliser les besoins de notre application, que cela soit en terme d’architecture de code, de classes ou encore de structure de la base de données utilisées. Nous verrons ainsi les diagrammes d’architecture, d’activité, de Gantt, de séquences, de classe, de base de données et de cas d’utilisation.
+Afin d’accomplir cela, nous avons complété un dossier d’analyse qui nous permettra de cibler les fonctionnalités de cette application, ainsi que la structure de code nécessaire pour les mettre en place. Nous commencerons ainsi par un cahier des charges décomposant les différents buts de l’application et les réflexions et questionnements effectués par l’équipe autour de ceux-ci, en plus de l’organisation mise en place de notre équipe. Puis nous verrons les différents diagrammes qui nous ont permis de modéliser les besoins de notre application, que cela soit en terme d’architecture de code, de classes ou encore de structure de la base de données utilisées. Nous verrons ainsi les diagrammes d’architecture, d’activité, de Gantt, de séquences, de classe, de base de données et de cas d’utilisation.
 
-# Cahier des charges
+# I) Cahier des charges
 
 Notre sujet s’intitule Concurrence SNCF : il s’agit donc bien de créer
 une application qui propose a minima les mêmes services et
@@ -88,7 +89,7 @@ services sont optionnels, non prioritaires, et seront donc développés
 après les fonctionnalités nécessaires à l’application. Les contraintes
 explicites du sujet précisent quelles doivent être ces fonctionnalités,
 organisées autour de trois principaux types d’utilisateurs, et nous
-allons donc développer quelles sont ces contraintes. De plus, nous
+allons donc préciser quelles sont ces contraintes. De plus, nous
 exposerons nos réflexions et questionnements autour de celles-ci lors de
 la phase de développement.
 
@@ -120,7 +121,7 @@ aux comptes utilisateurs une modification de leur mot de passe, mais
 avons préféré faire l’impasse sur cette option qui est de faible
 d’utilité par rapport au but de cette application, qui est de
 concurrencer la SNCF. De plus, nous avons hésité entre une recherche par
-identifiant et niveau d’habilitation ou par identifiant pour la
+demande d’habilitation ou par identifiant pour la
 recherche des comptes par les administrateurs, et avons décidé de
 développer les deux possibilités, qui nous semblent toutes les deux
 faisables sans trop de difficulté.
@@ -133,10 +134,7 @@ de données propre à notre projet. Si nous avons dans un premier temps
 envisagé une actualisation automatisée de cette synchronisation en
 transférant à intervalles réguliers les données de l’API SNCF sur la
 base de données, nous avons préféré opter pour une mise à jour plus
-ponctuelle. En effet, nous trouvons plus judicieux et moins onéreux en
-terme de temps de n’ajouter des données sur la base de données à partir
-de l’API SNCF que lorsque ces données sont demandées par un utilisateur.
-Enfin, cette fonctionnalité nous demande aussi de mettre en place un
+ponctuelle, pour des raisons développées dans l'explication de notre diagramme d'architecture. Enfin, cette fonctionnalité nous demande aussi de mettre en place un
 mécanisme d’auto-complétion lors de l’entrée des gares, afin de
 permettre à l’utilisateur de vérifier qu’elles existent bel et bien.
 Cette auto-complétion est aussi en lien avec la question de la
@@ -201,7 +199,7 @@ le temps restant après avoir donné la priorité aux fonctionnalités
 obligatoires.
 
 Le sujet délimite notre périmètre d’action quant à la programmation
-durant ce projet. Il est explicitement demandé de ne pas développer le
+durant ce projet. Il n'est pas obligatoire de développer le
 frontend de l’application : « Les webmasters de votre entreprise
 prennent en charge le développement de l’interface utilisateur, il vous
 reste uniquement à charge le développement d’une API ». La seule
@@ -256,7 +254,25 @@ Nour Nsiri. Nous coderons en Python sur vscode, en ayant recours à Git
 pour versionner notre code. Pour la base de données, nous aurons recours
 à PostGreSQL.
 
-# Diagramme d'architecture
+# II) Diagramme de Gantt
+
+Le diagramme ci-dessous permet de visualiser les futurs avancements dans le développement de l'application. Le but est de créer une première structure, en commençant par les classes, puis la base de données et la DAO, et enfin le service API. Une fois la structure réalisée et les différents liens entre la base de données, la DAO et l'utilisateur mis en place, le développement des fonctionnalités pourra commencer. Entre chaque session de développement, est organisé des sessions de tests, afin de créer ces derniers tout au long de la création de l'application. Les derniers jours seront dédiés à t'eventuels ajouts de fonctionnalités, ou de la correction de bugs. Cet emploi du temps pourra cependant évoluer en fonction de l'avancement des différentes phases de développement.
+
+```{r}
+#| cache: true
+#| label: fig-gantt
+#| fig-cap: "Diagramme de Gantt"
+#| fig-pos: "H"
+#| echo: false
+#| out-width: "100%"
+
+
+
+knitr::include_graphics("diagramme_Gantt.png")
+```
+
+
+# III) Diagramme d'architecture
 
 ```{r}
 #| cache: true
@@ -264,7 +280,7 @@ pour versionner notre code. Pour la base de données, nous aurons recours
 #| fig-cap: "Diagramme d'architecture de l'application"
 #| fig-pos: "H"
 #| echo: false
-#| out-width: "100%"
+#| out-width: "50%"
 
 knitr::include_graphics("diagramme_architecture.png")
 ```
@@ -307,7 +323,22 @@ Le système effectuera une mise à jour ponctuelle en arrière-plan (par
 exemple, une synchronisation hebdomadaire chaque dimanche à 3h du
 matin).
 
-# Diagrammes d'activité
+# IV) Diagramme de cas d'utilisation
+Le diagramme de cas d'utilisation ci-dessous présente l'ensemble des fonctionnalités offertes par l'application ainsi que les droits d'accès associés à chaque type d'utilisateur.
+```{r}
+#| cache: true
+#| label: fig-usecase
+#| fig-cap: "Diagramme de cas d'utilisation"
+#| echo: false
+#| out-width: "70%"
+
+knitr::include_graphics("diagramme use case.jpg")
+```
+Quatre acteurs ont été distingués : l'utilisateur, qui représente toute personne non connectée pouvant créer un compte ou se connecter, le client, le collaborateur et l'administrateur. Ces quatre acteurs sont organisés de façon hiérarchique : le client hérite des actions disponibles pour l'utilisateur, le collaborateur hérite de celles du client, et l'administrateur hérite à son tour de celles du collaborateur. Cette hiérarchie permet de représenter simplement, au niveau du diagramme de cas d'utilisation, la progression des droits d'accès d'un rôle à l'autre ; elle n'implique pas pour autant que ces rôles soient représentés par des classes distinctes au niveau de la base de données, où un même compte reste stocké dans une seule table et où son rôle est simplement modifié par un attribut.
+
+Le client peut notamment rechercher un trajet, ce qui inclut nécessairement la récupération des informations relatives à ce trajet. Cette récupération d'informations se décline ensuite en plusieurs extensions optionnelles : la récupération des tarifs, celle des places restantes, celle de la durée du trajet, ainsi que celle de la date et de l'heure de départ, qui permettent ensemble de visualiser la date de départ et la date d'arrivée. Le collaborateur dispose quant à lui des droits nécessaires pour créer, modifier et supprimer une ligne d'exploitation. Enfin, l'administrateur est seul habilité à gérer les comptes utilisateurs, ce qui recouvre notamment la modification de leur niveau d'habilitation.
+
+# V) Diagrammes d'activité
 
 Afin de concevoir une API robuste et centrée sur les besoins du métier,
 nous avons modélisé les processus à travers trois diagrammes d'activité
@@ -315,7 +346,7 @@ correspondant aux différents niveaux d'habilitation. Les informations en
 bleu clair correspondent à des fonctionnalités optionnelles et peuvent
 ne pas être finalement conservées.
 
-## Administrateur
+## 1. Administrateur
 
 ```{r}
 #| cache: true
@@ -323,7 +354,7 @@ ne pas être finalement conservées.
 #| fig-cap: "Diagramme d'activité de l'administrateur"
 #| fig-pos: "H"
 #| echo: false
-#| out-width: "50%"
+#| out-width: "30%"
 
 knitr::include_graphics("diagramme_administrateur.png")
 ```
@@ -337,7 +368,7 @@ les règles de gestion métier en vérifiant la validité des saisies et en
 garantissant l'impossibilité de modifier les droits d'un autre
 administrateur avant de confirmer la transaction en base de données.
 
-## Client
+## 2. Client
 
 ```{r}
 #| cache: true
@@ -345,7 +376,7 @@ administrateur avant de confirmer la transaction en base de données.
 #| fig-cap: "Diagramme d'activité du client"
 #| fig-pos: "H"
 #| echo: false
-#| out-width: "70%"
+#| out-width: "50%"
 #| out-height: "17cm"
 
 knitr::include_graphics("diagramme_client.png")
@@ -362,7 +393,7 @@ classique ou premium selon les disponibilités. Le client a également la
 capacité de consulter l’historique de ses réservations au début de
 l’interface.
 
-## Collaborateur
+## 3. Collaborateur
 
 ```{r}
 #| cache: true
@@ -386,24 +417,7 @@ possibilité de chercher un trajet existant afin de modifier (l’horaire,
 la gare de départ ou d’arrivée, le nombre de places disponible pour
 chaque classe) ou de supprimer une ligne.
 
-# Diagramme de Gantt
-
-Le diagramme ci-dessous permet de visualiser les futurs avancements dans le développement de l'application. Le but est de créer une première structure, en commençant par les classes, puis la base de données et la DAO, et enfin le service API. Une fois la structure réalisée et les différents liens entre la base de données, la DAO et l'utilisateur mis en place, le développement des fonctionnalités pourra commencer. Entre chaque session de développement, est organisé des sessions de tests, afin de créer ces derniers tout au long de la création de l'application. Les derniers jours seront dédiés à t'eventuels ajouts de fonctionnalités, ou de la correction de bugs. Cet emploi du temps pourra cependant évoluer en fonction de l'avancement des différentes phases de développement.
-
-```{r}
-#| cache: true
-#| label: fig-gantt
-#| fig-cap: "Diagramme de Gantt"
-#| fig-pos: "H"
-#| echo: false
-#| out-width: "100%"
-
-
-
-knitr::include_graphics("diagramme_Gantt.png")
-```
-
-# Diagrammes de séquences
+# VI) Diagrammes de séquences
 
 Les diagrammes de séquences ci-dessous représentent des cas
 d’utilisations de notre application. Nous y faisons figurer les
@@ -420,8 +434,8 @@ gare. L’utilisateur, choisit l’option de recherche par autocomplétion
 dans l’interface. Cette demande utilisera un endpoint sous forme d’un
 protocole HTTPS à l’API de la SNCF, dont nous nous munirons grâce à la
 documentation sur l’API. Les gares stockées dans l’API et correspondant
-à la recherche sont renvoyés sous forme de liste au format JSON. Enfin
-ces gares sont affichés à l’utilisateur via l’interface de
+à la recherche sont renvoyées sous forme de liste au format JSON. Enfin
+ces gares sont affichées à l’utilisateur via l’interface de
 l’application.
 
 Le second diagramme explicite l’action d’un collaborateur cherchant à
@@ -461,7 +475,27 @@ knitr::include_graphics("diagramme_seq_recherche_gare1.png")
 knitr::include_graphics("diagramme_seq_creation_trajet1.png")
 ```
 
-# Diagramme de classes
+
+# VII) Diagramme de base de données
+
+Le schéma suivant présente la structure de la base de données conçue pour l'application. Celle ci a été pensée pour répondre aux quatre fonctionnalités principales du cahier des charges : la gestion des comptes, la gestion des lignes d'exploitation, la planification des trajets et la gestion des réservations.
+```{r}
+#| cache: true
+#| label: fig-bdd
+#| fig-cap: "Diagramme de base de donneés"
+#| echo: false
+#| out-width: "60%"
+
+knitr::include_graphics("diagramme de base de données.png")
+```
+La table utilisateurs centralise l'ensemble des comptes de l'application, qu'il s'agisse d'un client, d'un collaborateur ou d'un administrateur. Plutôt que de créer une table par type de compte, nous avons choisi de les regrouper au sein d'une même entité et de les distinguer par l'attribut role. Ce choix se justifie par le fait qu'un compte peut changer de niveau d'habilitation au cours de son existence, un administrateur pouvant promouvoir ou rétrograder un utilisateur, ce qui aurait été plus contraignant à gérer si chaque rôle correspondait à une table distincte.
+
+La table gares constitue une table de référence : elle sert à stocker localement les gares déjà validées auprès de l'API SNCF, afin d'éviter de solliciter systématiquement le service externe à chaque utilisation. Chaque ligne d'exploitation, stockée dans la table lignes, référence une gare de départ et une gare de terminus grâce à deux clés étrangères pointant toutes deux vers la table gares (gare_depart_id et gare_arrivee_id), ce qui explique le double lien visible sur le schéma. Chaque ligne est par ailleurs rattachée au compte collaborateur qui l'a créée, par l'intermédiaire de la clé id_collaborateur.
+
+Une fois une ligne créée, un collaborateur peut y planifier un ou plusieurs trajets, stockés dans la table trajets. Chaque trajet reprend l'identifiant de sa ligne d'exploitation ainsi que les horaires de départ et d'arrivée, et conserve le temps de trajet calculé automatiquement à partir de l'API SNCF. Enfin, la table reservations enregistre les réservations effectuées sur un trajet donné : elle conserve le nombre de places restantes au moment de la réservation, ainsi que le prix et le tarif selon la classe de voyage appliqués à cette réservation.
+
+\pagebreak
+# VIII) Diagramme de classes
 
 Pour concevoir cette application, il est nécessaire d'implémenter les
 classes correspondant aux fonctionnalités attendues. La première étape
@@ -483,15 +517,15 @@ knitr::include_graphics("diag_classes_objets.png")
 Le diagramme ci-dessus présente ces classes objets, avec leurs attributs
 et les relations qui les lient. Elles permettent de modéliser les
 différents objets mobilisés lors de l'utilisation de l'application,
-telles qu'un utilisateur, une réservation ou un trajet. En premier lieu,
-la classe Utilisateur représente un utilisateur de l’application. Un
-utilisateur est défini par son identifiant unique (id), et possède un
-nom d’utilisateur, un mot de passe et son rôle. L’utilisateur peut être
-avoir le statut (role) de client, collaborateur ou administrateur sur
-l’application, modélisés par les classes filles correspondantes, ce qui
+tels qu'un utilisateur, une réservation ou un trajet. \
+En premier lieu, la classe Utilisateur représente un utilisateur de l’application. Un
+utilisateur est défini par son identifiant unique (`id`), et possède un
+nom d’utilisateur (`nom_utilisateur`), un mot de passe (`mdp`) et son rôle. L’utilisateur peut
+avoir le statut (`role`) de client, collaborateur ou administrateur sur
+l’application, modélisés par les classes filles correspondantes. Cela
 permettra d’implémenter des fonctionnalités différentes pour les
-utilisateurs en fonction de leur niveau d’habilitation. La classe
-Reservation, associée à la classe client, modélise les réservations
+utilisateurs en fonction de leur niveau d’habilitation. \
+La classe Reservation, associée à la classe client, modélise les réservations
 effectuées sur l’application. Elle contient les attributs
 `id_reservation`, l’`id_client` du client à son origine, `id_trajet` qui
 permet d’associer le trajet concerné, le numéro de place, la classe (1
@@ -501,24 +535,28 @@ de composition car, si la réservation dépend en effet obligatoirement
 d’un client et n’existe pas sans lui, on peut considérer que si un
 client supprime son compte, il peut être utile que l’historique de ses
 réservations puisse être tout de même conservé, par exemple par souci de
-comptabilité. La classe Reservation est associée à une classe Trajet
+comptabilité. \
+La classe Reservation est associée à une classe Trajet
 permettant de modéliser un trajet sur une ligne (une ligne reliant deux
 gares) pour une date et heure données. Un trajet est ainsi défini par
 son identifiant, ses heures d’arrivée et de départ (format datetime qui
 permet de mentionner à la fois la date et l’heure), les identifiants du
 train et de la ligne concernés ainsi que le tarif de base pour ce
-trajet. Une classe Train est également associée à la classe Trajet. Elle
+trajet. \
+Une classe Train est également associée à la classe Trajet. Elle
 indique l’identifiant du train, le type de train et le nombre de places
 initial à bord. Cette classe permettra de gérer plus facilement le
 nombre de places restantes, et de prendre en compte, par exemple, les
-capacités variant selon le type de train. La classe Ligne, associée à
+capacités variant selon le type de train. \
+La classe Ligne, associée à
 Trajet, permet de modéliser le lien entre deux gares entre lesquelles il
 est possible de voyager (il n’existe pas une ligne pour chaque couple de
 gares possible). Elle a comme attributs l’identifiant de la ligne
 `id_ligne` ainsi que les identifiants des gares d’arrivée et de départ.
 Pour simplifier la gestion des lignes, on a décidé de considérer que
 l’ordre départ/arrivée compte, et donc, par exemple, que Paris -\>
-Rennes et Rennes -\> sont deux lignes différentes. La classe Gare
+Rennes et Rennes -\> Paris sont deux lignes différentes. \
+La classe Gare
 représente une gare, avec son identifiant, son nom et la ville où elle
 se situe. Elle est reliée à la classe Ligne par une relation
 d’agrégation, car une ligne contient des gares mais la gare existe bien
@@ -540,7 +578,8 @@ knitr::include_graphics("diag_classes_services_dao.png")
 **La couche Service**
 
 D’autres classes sont nécessaires pour gérer ces objets : les classes
-Service (diagramme ci-dessus). Les classes Service liées aux
+Service (diagramme ci-dessus). \
+Les classes Service liées aux
 utilisateurs (UtilisateurService, ClientService, CollaborateurService et
 AdministrateurService) permettent de gérer les actions des utilisateurs
 et de les répercuter ensuite sur les objets concernés. La classe
@@ -551,22 +590,24 @@ disponibles pour tous les utilisateurs, quel que soit leur rôle. Il y a
 également la méthode `rechercher()`, qui est déclarée en visibilité
 protégée, car elle n'est pas destinée à être appelée directement par un
 utilisateur final, mais uniquement par AdministrateurService dans le
-cadre de `recherche_compte()`. La classe ClientService contient la
+cadre de `recherche_compte()`. \
+La classe ClientService contient la
 méthode `reserver_trajet()`, qui permet à un client d’effectuer une
 réservation, ainsi que `voir_historique_reservations()` qui lui permet
 de consulter l’ensemble de ses réservations passées. Ces deux méthodes
-correspondent aux actions spécifiques au rôle de client. La classe
-CollaborateurService regroupe les méthodes `creer_ligne()` et
+correspondent aux actions spécifiques au rôle de client. \
+La classe CollaborateurService regroupe les méthodes `creer_ligne()` et
 `creer_trajet()` qui permettent à un collaborateur d’ajouter une
-nouvelle ligne ferroviaire ou un nouveau trajet sur le réseau. La classe
-AdministrateurService contient les méthodes `gerer_habilitation()`, qui
+nouvelle ligne ferroviaire ou un nouveau trajet sur le réseau. \
+La classe AdministrateurService contient les méthodes `gerer_habilitation()`, qui
 permet de modifier les droits d'accès d'un utilisateur (de changer
 l’attribut `role` d’un utilisateur), et `recherche_compte()`, qui permet
-de retrouver un compte utilisateur (par id ou nom d’utilisateur). Par
-ailleurs, d'autres classes Service permettent de gérer les objets métier
+de retrouver un compte utilisateur (par id ou nom d’utilisateur). \
+Par ailleurs, d'autres classes Service permettent de gérer les objets
 : ReservationService, TrajetService, LigneService, GareService et
 TrainService. Chacune centralise les opérations propres à son objet
-(création, modification, suppression, recherche). Les liens représentés
+(création, modification, suppression, recherche). \
+Les liens représentés
 par des flèches en pointillés traduisent une relation de dépendance
 entre les classes, lorsqu’une classe Service fait appel aux méthodes
 d'une autre classe Service pour accomplir son action, sans pour autant
@@ -580,8 +621,7 @@ Reservation. De la même manière, UtilisateurService dépend de
 TrajetService et de GareService. CollaborateurService dépend de
 LigneService (pour creer_ligne(), qui appelle LigneService.creer()) et
 de TrajetService (pour creer_trajet(), qui appelle
-TrajetService.creer()). De plus, Enfin, au sein même des classes Service
-liées aux objets métier, ReservationService dépend de TrajetService
+TrajetService.creer()). Enfin, ReservationService dépend de TrajetService
 (pour vérifier la disponibilité du trajet avant de confirmer ou
 d'annuler une réservation), et TrajetService dépend à la fois de
 LigneService, GareService et TrainService, puisqu'un trajet est défini
@@ -598,42 +638,3 @@ Service orchestrent les traitements et appellent les méthodes de
 création, modification, suppression ou recherche exposées par leur DAO,
 et ce sont ensuite les classes DAO elles-mêmes qui font appel aux
 données ou stockent les nouvelles informations créées dans la base.
-
-# Diagramme de base de données
-
-Le schéma suivant présente la structure de la base de données conçue pour l'application. Celle ci a été pensée pour répondre aux quatre fonctionnalités principales du cahier des charges : la gestion des comptes, la gestion des lignes d'exploitation, la planification des trajets et la gestion des réservations.
-```{r}
-#| cache: true
-#| echo: false
-#| out-width: "60%"
-
-knitr::include_graphics("diagramme de base de données.png")
-```
-La table utilisateurs centralise l'ensemble des comptes de l'application, qu'il s'agisse d'un client, d'un collaborateur ou d'un administrateur. Plutôt que de créer une table par type de compte, nous avons choisi de les regrouper au sein d'une même entité et de les distinguer par l'attribut role. Ce choix se justifie par le fait qu'un compte peut changer de niveau d'habilitation au cours de son existence, un administrateur pouvant promouvoir ou rétrograder un utilisateur, ce qui aurait été plus contraignant à gérer si chaque rôle correspondait à une table distincte.
-
-La table gares constitue une table de référence : elle sert à stocker localement les gares déjà validées auprès de l'API SNCF, afin d'éviter de solliciter systématiquement le service externe à chaque utilisation. Chaque ligne d'exploitation, stockée dans la table lignes, référence une gare de départ et une gare de terminus grâce à deux clés étrangères pointant toutes deux vers la table gares (gare_depart_id et gare_arrivee_id), ce qui explique le double lien visible sur le schéma. Chaque ligne est par ailleurs rattachée au compte collaborateur qui l'a créée, par l'intermédiaire de la clé id_collaborateur.
-
-Une fois une ligne créée, un collaborateur peut y planifier un ou plusieurs trajets, stockés dans la table trajets. Chaque trajet reprend l'identifiant de sa ligne d'exploitation ainsi que les horaires de départ et d'arrivée, et conserve le temps de trajet calculé automatiquement à partir de l'API SNCF. Enfin, la table reservations enregistre les réservations effectuées sur un trajet donné : elle conserve le nombre de places restantes au moment de la réservation, ainsi que le prix et le tarif selon la classe de voyage appliqués à cette réservation.
-
-# Diagramme de cas d'utilisation
-Le diagramme de cas d'utilisation ci-dessous présente l'ensemble des fonctionnalités offertes par l'application ainsi que les droits d'accès associés à chaque type d'utilisateur.
-```{r}
-#| cache: true
-#| echo: false
-#| out-width: "70%"
-
-knitr::include_graphics("diagramme use case.jpg")
-```
-Quatre acteurs ont été distingués : l'utilisateur, qui représente toute personne non connectée pouvant créer un compte ou se connecter, le client, le collaborateur et l'administrateur. Ces quatre acteurs sont organisés de façon hiérarchique : le client hérite des actions disponibles pour l'utilisateur, le collaborateur hérite de celles du client, et l'administrateur hérite à son tour de celles du collaborateur. Cette hiérarchie permet de représenter simplement, au niveau du diagramme de cas d'utilisation, la progression des droits d'accès d'un rôle à l'autre ; elle n'implique pas pour autant que ces rôles soient représentés par des classes distinctes au niveau de la base de données, où un même compte reste stocké dans une seule table et où son rôle est simplement modifié par un attribut.
-
-Le client peut notamment rechercher un trajet, ce qui inclut nécessairement la récupération des informations relatives à ce trajet. Cette récupération d'informations se décline ensuite en plusieurs extensions optionnelles : la récupération des tarifs, celle des places restantes, celle de la durée du trajet, ainsi que celle de la date et de l'heure de départ, qui permettent ensemble de visualiser la date de départ et la date d'arrivée. Le collaborateur dispose quant à lui des droits nécessaires pour créer, modifier et supprimer une ligne d'exploitation. Enfin, l'administrateur est seul habilité à gérer les comptes utilisateurs, ce qui recouvre notamment la modification de leur niveau d'habilitation.
-
-# Annexe
-
-```{r}
-#| cache: true
-#| echo: false
-#| out-width: "100%"
-
-knitr::include_graphics("tablevar.png")
-```
