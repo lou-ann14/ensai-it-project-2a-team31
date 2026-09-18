@@ -1,0 +1,5 @@
+
+
+classe Train : 
+-changement attribut "places_initiales" pour en faire une list[int] afin de gérer le nb places en premiere classe et en deuxieme classe
+- reflexion à avoir sur type_train
