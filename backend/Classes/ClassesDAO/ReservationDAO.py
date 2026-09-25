@@ -52,7 +52,6 @@ class ReservationDAO:
         bool
             True si l'annulation a réussi, False sinon
         """
-        
         pass
 
     def trouver_par_client(self, id_client: int):

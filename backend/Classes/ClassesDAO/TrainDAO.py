@@ -21,8 +21,7 @@ class TrainDAO:
         Train
             l'objet Train créé
         """
-        
-        return Train(id_train, type_train, places_initiales)
+        pass
 
     def modifier_capacite(self, id_train: int, capacite: int) -> Train:
         """
