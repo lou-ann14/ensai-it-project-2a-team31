@@ -8,4 +8,3 @@ class AdministrateurService:
 
     def recherche_compte(self, nom_utilisateur: str | None, id_utilisateur: int | None):
         pass
-    
