@@ -6,3 +6,4 @@ def creer(type_train: str, places_initiales: int):
 
 def modifier_capacite(id_train: int, capacite: int):
     pass
+
