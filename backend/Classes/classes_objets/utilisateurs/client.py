@@ -1,4 +1,4 @@
-from Utilisateur import Utilisateur
+from utilisateur import Utilisateur
 
 
 class Client(Utilisateur):
