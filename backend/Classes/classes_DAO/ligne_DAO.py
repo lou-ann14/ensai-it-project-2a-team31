@@ -1,4 +1,4 @@
-from classes_objets import gare, ligne
+from classes_objets import Gare, Ligne
 
 
 class LigneDAO:
