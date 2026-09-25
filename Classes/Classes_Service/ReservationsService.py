@@ -4,6 +4,18 @@ class ReservationService:
         pass
 
     def creer(id_client: int, place: str, classe: int):
+        """
+         Methode servant à créer une réservation.
+
+        Param:
+        ------
+        id_client: int
+            l'id du client
+        place: str
+            le numéro de place de la reservation
+        classe: int
+             la classe choisie lors de la réservation 
+        """
         pass
 
     def annuler(id_reservation: int):
