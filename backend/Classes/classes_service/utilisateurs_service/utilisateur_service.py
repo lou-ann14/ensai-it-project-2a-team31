@@ -1,5 +1,6 @@
-from classes_DAO import utilisateurs_DAO
-from classes.classes_objets.gare.py import gare
+from classes_DAO import UtilisateursDAO
+from classes.classes_objets.gare.py import Gare
+from datetime import datetime
 
 class UtilisateurService:
     """classe qui gère les actions des utilisateurs
@@ -7,7 +8,7 @@ class UtilisateurService:
     def creer_compte(self, nom_utilisateur: str, mdp: str, role: str):
         pass
 
-    def recherche_trajet(self, gare_depart: gare, gare_arrivee: gare, date: datetime):
+    def recherche_trajet(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime):
         pass
 
     def recherche_gare(self, nom: str | None, ville: str | None):
