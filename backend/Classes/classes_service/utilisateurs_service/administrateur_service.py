@@ -1,4 +1,4 @@
-from Classes_Objets import Administrateur
+from classes_objets import administrateur
 
 
 class AdministrateurService:

@@ -1,8 +1,8 @@
-from Classes.Classes_Objets.Gare.py import Gare
+from classes.classes_objets.gare import gare
 
 
 class GareService : 
-    def rechercher(self, nom: str | None, ville: str | None) -> Gare:
+    def rechercher(self, nom: str | None, ville: str | None) -> gare:
         """
         Methode servant à rechercher une gare par le nom.
 
