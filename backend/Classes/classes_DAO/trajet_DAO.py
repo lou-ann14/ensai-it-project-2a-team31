@@ -1,5 +1,5 @@
-from classes_objets.gare import gare
-from classes_objets.trajet import trajet
+from classes_objets.gare import Gare
+from classes_objets.trajet import Trajet
 
 
 class TrajetDAO:

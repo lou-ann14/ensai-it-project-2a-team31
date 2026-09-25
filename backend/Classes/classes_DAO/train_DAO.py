@@ -1,4 +1,4 @@
-from classes_objets import train
+from classes_objets import Train
 
 
 class TrainDAO:
