@@ -5,16 +5,16 @@ from Classes.Classes_Service.UtilisateurService import UtilisateurService
 
 
 class TrajetService():
-    def creer(id_ligne: int, id_train: int, heure_depart: datetime, heure_arrivee: datetime, tarif_base: float):
+    def creer(self, id_ligne: int, id_train: int, heure_depart: datetime, heure_arrivee: datetime, tarif_base: float):
         pass
     
-    def modifier(id_trajet: int, trajer: Trajet):
+    def modifier(self, id_trajet: int, trajer: Trajet):
         pass
 
-    def supprimer(id_trajet: int):
+    def supprimer(self, id_trajet: int):
         pass
 
-    def rechercher(gare_depart: Gare, gare_arrivee: Gare, date: datetime):
+    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime):
         pass
-    
+
 
