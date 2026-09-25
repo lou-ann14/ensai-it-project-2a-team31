@@ -11,10 +11,6 @@ class ReservationDAO:
         place: str,
         classe: int,
         prix: float
-<<<<<<< HEAD:backend/Classes/classes_DAO/reservation_DAO.py
-    ) -> reservation:
-        return reservation(id_reservation, id_client, id_trajet, place, classe, prix)
-=======
         ) -> Reservation:
         """
         Enregistre une nouvelle réservation dans la base de données.
@@ -41,7 +37,6 @@ class ReservationDAO:
         """
 
         return Reservation(id_reservation, id_client, id_trajet, place, classe, prix)
->>>>>>> edb78a65a60f6d3edff5f9e47a2f4c85404b8afb:backend/Classes/ClassesDAO/ReservationDAO.py
 
     def annuler(self, id_reservation: int):
          """
