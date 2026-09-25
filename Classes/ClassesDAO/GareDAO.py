@@ -2,8 +2,8 @@
 
 
 class GareDAO:
-    def rechercher(nom: str | None, ville: str | None) -> Gare :
+    def rechercher(self, nom: str | None, ville: str | None) -> Gare :
         pass
     
-    def trouver_par_id(id_gare: int) -> Gare:
+    def trouver_par_id(self, id_gare: int) -> Gare:
         pass
