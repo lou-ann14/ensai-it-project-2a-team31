@@ -1,9 +1,9 @@
-from classes.classes_service.reservation_service import reservation_service
-from classes.classes_service.client_service import client_service
-from classes.classes_service.collaborateur_service import collaborateur_service
-from classes.classes_service.utilisateur_service import utilisateur_service
-from classes_objets.trajet import trajet
-from classes_objets.gare import gare
+from classes.classes_service.reservation_service import ReservationService
+from classes.classes_service.client_service import ClientService
+from classes.classes_service.collaborateur_service import CollaborateurService
+from classes.classes_service.utilisateur_service import UtilisateurService
+from classes_objets.trajet import Trajet
+from classes_objets.gare import Gare
 from datetime import datetime
 
 class TrajetService():

@@ -1,4 +1,4 @@
-
+from Classes.classes_objets.gare import Gare
 
 
 class CollaborateurService:
