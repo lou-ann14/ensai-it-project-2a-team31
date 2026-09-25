@@ -1,5 +1,5 @@
-from classes_objets import train
-from classes_service import trajet_service
+from classes_objets import Train
+from classes_service import TrajetService
 
 
 def creer(type_train: str, places_initiales: int):
