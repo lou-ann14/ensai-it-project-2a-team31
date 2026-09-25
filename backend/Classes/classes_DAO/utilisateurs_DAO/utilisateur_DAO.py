@@ -1,4 +1,4 @@
-from Classes_Objets.Utilisateurs.Utilisateur import Utilisateur
+from classes_objets.utilisateurs.utilisateur import Utilisateur
 
 
 class UtilisateurDAO:

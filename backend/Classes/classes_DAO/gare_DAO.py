@@ -1,4 +1,4 @@
-from Classes_Objets.Gare import Gare
+from classes_objets.gare import Gare
 
 
 class GareDAO:

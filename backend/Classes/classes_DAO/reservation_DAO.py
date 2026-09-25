@@ -1,4 +1,4 @@
-from Classes_Objets import Reservation
+from classes_objets import reservation
 
 
 class ReservationDAO:
@@ -11,8 +11,8 @@ class ReservationDAO:
         place: str,
         classe: int,
         prix: float
-    ) -> Reservation:
-        return Reservation(id_reservation, id_client, id_trajet, place, classe, prix)
+    ) -> reservation:
+        return reservation(id_reservation, id_client, id_trajet, place, classe, prix)
 
     def annuler(self, id_reservation: int):
         pass

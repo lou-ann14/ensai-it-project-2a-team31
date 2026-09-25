@@ -1,7 +1,7 @@
-from Classes.Classes_Objets.Gare import Gare 
+from classes.classes_objets.gare import gare 
 
 class LigneService():
-    def creer(gare_depart:Gare,gare_arrivee:Gare):
+    def creer(gare_depart:gare, gare_arrivee:gare):
         """
          Methode servant à créer une ligne.
 
@@ -14,7 +14,7 @@ class LigneService():
         """
         pass 
 
-    def rechercher(gare_depart:Gare,gare_arrivee:Gare):
+    def rechercher(gare_depart:gare, gare_arrivee:gare):
         """Methode servant à rechercher une ligne
 
         Param:
