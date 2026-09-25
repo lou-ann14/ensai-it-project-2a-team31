@@ -2,7 +2,9 @@ from Classes.Classes_Service.ReservationService import ReservationService
 from Classes.Classes_Service.ClientService import ClientService
 from Classes.Classes_Service.CollaborateurService import CollaborateurService
 from Classes.Classes_Service.UtilisateurService import UtilisateurService
-
+from Classes_Objets.Trajet import Trajet
+from Classes_Objets.Gare import Gare
+from datetime import datetime
 
 class TrajetService():
     def creer(self, id_ligne: int, id_train: int, heure_depart: datetime, heure_arrivee: datetime, tarif_base: float):
