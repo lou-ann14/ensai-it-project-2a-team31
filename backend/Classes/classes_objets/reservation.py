@@ -1,6 +1,6 @@
-from classes_objets import cient
+from classes_objets import Client
 
-from . import trajet
+from . import Trajet
 
 
 class Reservation:

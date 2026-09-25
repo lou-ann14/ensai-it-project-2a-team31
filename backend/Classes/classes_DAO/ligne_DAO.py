@@ -3,11 +3,11 @@ from classes_objets import Gare, Ligne
 
 class LigneDAO:
 
-    def creer(self, ligne: ligne) -> ligne:
+    def creer(self, ligne: Ligne) -> Ligne:
         return ligne
 
-    def rechercher(self, gare_depart: gare, gare_arrivee: gare) -> ligne:
+    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne:
         pass
 
-    def trouver_par_id(id_ligne: int) -> ligne:
+    def trouver_par_id(id_ligne: int) -> Ligne:
         pass
