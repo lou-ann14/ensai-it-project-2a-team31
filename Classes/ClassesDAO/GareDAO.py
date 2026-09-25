@@ -1,7 +1,6 @@
 from Classes_Objets.Gare import Gare
 
 
-
 class GareDAO:
     def rechercher(self, nom: str | None, ville: str | None) -> Gare :
         pass
