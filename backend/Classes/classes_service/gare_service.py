@@ -1,4 +1,4 @@
-from Classes.Classes_Objets.Gare.py import Gare
+from classes.classes_objets.gare import Gare
 
 
 class GareService : 

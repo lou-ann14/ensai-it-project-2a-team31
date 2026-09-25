@@ -1,4 +1,4 @@
-from Collaborateur import Collaborateur
+from collaborateur import Collaborateur
 
 
 class Administrateur(Collaborateur):
