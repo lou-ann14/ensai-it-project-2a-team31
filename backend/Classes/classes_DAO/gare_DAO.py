@@ -1,5 +1,5 @@
+from Classes.classes_objets.gare import Gare
 from utils.db_connexion import DBConnexion
-from classes_objets.gare import Gare
 
 
 class GareDAO:
@@ -25,21 +25,21 @@ class GareDAO:
                 cursor.execute(
                     "SELECT id_gare, nom, ville                          "
                     "  FROM gare                      "
-                    " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)           "
+                    " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s           "
                     "   AND (%(ville)s IS NULL OR ville ILIKE %(ville)s)"
                     " ORDER BY nom",
                     {
                         "nom": f"{nom}%" if nom else None,
                         "ville": f"{ville}%" if ville else None,
-                    },
+                    })
                 gare_bdd = cursor.fetchall()
 
         gares = []
         for trouve in gare_bdd:
-            gares.append( Gare(
+            gares.append(Gare(
                 id_gare=trouve["id_gare"],
-                nom = trouve["nom"],
-                ville = trouve["ville"]
+                nom=trouve["nom"],
+                ville=trouve["ville"]
             ))
         return gares
 
@@ -57,6 +57,21 @@ class GareDAO:
         Gare
             l'objet Gare trouvé
         """
+        with DBConnexion().connexion as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_gare                         "
+                    "FROM gare                              "
+                    "WHERE id_gare = %(id_gare)s            ",
+                    {"id_gare": id_gare}
+                )
+                gare_bdd = cursor.fetchone()
        
-       
-        pass
+        gare = None
+        if gare_bdd:
+            gare = Gare(
+                id_gare=gare_bdd["id_gare"],
+                nom=gare_bdd["nom"],
+                ville=gare_bdd["ville"]
+            )
+        return gare
