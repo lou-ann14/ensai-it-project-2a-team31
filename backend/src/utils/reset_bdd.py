@@ -8,7 +8,7 @@ from src.utils.singleton import Singleton
 
 class Reset_bdd(metaclass=Singleton):
     def __init__(self):
-        self.base_path = Path(__file__).resolve().parent.parent.parent
+        self.base_path = Path(__file__).resolve().parent.parent.parent.parent
 
     def Demarrer(self, test_dao=False):
         init_chemin_bdd = self.base_path / "backend" / "data" / "init_bdd.sql"
