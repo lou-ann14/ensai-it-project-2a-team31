@@ -1,8 +1,9 @@
-from classes_objets import Gare, Ligne
-from utils.db_connexion import DBConnexion
+from classes_objets.gare import Gare
+from classes_objets.ligne import Ligne
+from src.utils.db_connexion import DBConnexion
+
 
 class LigneDAO:
-
     def creer(self, ligne: Ligne) -> None:
         """
         Insère une ligne dans la base de données.
@@ -11,7 +12,7 @@ class LigneDAO:
         ------
         ligne: Ligne
           la ligne à créer (son id_ligne est None avant l'insertion)
-        
+
         """
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
@@ -23,7 +24,7 @@ class LigneDAO:
                         "id_gare_depart": ligne.id_gare_depart,
                         "id_gare_arrivee": ligne.id_gare_arrivee,
                     },
-                  )
+                )
         return None
 
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne:
