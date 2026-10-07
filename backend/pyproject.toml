@@ -1,0 +1,18 @@
+[project]
+name = "project_name_back"
+version = "0.1.0"
+description = "API Template for the ENSAI 2nd year IT project"
+authors = [{ name = "Lastname Firstname" }, { name = "Author2" }]
+requires-python = ">=3.13"
+
+dependencies = [
+    "fastapi",
+    "inquirerPy",
+    "psycopg2-binary",
+    "python-dotenv",
+    "pydantic[email]",
+    "PyYAML",
+    "requests",
+    "regex",
+    "uvicorn",
+]
