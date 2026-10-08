@@ -10,7 +10,7 @@ class Reset_bdd(metaclass=Singleton):
     def __init__(self):
         self.base_path = Path(__file__).resolve().parent.parent.parent.parent
 
-    def Demarrer(self, test_dao=False):
+    def Demarrer(self):
         init_chemin_bdd = self.base_path / "backend" / "data" / "init_bdd.sql"
 
         dotenv.load_dotenv()
@@ -32,3 +32,6 @@ class Reset_bdd(metaclass=Singleton):
             cursor.execute(init_bdd_as_string)
         
         return True
+
+if __name__ == "__main__":
+    Reset_bdd().Demarrer()
