@@ -1,5 +1,5 @@
-from Classes.classes_objets.gare import Gare
-from utils.db_connexion import DBConnexion
+from src.Classes.classes_objets.gare import Gare
+from src.utils.db_connexion import DBConnexion
 
 
 class GareDAO:
@@ -24,8 +24,8 @@ class GareDAO:
             with connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT id_gare, nom, ville                          "
-                    "  FROM gare                      "
-                    " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s           "
+                    "  FROM gares                     "
+                    " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s)          "
                     "   AND (%(ville)s IS NULL OR ville ILIKE %(ville)s)"
                     " ORDER BY nom",
                     {
@@ -60,9 +60,9 @@ class GareDAO:
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id_gare                         "
-                    "FROM gare                              "
-                    "WHERE id_gare = %(id_gare)s            ",
+                    "SELECT id_gare, nom, ville             "
+                    "  FROM gares                           "
+                    " WHERE id_gare = %(id_gare)s           ",
                     {"id_gare": id_gare}
                 )
                 gare_bdd = cursor.fetchone()

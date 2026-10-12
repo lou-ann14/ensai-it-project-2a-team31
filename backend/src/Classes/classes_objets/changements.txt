@@ -3,3 +3,7 @@
 classe Train : 
 -changement attribut "places_initiales" pour en faire une list[int] afin de gérer le nb places en premiere classe et en deuxieme classe
 - reflexion à avoir sur type_train
+
+classe GareService / GareDAO :
+- rechercher() renvoie list[Gare] au lieu d'une unique Gare (une recherche par ville peut renvoyer plusieurs gares, ,par ex: Paris)
+- si nom et ville sont vides ou None, la recherche renvoie toutes les gares 

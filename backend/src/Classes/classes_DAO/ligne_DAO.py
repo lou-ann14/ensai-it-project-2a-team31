@@ -1,10 +1,10 @@
-from classes_objets.gare import Gare
-from classes_objets.ligne import Ligne
+from src.Classes.classes_objets.gare import Gare
+from src.Classes.classes_objets.ligne import Ligne
 from src.utils.db_connexion import DBConnexion
 
 
 class LigneDAO:
-    def creer(self, ligne: Ligne) -> None:
+    def creer(self, ligne: Ligne) -> Ligne:
         """
         Insère une ligne dans la base de données.
 
@@ -13,6 +13,10 @@ class LigneDAO:
         ligne: Ligne
           la ligne à créer (son id_ligne est None avant l'insertion)
 
+        Return:
+        ------
+        Ligne
+            l'objet Ligne créé, avec son id_ligne renseigné
         """
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
@@ -25,9 +29,11 @@ class LigneDAO:
                         "id_gare_arrivee": ligne.id_gare_arrivee,
                     },
                 )
-        return None
+                ligne.id_ligne = cursor.fetchone()["id_ligne"]
 
-    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne:
+        return ligne
+
+    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
         """Recherche la ligne reliant une gare de départ à une gare d'arrivée.
 
         Param:
@@ -64,7 +70,7 @@ class LigneDAO:
             )
         return ligne
 
-    def trouver_par_id(id_ligne: int) -> Ligne:
+    def trouver_par_id(self, id_ligne: int) -> Ligne | None:
         """
         Récupère une ligne spécifique par son identifiant.
 
@@ -81,9 +87,9 @@ class LigneDAO:
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id_ligne                         "
-                    "FROM ligne                              "
-                    "WHERE id_ligne = %(id_ligne)s            ",
+                    "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
+                    "  FROM lignes                                         "
+                    " WHERE id_ligne = %(id_ligne)s                        ",
                     {"id_ligne": id_ligne}
                 )
                 ligne_bdd = cursor.fetchone()
@@ -91,7 +97,7 @@ class LigneDAO:
         ligne = None
         if ligne_bdd:
             ligne = Ligne(
-                id_ligne=ligne_bdd["id_gare"],
+                id_ligne=ligne_bdd["id_ligne"],
                 id_gare_depart=ligne_bdd["id_gare_depart"],
                 id_gare_arrivee=ligne_bdd["id_gare_arrivee"]
             )
