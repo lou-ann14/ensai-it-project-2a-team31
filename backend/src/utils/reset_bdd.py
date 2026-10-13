@@ -22,7 +22,6 @@ class Reset_bdd(metaclass=Singleton):
         create_schema = (
             f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
         )
-        print("1")
         try:
             with open(init_chemin_bdd, encoding="utf-8") as init_fichier_bdd:
                 init_bdd_as_string = init_fichier_bdd.read()
@@ -31,16 +30,11 @@ class Reset_bdd(metaclass=Singleton):
         except FileNotFoundError as e:
             logger.error( f"Erreur de chemin : impossible de trouver le fichier {e.filename}")
             raise
-        print('2')    
         try:    
-            with DBConnexion().connexion.cursor() as cursor:
-                print('2.5')
-                cursor.execute(create_schema)
-                print('3')
-                cursor.execute(init_bdd_as_string)
-                print('4')
-                cursor.execute(test_bdd_as_string)
-                print('5')
+            with DBConnexion().connexion as connexion, connexion.cursor() as cursor:
+                    cursor.execute(create_schema)
+                    cursor.execute(init_bdd_as_string)
+                    cursor.execute(test_bdd_as_string)
         except Exception as e:
             logger.info(e)
             raise
