@@ -107,3 +107,44 @@ class ReservationDAO:
                 )
 
         return reservations
+
+    def trouver_par_id(self, id_reservation: int) -> Reservation | None:
+        """
+        Récupère une réservation par son identifiant.
+
+        Param:
+        ------
+        id_reservation: int
+            l'identifiant de la réservation
+
+        Return:
+        ------
+        Reservation
+            l'objet Reservation trouvé, ou None s'il n'existe pas
+        """
+        with DBConnexion().connexion as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_reservation,                            "
+                    "       id_client,                                 "
+                    "       id_trajet,                                 "
+                    "       place,                                     "
+                    "       classe,                                    "
+                    "       prix                                       "
+                    "  FROM reservations                               "
+                    " WHERE id_reservation = %(id_reservation)s        ",
+                    {"id_reservation": id_reservation},
+                )
+                reservation_bdd = cursor.fetchone()
+
+        reservation = None
+        if reservation_bdd:
+            reservation = Reservation(
+                id_reservation=reservation_bdd["id_reservation"],
+                id_client=reservation_bdd["id_client"],
+                id_trajet=reservation_bdd["id_trajet"],
+                place=reservation_bdd["place"],
+                classe=reservation_bdd["classe"],
+                prix=reservation_bdd["prix"],
+            )
+        return reservation
