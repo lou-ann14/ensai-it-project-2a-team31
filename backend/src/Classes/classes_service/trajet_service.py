@@ -190,7 +190,7 @@ class TrajetService:
         if id_ligne is None or id_train is None:
             raise ValueError("La ligne et le train sont obligatoires.")
         if not isinstance(heure_depart, datetime) or not isinstance(heure_arrivee, datetime):
-            raise ValueError("Les heures de départ et d'arrivée doivent être des dates avec heure.")
+            raise TypeError("Les heures de départ et d'arrivée doivent être des dates avec heure.")
         if heure_arrivee <= heure_depart:
             raise ValueError("L'heure d'arrivée doit être postérieure à l'heure de départ.")
         if tarif_base is None or tarif_base < 0:
