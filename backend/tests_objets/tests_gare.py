@@ -1,7 +1,7 @@
 import re
 
 import pytest
-from src.Classes.classes_objets.trajet import Gare
+from src.Classes.classes_objets.gare import Gare
 
 
 class TestGare:
