@@ -30,7 +30,7 @@ def test_creer_ok():
 
 
 def test_creer_fail():
-    "Ne parvient pas à créer de trajet car TrajetDAO().creer retourne False"
+    """Ne parvient pas à créer de trajet car TrajetDAO().creer retourne False"""
     # GIVEN
     id_ligne, id_train, tarif_base = 1, 1, 30.0
     heure_depart = datetime.now()
