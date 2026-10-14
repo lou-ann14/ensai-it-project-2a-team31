@@ -27,7 +27,7 @@ class TestGare:
     )
     def test_init_gare(params, erreur, message_erreur):
         dico = {
-            "1",
+            1,
             "Matabiau",
             "Toulouse"}
         dico.update(**params)
@@ -36,7 +36,7 @@ class TestGare:
 
     @pytest.mark.parametrize(
         "id_gare, nom, ville, resultat_attendu",
-        [("1", "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
+        [(1, "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
     )
     def test_str_gare(id_gare, nom, ville, resultat_attendu):
         assert Gare.__str__() == resultat_attendu
