@@ -1,7 +1,7 @@
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.utils.db_connexion import DBConnexion
-
+from src.Classes.classes_DAO.gare_DAO import GareDAO
 
 class LigneDAO:
     def creer(self, ligne: Ligne) -> Ligne:
@@ -11,7 +11,7 @@ class LigneDAO:
         Param:
         ------
         ligne: Ligne
-          la ligne à créer (son id_ligne est None avant l'insertion)
+        la ligne à créer (son id_ligne est None avant l'insertion)
 
         Return:
         ------
@@ -25,8 +25,8 @@ class LigneDAO:
                     "VALUES (%(id_gare_depart)s, %(id_gare_arrivee)s)      "
                     "RETURNING id_ligne                                    ",
                     {
-                        "id_gare_depart": ligne.id_gare_depart,
-                        "id_gare_arrivee": ligne.id_gare_arrivee,
+                        "id_gare_depart": ligne.gare_depart.id_gare,
+                        "id_gare_arrivee": ligne.gare_arrivee.id_gare,
                     },
                 )
                 ligne.id_ligne = cursor.fetchone()["id_ligne"]
@@ -63,10 +63,11 @@ class LigneDAO:
 
         ligne = None
         if ligne_bdd:
+        # Les deux gares sont déjà connues : inutile de les relire en base
             ligne = Ligne(
                 id_ligne=ligne_bdd["id_ligne"],
-                id_gare_depart=ligne_bdd["id_gare_depart"],
-                id_gare_arrivee=ligne_bdd["id_gare_arrivee"],
+                gare_depart=gare_depart,
+                gare_arrivee=gare_arrivee,
             )
         return ligne
 
@@ -81,8 +82,8 @@ class LigneDAO:
 
         Return:
         ------
-        Ligne
-            l'objet Ligne trouvé
+        Ligne | None
+            l'objet Ligne trouvé (avec ses deux objets Gare), ou None s'il n'existe pas
         """
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
@@ -90,15 +91,16 @@ class LigneDAO:
                     "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
                     "  FROM lignes                                         "
                     " WHERE id_ligne = %(id_ligne)s                        ",
-                    {"id_ligne": id_ligne}
+                    {"id_ligne": id_ligne},
                 )
                 ligne_bdd = cursor.fetchone()
-       
+
         ligne = None
         if ligne_bdd:
+            gare_dao = GareDAO()
             ligne = Ligne(
                 id_ligne=ligne_bdd["id_ligne"],
-                id_gare_depart=ligne_bdd["id_gare_depart"],
-                id_gare_arrivee=ligne_bdd["id_gare_arrivee"]
+                gare_depart=gare_dao.trouver_par_id(ligne_bdd["id_gare_depart"]),
+                gare_arrivee=gare_dao.trouver_par_id(ligne_bdd["id_gare_arrivee"]),
             )
         return ligne

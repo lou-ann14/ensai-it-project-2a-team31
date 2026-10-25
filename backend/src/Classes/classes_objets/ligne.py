@@ -1,5 +1,4 @@
-from gare import Gare
-
+from src.Classes.classes_objets.gare import Gare
 
 class Ligne:
     def __init__(self, id_ligne: int, gare_depart: Gare, gare_arrivee: Gare):

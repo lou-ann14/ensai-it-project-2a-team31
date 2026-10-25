@@ -37,8 +37,8 @@ class LigneService:
 
         ligne = Ligne(
             id_ligne=None,
-            id_gare_depart=gare_depart.id_gare,
-            id_gare_arrivee=gare_arrivee.id_gare,
+            gare_depart=gare_depart,
+            gare_arrivee=gare_arrivee,
         )
         return LigneDAO().creer(ligne)
 
