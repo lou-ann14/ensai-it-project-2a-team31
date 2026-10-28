@@ -35,12 +35,7 @@ class LigneService:
         if self.rechercher(gare_depart, gare_arrivee) is not None:
             raise ValueError("Une ligne existe déjà entre ces deux gares.")
 
-        ligne = Ligne(
-            id_ligne=None,
-            id_gare_depart=gare_depart.id_gare,
-            id_gare_arrivee=gare_arrivee.id_gare,
-        )
-        return LigneDAO().creer(ligne)
+        return LigneDAO().creer(gare_depart, gare_arrivee)
 
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
         """
