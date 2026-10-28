@@ -4,6 +4,10 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
+from fastapi import HTTPException   
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
+from src.Classes.classes_service.utilisateurs_service.administrateur_service import AdministrateurService
+
 
 logger = get_logger(__name__)
 
@@ -47,6 +51,32 @@ async def reset_database():
     return {
         "message": f"Database re-initialization - {'SUCCES' if succes else 'ECHEC'}"
     }
+
+def utilisateur_en_json(utilisateur: Utilisateur) -> dict:
+    """Transforme un Utilisateur en dictionnaire, sans le mot de passe"""
+    return {"id": utilisateur.id, "nom_utilisateur": utilisateur.nom_utilisateur, "role": utilisateur.role}
+
+
+@app.get("/admin/utilisateurs", tags=["Administrateur"])
+def rechercher_compte(id_utilisateur: int | None = None, nom_utilisateur: str | None = None):
+    """Recherche un compte par identifiant ou par nom d'utilisateur"""
+    try:
+        utilisateur = AdministrateurService().recherche_compte(nom_utilisateur, id_utilisateur)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if utilisateur is None:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    return utilisateur_en_json(utilisateur)
+
+
+@app.put("/admin/utilisateurs/{id_utilisateur}/role", tags=["Administrateur"])
+def modifier_role(id_utilisateur: int, nouveau_role: str):
+    """Modifie le niveau d'habilitation d'un utilisateur (CLIENT, COLLABORATEUR ou ADMIN)"""
+    try:
+        utilisateur = AdministrateurService().gerer_habilitation(id_utilisateur, nouveau_role)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return utilisateur_en_json(utilisateur)
 
 
 # Lance l'application FastAPI
