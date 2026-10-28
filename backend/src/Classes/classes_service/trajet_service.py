@@ -11,6 +11,9 @@ from src.utils.log_utils import log
 class TrajetService:
     """Classe qui gère les opérations métier sur les trajets"""
 
+    def __init__(self):
+        self.trajet_dao = TrajetDAO()
+
     @log
     def creer(
         self,
@@ -63,7 +66,7 @@ class TrajetService:
         )
         # TODO : remplacer par TrainDAO.trouver_par_id quand TrainDAO sera écrit
         try:
-            return TrajetDAO().creer(trajet)
+            return self.trajet_dao.creer(trajet)
         except ForeignKeyViolation:
             raise ValueError(f"Le train #{id_train} n'existe pas.")
 
