@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
@@ -136,8 +135,7 @@ def test_creer_ok():
     service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
-    trajet_dao = TrajetDAO()
-    trajet_dao.creer = MagicMock(return_value=trajet_test)
+    service.trajet_dao.creer = MagicMock(return_value=trajet_test)
 
     # WHEN
     trajet = service.creer(
@@ -159,8 +157,7 @@ def test_creer_fail():
     service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
-    trajet_dao = TrajetDAO()
-    trajet_dao.creer = MagicMock(return_value=None)
+    service.trajet_dao.creer = MagicMock(return_value=None)
 
     # WHEN
     trajet = service.creer(
@@ -192,3 +189,4 @@ def test_creer_donnees_invalides():
             )
 
 # TODO test creer: ligne inexistante, trajet déjà existant, train inexistant
+
