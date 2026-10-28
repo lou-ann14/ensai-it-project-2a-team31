@@ -4,20 +4,25 @@ from src.utils.db_connexion import DBConnexion
 
 
 class LigneDAO:
-    def creer(self, ligne: Ligne) -> Ligne:
+    def creer(self, gare_depart: Gare, gare_arrivee: Gare) -> bool:
         """
         Insère une ligne dans la base de données.
 
         Param:
         ------
-        ligne: Ligne
-          la ligne à créer (son id_ligne est None avant l'insertion)
+        gare_depart:
+            l'identifiant de la gare qui se trouvera en début de la ligne
+        
+        gare_arrivee:
+            l'identifiant de la gare qui se retrouvera en bout de ligne
 
         Return:
         ------
-        Ligne
-            l'objet Ligne créé, avec son id_ligne renseigné
+        bool
+            confirmation que la nouvelle ligne a été crée (ou non) dans la base de données
         """
+        id_gare_depart = gare_depart.id_gare
+        id_gare_arrivee = gare_arrivee.id_gare
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -25,13 +30,13 @@ class LigneDAO:
                     "VALUES (%(id_gare_depart)s, %(id_gare_arrivee)s)      "
                     "RETURNING id_ligne                                    ",
                     {
-                        "id_gare_depart": ligne.id_gare_depart,
-                        "id_gare_arrivee": ligne.id_gare_arrivee,
+                        "id_gare_depart": id_gare_depart,
+                        "id_gare_arrivee": id_gare_arrivee,
                     },
                 )
-                ligne.id_ligne = cursor.fetchone()["id_ligne"]
+                id_ligne = cursor.fetchone()["id_ligne"]
 
-        return ligne
+        return id_ligne is not None
 
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
         """Recherche la ligne reliant une gare de départ à une gare d'arrivée.
