@@ -46,9 +46,17 @@ def test_rechercher_aucune_gare(mock_db):
     assert gares_trouvees == []
 
 
-@patch
-def test_rechercher_prefixe_nom_insensible_casse():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_prefixe_nom_insensible_casse(mock_db):
+    """La recherche 'mat' envoie le préfixe 'mat%' avec un ILIKE"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_matabiau]
+    gares_trouvees = GareDAO().rechercher(nom="mat", ville=None)
+    requete, parametres = cursor.execute.call_args.args  # il regarde ce que le DAO a éxécuté
+    
+    assert "ILIKE" in requete
+    assert parametres["nom"] == "mat%"
+    assert gares_trouvees[0].nom == "Matabiau"
 
 
 def test_rechercher_par_ville():
