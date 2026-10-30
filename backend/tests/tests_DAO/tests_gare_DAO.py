@@ -59,21 +59,63 @@ def test_rechercher_prefixe_nom_insensible_casse(mock_db):
     assert gares_trouvees[0].nom == "Matabiau"
 
 
-def test_rechercher_par_ville():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_par_ville(mock_db):
+    """La recherche 'Paris' envoie 'Paris%' pour la ville et rien pour le nom"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_de_lyon, gare_montparnasse]
+    gares_trouvees = GareDAO().rechercher(nom=None, ville="Paris")
+    requete, parametres = cursor.execute.call_args.args
+
+    assert parametres["ville"] == "Paris%"
+    assert parametres["nom"] is None
+    assert gares_trouvees == [gare_de_lyon, gare_montparnasse]
 
 
-def test_rechercher_nom_et_ville():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_nom_et_ville(mock_db):
+    """Nom et ville renseignés : les deux préfixes sont envoyés avec un AND"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_montparnasse]
+    gares_trouvees = GareDAO().rechercher(nom="Mont", ville="Paris")
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "AND" in requete
+    assert parametres["nom"] == "Mont%"
+    assert parametres["ville"] == "Paris%"
+    assert gares_trouvees[0].nom == "Montparnasse"
 
 
-def test_rechercher_tri_par_nom():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_tri_par_nom(mock_db):
+    """La requête demande un tri par nom"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = gares_bdd
+    GareDAO().rechercher(nom=None, ville=None)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "ORDER BY nom" in requete
 
 
-def test_trouver_par_id_ok():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_trouver_par_id_ok(mock_db):
+    """L'id 1 existe donc on obtient la gare Matabiau"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = gare_matabiau
+    gare_trouvee = GareDAO().trouver_par_id(1)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert parametres["id_gare"] == 1
+    assert isinstance(gare_trouvee, Gare)
+    assert gare_trouvee.nom == "Matabiau"
+    assert gare_trouvee.ville == "Toulouse"
 
 
-def test_trouver_par_id_introuvable():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_trouver_par_id_introuvable(mock_db):
+    """L'id 99 n'existe pas : on obtient None"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = None
+    gare_trouvee = GareDAO().trouver_par_id(99)
+
+    assert gare_trouvee is None
