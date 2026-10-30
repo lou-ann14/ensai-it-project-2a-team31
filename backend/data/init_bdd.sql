@@ -20,13 +20,21 @@ CREATE TABLE lignes(
     id_gare_arrivee INT REFERENCES gares(id_gare),
     id_collaborateur INT REFERENCES utilisateurs(id)
 );
+CREATE TABLE trains(
+    id_train SERIAL PRIMARY KEY,
+    type_train VARCHAR(50),
+    places_premiere INT,
+    places_seconde INT
+);
 
 CREATE TABLE trajets(
     id_trajet SERIAL PRIMARY KEY,
     id_ligne INT REFERENCES lignes(id_ligne),
+    id_train INT REFERENCES trains(id_train),
     heure_depart TIMESTAMP,
     heure_arrivee TIMESTAMP,
-    temps_trajet TIMESTAMP
+    temps_trajet INT,
+    tarif_base FLOAT
 );
 
 CREATE TABLE reservations(

@@ -1,6 +1,9 @@
 from datetime import datetime
 
+from src.Classes.classes_DAO.ligne_DAO import LigneDAO
+from src.Classes.classes_DAO.train_DAO import TrainDAO
 from src.Classes.classes_objets.gare import Gare
+from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.trajet import Trajet
 from src.utils.db_connexion import DBConnexion
 
@@ -29,8 +32,8 @@ class TrajetDAO:
                     "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s) "
                     "RETURNING id_trajet                                                                    ",
                     {
-                        "id_ligne": trajet.id_ligne,
-                        "id_train": trajet.id_train,
+                        "id_ligne": trajet.ligne.id_ligne,
+                        "id_train": trajet.train.id_train,
                         "heure_depart": trajet.heure_depart,
                         "heure_arrivee": trajet.heure_arrivee,
                         "tarif_base": trajet.tarif_base,
@@ -145,14 +148,20 @@ class TrajetDAO:
 
         trajets = []
         if trajets_bdd:
+            train_dao = TrainDAO()
+            trains = {}  # évite de relire plusieurs fois le même train en base
             for trajet in trajets_bdd:
+                id_train = trajet["id_train"]
+                if id_train not in trains:
+                    trains[id_train] = train_dao.trouver_par_id(id_train)
                 trajets.append(
                     Trajet(
                         id_trajet=trajet["id_trajet"],
                         heure_depart=trajet["heure_depart"],
                         heure_arrivee=trajet["heure_arrivee"],
-                        id_ligne=trajet["id_ligne"],
-                        id_train=trajet["id_train"],
+                        # les deux gares sont déjà connues : pas besoin de relire la ligne
+                        ligne=Ligne(trajet["id_ligne"], gare_depart, gare_arrivee),
+                        train=trains[id_train],
                         tarif_base=trajet["tarif_base"],
                     )
                 )
@@ -194,8 +203,8 @@ class TrajetDAO:
                 id_trajet=trajet_bdd["id_trajet"],
                 heure_depart=trajet_bdd["heure_depart"],
                 heure_arrivee=trajet_bdd["heure_arrivee"],
-                id_ligne=trajet_bdd["id_ligne"],
-                id_train=trajet_bdd["id_train"],
+                ligne=LigneDAO().trouver_par_id(trajet_bdd["id_ligne"]),
+                train=TrainDAO().trouver_par_id(trajet_bdd["id_train"]),
                 tarif_base=trajet_bdd["tarif_base"],
             )
         return trajet

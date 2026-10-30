@@ -1,0 +1,26 @@
+25/10/2026 14:42:42 root                      INFO    - --------------------------------------------------
+25/10/2026 14:42:42 root                      INFO    - Starting Webservice                           
+25/10/2026 14:42:42 root                      INFO    - --------------------------------------------------
+25/10/2026 14:42:42 root                      INFO    - Load environment variables: SUCCES
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_HOST=127.0.0.1
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_PORT=5432
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_DATABASE=projet2a
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_USER=postgres
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_PASSWORD=*******
+25/10/2026 14:42:42 root                      INFO    - POSTGRES_SCHEMA=projet
+25/10/2026 14:43:30 root                      INFO    - GET / - START
+25/10/2026 14:43:30 root                      INFO    - GET / - END [Status: 307]
+25/10/2026 14:43:30 root                      INFO    - GET /docs - START
+25/10/2026 14:43:30 root                      INFO    - GET /docs - END [Status: 200]
+25/10/2026 14:43:31 root                      INFO    - GET /openapi.json - START
+25/10/2026 14:43:31 root                      INFO    - GET /openapi.json - END [Status: 200]
+25/10/2026 14:44:16 root                      INFO    - GET /reset_database - START
+25/10/2026 14:44:16 __main__                  INFO    - Database reset
+25/10/2026 14:44:16 src.utils.reset_bdd       INFO    -   demarrer() - START
+25/10/2026 14:44:17 src.utils.reset_bdd       INFO    -   demarrer() - END
+25/10/2026 14:44:17 src.utils.reset_bdd       INFO    -     └─> Output: True
+25/10/2026 14:44:17 root                      INFO    - GET /reset_database - END [Status: 200]
+25/10/2026 14:46:37 root                      INFO    - GET /docs - START
+25/10/2026 14:46:37 root                      INFO    - GET /docs - END [Status: 200]
+25/10/2026 14:46:39 root                      INFO    - GET /openapi.json - START
+25/10/2026 14:46:39 root                      INFO    - GET /openapi.json - END [Status: 200]

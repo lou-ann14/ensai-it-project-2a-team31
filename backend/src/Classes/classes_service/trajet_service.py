@@ -6,6 +6,8 @@ from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.trajet import Trajet
 from src.utils.log_utils import log
+from src.Classes.classes_objets.ligne import Ligne
+from src.Classes.classes_objets.train import Train
 
 
 class TrajetService:
@@ -14,8 +16,8 @@ class TrajetService:
     @log
     def creer(
         self,
-        id_ligne: int,
-        id_train: int,
+        ligne: Ligne,
+        train: Train,
         heure_depart: datetime,
         heure_arrivee: datetime,
         tarif_base: float,
@@ -47,8 +49,8 @@ class TrajetService:
             si une donnée est invalide, si la ligne ou le train n'existe pas
             ou si un trajet existe déjà sur cette ligne à cette heure de départ
         """
-        self._verifier_donnees(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)
-        ligne = self._verifier_ligne(id_ligne)
+        self._verifier_donnees(ligne, train, heure_depart, heure_arrivee, tarif_base)
+        self._verifier_ligne(ligne)
 
         if self._trajet_similaire_existe(ligne, heure_depart):
             raise ValueError("Un trajet existe déjà sur cette ligne à cette date et à cette heure.")
@@ -57,16 +59,14 @@ class TrajetService:
             id_trajet=None,
             heure_depart=heure_depart,
             heure_arrivee=heure_arrivee,
-            id_ligne=id_ligne,
-            id_train=id_train,
+            ligne=ligne,
+            train=train,
             tarif_base=tarif_base,
         )
-        # TODO : remplacer par TrainDAO.trouver_par_id quand TrainDAO sera écrit
         try:
             return TrajetDAO().creer(trajet)
         except ForeignKeyViolation:
-            raise ValueError(f"Le train #{id_train} n'existe pas.")
-
+            raise ValueError(f"Le train #{train.id_train} n'existe pas.")
     @log
     def modifier(self, id_trajet: int, trajet: Trajet) -> bool:
         """
@@ -96,18 +96,18 @@ class TrajetService:
             raise ValueError(f"Le trajet #{id_trajet} n'existe pas.")
 
         self._verifier_donnees(
-            trajet.id_ligne, trajet.id_train, trajet.heure_depart, trajet.heure_arrivee, trajet.tarif_base
+            trajet.ligne, trajet.train, trajet.heure_depart, trajet.heure_arrivee, trajet.tarif_base
         )
-        ligne = self._verifier_ligne(trajet.id_ligne)
+        self._verifier_ligne(trajet.ligne)
 
-        if self._trajet_similaire_existe(ligne, trajet.heure_depart, id_trajet_ignore=id_trajet):
+        if self._trajet_similaire_existe(trajet.ligne, trajet.heure_depart, id_trajet_ignore=id_trajet):
             raise ValueError("Un autre trajet existe déjà sur cette ligne à cette date et à cette heure.")
 
         trajet.id_trajet = id_trajet
         try:
             return TrajetDAO().modifier(trajet)
         except ForeignKeyViolation:
-            raise ValueError(f"Le train #{trajet.id_train} n'existe pas.")
+            raise ValueError(f"Le train #{trajet.train.id_train} n'existe pas.")
 
     @log
     def supprimer(self, id_trajet: int) -> bool:
@@ -185,9 +185,9 @@ class TrajetService:
         """
         return TrajetDAO().trouver_par_id(id_trajet)
 
-    def _verifier_donnees(self, id_ligne, id_train, heure_depart, heure_arrivee, tarif_base) -> None:
+    def _verifier_donnees(self, ligne, train, heure_depart, heure_arrivee, tarif_base) -> None:
         """Vérifie la validité des données d'un trajet (lève ValueError sinon)."""
-        if id_ligne is None or id_train is None:
+        if ligne is None or train is None:
             raise ValueError("La ligne et le train sont obligatoires.")
         if not isinstance(heure_depart, datetime) or not isinstance(heure_arrivee, datetime):
             raise TypeError("Les heures de départ et d'arrivée doivent être des dates avec heure.")
@@ -196,19 +196,17 @@ class TrajetService:
         if tarif_base is None or tarif_base < 0:
             raise ValueError("Le tarif de base doit être positif ou nul.")
 
-    def _verifier_ligne(self, id_ligne: int):
-        """Vérifie que la ligne existe et la renvoie (lève ValueError sinon)."""
-        ligne = LigneDAO().trouver_par_id(id_ligne)
-        if ligne is None:
-            raise ValueError(f"La ligne #{id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante.")
+        def _verifier_ligne(self, ligne: Ligne) -> Ligne:
+        """Vérifie que la ligne existe en base et la renvoie (lève ValueError sinon)."""
+        if LigneDAO().trouver_par_id(ligne.id_ligne) is None:
+            raise ValueError(
+                f"La ligne #{ligne.id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante."
+            )
         return ligne
 
-    def _trajet_similaire_existe(self, ligne, heure_depart: datetime, id_trajet_ignore: int | None = None) -> bool:
+    def _trajet_similaire_existe(self, ligne: Ligne, heure_depart: datetime, id_trajet_ignore: int | None = None) -> bool:
         """Indique si un trajet existe déjà sur cette ligne avec exactement cette heure de départ."""
-        # La recherche du DAO n'utilise que l'id des gares, pas leur nom
-        gare_depart = Gare(ligne.id_gare_depart, None, None)
-        gare_arrivee = Gare(ligne.id_gare_arrivee, None, None)
-        trajets_du_jour = TrajetDAO().rechercher(gare_depart, gare_arrivee, heure_depart)
+        trajets_du_jour = TrajetDAO().rechercher(ligne.gare_depart, ligne.gare_arrivee, heure_depart)
         return any(
             trajet.heure_depart == heure_depart and trajet.id_trajet != id_trajet_ignore
             for trajet in trajets_du_jour
