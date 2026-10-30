@@ -5,7 +5,23 @@ from src.Classes.classes_objets.train import Train
 
 
 class Trajet:
-    """Classe qui modélise un trajet et ses différentes caractéristiques."""
+    """Classe qui modélise un trajet et ses différentes caractéristiques.
+
+    Param:
+    ------
+    id_trajet: int | None
+        identifiant du trajet (None tant qu'il n'est pas enregistré en base)
+    heure_depart: datetime
+        date et heure de départ
+    heure_arrivee: datetime
+        date et heure d'arrivée
+    ligne: Ligne
+        la ligne sur laquelle le trajet est effectué
+    train: Train
+        le train utilisé pour ce trajet
+    tarif_base: float
+        le prix de base du trajet
+    """
 
     def __init__(
         self,
