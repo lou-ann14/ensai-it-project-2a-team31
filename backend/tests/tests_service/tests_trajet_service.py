@@ -189,4 +189,3 @@ def test_creer_donnees_invalides():
             )
 
 # TODO test creer: ligne inexistante, trajet déjà existant, train inexistant
-

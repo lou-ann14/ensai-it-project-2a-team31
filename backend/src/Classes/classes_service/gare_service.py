@@ -5,6 +5,9 @@ from src.Classes.classes_objets.gare import Gare
 class GareService:
     """Classe qui gère les opérations métier sur les gares"""
 
+    def __init__(self):
+        self.gare_dao = GareDAO()
+
     def rechercher(self, nom: str | None, ville: str | None) -> list[Gare]:
         """
         Recherche des gares par nom et/ou par ville.
@@ -24,4 +27,4 @@ class GareService:
         """
         nom = nom.strip() if nom else None
         ville = ville.strip() if ville else None
-        return GareDAO().rechercher(nom=nom or None, ville=ville or None)
+        return self.gare_dao.rechercher(nom=nom or None, ville=ville or None)
