@@ -95,7 +95,7 @@ class TrajetService:
         """
         if trajet is None:
             raise ValueError("Le trajet à modifier est obligatoire.")
-        if TrajetDAO().trouver_par_id(id_trajet) is None:
+        if self.trajet_dao.trouver_par_id(id_trajet) is None:
             raise ValueError(f"Le trajet #{id_trajet} n'existe pas.")
 
         self._verifier_donnees(
@@ -108,7 +108,7 @@ class TrajetService:
 
         trajet.id_trajet = id_trajet
         try:
-            return TrajetDAO().modifier(trajet)
+            return self.trajet_dao.modifier(trajet)
         except ForeignKeyViolation:
             raise ValueError(f"Le train #{trajet.id_train} n'existe pas.")
 
@@ -133,7 +133,7 @@ class TrajetService:
             si des réservations existent encore sur ce trajet
         """
         try:
-            return TrajetDAO().supprimer(id_trajet)
+            return self.trajet_dao.supprimer(id_trajet)
         except ForeignKeyViolation:
             raise ValueError("Impossible de supprimer un trajet qui a des réservations.")
 
@@ -168,7 +168,7 @@ class TrajetService:
         if date_voyage is None:
             raise ValueError("La date de voyage est obligatoire.")
 
-        return TrajetDAO().rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
+        return self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
 
     @log
     def trouver_par_id(self, id_trajet: int) -> Trajet | None:
@@ -186,7 +186,7 @@ class TrajetService:
         Trajet | None
             le trajet trouvé, ou None s'il n'existe pas
         """
-        return TrajetDAO().trouver_par_id(id_trajet)
+        return self.trajet_dao.trouver_par_id(id_trajet)
 
     def _verifier_donnees(self, id_ligne, id_train, heure_depart, heure_arrivee, tarif_base) -> None:
         """Vérifie la validité des données d'un trajet (lève ValueError sinon)."""
@@ -211,7 +211,7 @@ class TrajetService:
         # La recherche du DAO n'utilise que l'id des gares, pas leur nom
         gare_depart = Gare(ligne.id_gare_depart, None, None)
         gare_arrivee = Gare(ligne.id_gare_arrivee, None, None)
-        trajets_du_jour = TrajetDAO().rechercher(gare_depart, gare_arrivee, heure_depart)
+        trajets_du_jour = self.trajet_dao.rechercher(gare_depart, gare_arrivee, heure_depart)
         return any(
             trajet.heure_depart == heure_depart and trajet.id_trajet != id_trajet_ignore
             for trajet in trajets_du_jour
