@@ -41,7 +41,7 @@ async def creer_train(train: TrainBaseModel, train_service=Depends(get_train_ser
     """
     logger.info("Créer un train")
 
-    train = train_service.create(train.type_train, train.places_initiales)
+    train = train_service.creer(train.type_train, train.places_initiales)
     if not train:
         raise HTTPException(status_code=500, detail="Erreur pendant la création du train")
 
