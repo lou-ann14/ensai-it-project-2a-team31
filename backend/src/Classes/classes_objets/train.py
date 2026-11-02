@@ -11,7 +11,7 @@ class Train:
     places_initiales: list[int]
         Nombre de places en première classe et en deuxième classe
     """
-    def __init__(self, type_train: str, places_initiales: list[int], id_train = None):
+    def __init__(self, type_train: str, places_initiales: list[int, int], id_train = None):
         self.id_train = id_train
         self.type_train = type_train
         self.places_initiales = places_initiales

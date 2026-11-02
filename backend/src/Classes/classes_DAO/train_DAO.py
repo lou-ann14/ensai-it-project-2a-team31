@@ -43,7 +43,7 @@ class TrainDAO:
         
 
     @log
-    def modifier_capacite(self, id_train: int, capacite: list(int)) -> bool:
+    def modifier_capacite(self, id_train: int, capacite: list[int, int]) -> bool:
         """
         Met à jour la capacité d'un train existant.
 

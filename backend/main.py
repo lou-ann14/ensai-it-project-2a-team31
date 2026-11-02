@@ -39,8 +39,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": exc.errors(), "body": body_str},
     )
 
-app.include_router(train_controller.router, prefix = "/trains", tags = ["Trains"])
 
+app.include_router(train_controller.router, prefix="/trains", tags=["Trains"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
