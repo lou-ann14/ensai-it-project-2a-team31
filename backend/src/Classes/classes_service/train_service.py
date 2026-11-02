@@ -1,40 +1,50 @@
+from src.Classes.classes_DAO import TrainDAO
 from src.Classes.classes_objets import Train
-from src.Classes.classes_service import TrajetService
+from src.utils.log_utils import log
 
 
-def creer(type_train: str, places_initiales: int):
-    """
-    Méthode servant à créer un nouveau train.
+class TrainService:
 
-    Param:
-    ------
-    type_train: str
-        le type de train (ex: TGV, TER)
-    places_initiales: int
-        le nombre de places disponibles au départ
+    @log
+    def creer(self, type_train: str, places_initiales: int):
+        """
+        Méthode servant à créer un nouveau train.
 
-    Return:
-    ------
-    int
-        l'id du nouveau train créé
-    """
-    pass
+        Param:
+        ------
+        type_train: str
+            le type de train (ex: TGV, TER)
+        places_initiales: int
+            le nombre de places disponibles au départ
 
-def modifier_capacite(id_train: int, capacite: int):
-    """
-    Méthode servant à modifier la capacité d'un train existant.
+        Return:
+        ------
+        Train
+            Le Train créer ou None si la création a échoué
+        """
+        train = Train(type_train, places_initiales)
 
-    Param:
-    ------
-    id_train: int
-        l'identifiant du train à modifier
-    capacite: int
-        la nouvelle capacité du train
+        return train if TrainDAO().creer(train) else None
 
-    Return:
-    ------
-    bool
-        True si la modification a réussi, False sinon
-    """
-    pass
+    @log
+    def modifier_capacite(self, id_train: int, capacite: list[int]):
+        """
+        Méthode servant à modifier la capacité d'un train existant.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train à modifier
+        capacite: list[int]
+            la nouvelle capacité du train
+
+        Return:
+        ------
+        bool
+            True si la modification a réussi, False sinon
+        """
+        if len(capacite) != 2:
+            raise ValueError("capacité incorrecte, la longueur de la liste doit être de 2")
+
+        return TrainDAO().modifier_capacite(id_train, capacite = capacite)
 
