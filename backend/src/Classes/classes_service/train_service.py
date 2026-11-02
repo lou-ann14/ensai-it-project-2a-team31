@@ -28,6 +28,33 @@ class TrainService:
         return train if TrainDAO().creer(train) else None
 
     @log
+    def trouver_par_if(self, id_train: int):
+        """
+        Méthode servant à trouver un train avec son id.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train à modifier
+
+        Return:
+        ------
+        Train
+            Le train trouvé
+        
+        Raises:
+        ------
+        HTTPException 404
+            Erreur 404 si le train n'est pas trouvé
+        """
+        train = TrainDAO().trouver_par_id(id_train)
+
+        if not train:
+            raise HTTPException(status_code=404, detail="Train pas trouvé")
+
+        return train 
+
+    @log
     def modifier_capacite(self, id_train: int, capacite: list[int]):
         """
         Méthode servant à modifier la capacité d'un train existant.
