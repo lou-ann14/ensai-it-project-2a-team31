@@ -1,13 +1,13 @@
 from fastapi import HTTPException
-from src.Classes.classes_DAO import TrainDAO
-from src.Classes.classes_objets import Train
+from src.Classes.classes_DAO.train_DAO import TrainDAO
+from src.Classes.classes_objets.train import Train
 from src.utils.log_utils import log
 
 
 class TrainService:
 
     @log
-    def creer(self, type_train: str, places_initiales: list[int]):
+    def creer(self, type_train: str, places_initiales: list[int, int]):
         """
         Méthode servant à créer un nouveau train.
 
@@ -55,7 +55,7 @@ class TrainService:
         return train 
 
     @log
-    def modifier_capacite(self, id_train: int, capacite: list[int]):
+    def modifier_capacite(self, id_train: int, capacite: list[int, int]):
         """
         Méthode servant à modifier la capacité d'un train existant.
 

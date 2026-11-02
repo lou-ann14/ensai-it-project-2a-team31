@@ -33,13 +33,11 @@ async def trouve_par_id(id_train, train_service=Depends(get_train_service)):
 async def creer_train(train: TrainBaseModel, train_service=Depends(get_train_service)):
     """Créer un nouveau train.
     Param:
-        p (PlayerModel): The player data to create.
-        player_service (PlayerService): The service used to interact with player data.
+        train: le modèle de train à créer
     Returns:
-        PlayerReadModel: The newly created player data.
+        TrainBaseModel:Le nouveau train créer.
     Raises:
-        HTTPException: 400 error if the username is already taken.
-        HTTPException: 500 error if the creation process fails.
+        HTTPException: erreur 500 si la création du train rencontre un problème.
     """
     logger.info("Créer un train")
 
