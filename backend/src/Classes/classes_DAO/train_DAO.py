@@ -1,9 +1,11 @@
 from src.Classes.classes_objets.train import Train
 from src.utils.db_connexion import DBConnexion
+from src.utils.log_utils import log
 
 
 class TrainDAO:
 
+    @log
     def creer(self, train : Train) -> bool:
         """
         Enregistre un nouveau train dans la base de données.
@@ -40,7 +42,7 @@ class TrainDAO:
         return id_train is not None
         
 
-
+    @log
     def modifier_capacite(self, id_train: int, capacite: list(int)) -> bool:
         """
         Met à jour la capacité d'un train existant.

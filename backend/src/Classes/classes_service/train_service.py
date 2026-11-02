@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from src.Classes.classes_DAO import TrainDAO
 from src.Classes.classes_objets import Train
 from src.utils.log_utils import log
@@ -6,7 +7,7 @@ from src.utils.log_utils import log
 class TrainService:
 
     @log
-    def creer(self, type_train: str, places_initiales: int):
+    def creer(self, type_train: str, places_initiales: list[int]):
         """
         Méthode servant à créer un nouveau train.
 
@@ -14,7 +15,7 @@ class TrainService:
         ------
         type_train: str
             le type de train (ex: TGV, TER)
-        places_initiales: int
+        places_initiales: list[int]
             le nombre de places disponibles au départ
 
         Return:
@@ -45,6 +46,11 @@ class TrainService:
         """
         if len(capacite) != 2:
             raise ValueError("capacité incorrecte, la longueur de la liste doit être de 2")
+
+        train = TrainDAO().trouver_par_id(id_train)
+
+        if not train:
+            raise HTTPException(status_code=404, detail="Train pas trouvé")
 
         return TrainDAO().modifier_capacite(id_train, capacite = capacite)
 

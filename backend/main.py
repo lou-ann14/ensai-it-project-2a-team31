@@ -38,7 +38,7 @@ async def redirect_to_docs():
     return RedirectResponse(url="/docs")
 
 
-@app.get("/reset_database", tags=["Misc"])
+@app.get("/reset_database", tags=["BDD"])
 async def reset_database():
     """Réinitialise la base de données"""
     logger.info("Database reset")
