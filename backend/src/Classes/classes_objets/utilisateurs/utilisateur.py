@@ -11,9 +11,11 @@ class Utilisateur:
         nom de l'utilisateur (15 caractères maximum)
     role: str
         niveau d'habilitation de l'utilisateur
+    id: int | None = None
+        identifiant de l'utilisateur (None tant qu'il n'est pas enregistré en base)
     """
 
-    def __init__(self, id: int | None, mdp: str, nom_utilisateur: str, role: str):
+    def __init__(self, mdp: str, nom_utilisateur: str, role: str, id: int | None = None):
         if id is not None and not isinstance(id, int):
             raise TypeError("L'identifiant doit être un entier.")
         if not isinstance(mdp, str):
