@@ -68,8 +68,8 @@ class TrajetDAO:
                     "       tarif_base    = %(tarif_base)s             "
                     " WHERE id_trajet = %(id_trajet)s                  ",
                     {
-                        "id_ligne": trajet.id_ligne,
-                        "id_train": trajet.id_train,
+                        "id_ligne": trajet.ligne.id_ligne,
+                        "id_train": trajet.train.id_train,
                         "heure_depart": trajet.heure_depart,
                         "heure_arrivee": trajet.heure_arrivee,
                         "tarif_base": trajet.tarif_base,

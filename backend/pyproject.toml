@@ -16,3 +16,7 @@ dependencies = [
     "regex",
     "uvicorn",
 ]
+
+[tool.pytest.ini_options]
+python_files = ["tests_*.py"]
+pythonpath = ["."]
