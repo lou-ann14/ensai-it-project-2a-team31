@@ -23,13 +23,13 @@ class UtilisateurDAO:
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO utilisateurs(nom_utilisateur, mdp, role, date_inscription)  "
-                    "VALUES (%(nom_utilisateur)s, %(mdp)s, %(role)s, CURRENT_DATE)            "
+                    "INSERT INTO utilisateurs(nom_utilisateur, mdp, grade, date_inscription)  "
+                    "VALUES (%(nom_utilisateur)s, %(mdp)s, %(grade)s, CURRENT_DATE)            "
                     "RETURNING id                                                             ",
                     {
                         "nom_utilisateur": utilisateur.nom_utilisateur,
                         "mdp": utilisateur.mdp,
-                        "role": utilisateur.role,
+                        "grade": utilisateur.grade,
                     },
                 )
                 utilisateur.id = cursor.fetchone()["id"]
@@ -57,12 +57,12 @@ class UtilisateurDAO:
                     "UPDATE utilisateurs                               "
                     "   SET nom_utilisateur = %(nom_utilisateur)s,     "
                     "       mdp             = %(mdp)s,                 "
-                    "       role            = %(role)s                 "
+                    "       grade            = %(grade)s                 "
                     " WHERE id = %(id)s                                ",
                     {
                         "nom_utilisateur": utilisateur.nom_utilisateur,
                         "mdp": utilisateur.mdp,
-                        "role": utilisateur.role,
+                        "grade": utilisateur.grade,
                         "id": utilisateur.id,
                     },
                 )
@@ -87,7 +87,7 @@ class UtilisateurDAO:
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, role             "
+                    "SELECT id, nom_utilisateur, mdp, grade             "
                     "  FROM utilisateurs                               "
                     " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
                     {"nom_utilisateur": nom_utilisateur},
@@ -100,7 +100,7 @@ class UtilisateurDAO:
                 id=utilisateur_bdd["id"],
                 mdp=utilisateur_bdd["mdp"],
                 nom_utilisateur=utilisateur_bdd["nom_utilisateur"],
-                role=utilisateur_bdd["role"],
+                grade=utilisateur_bdd["grade"],
             )
         return utilisateur
 
@@ -121,7 +121,7 @@ class UtilisateurDAO:
         with DBConnexion().connexion as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, role             "
+                    "SELECT id, nom_utilisateur, mdp, grade             "
                     "  FROM utilisateurs                               "
                     " WHERE id = %(id)s                                ",
                     {"id": id},
@@ -134,6 +134,6 @@ class UtilisateurDAO:
                 id=utilisateur_bdd["id"],
                 mdp=utilisateur_bdd["mdp"],
                 nom_utilisateur=utilisateur_bdd["nom_utilisateur"],
-                role=utilisateur_bdd["role"],
+                grade=utilisateur_bdd["grade"],
             )
         return utilisateur
