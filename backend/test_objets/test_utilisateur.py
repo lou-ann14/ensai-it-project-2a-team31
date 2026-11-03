@@ -24,9 +24,9 @@ class TestUtilisateur:
                 "Le nom d'utilisateur doit être une chaîne de caractères."
             ),
             (
-                {"role": 2},
+                {"grade": 2},
                 TypeError,
-                "Le role doit être une chaîne de caractères"
+                "Le grade doit être une chaîne de caractères"
             )
         ]
     )
@@ -35,14 +35,14 @@ class TestUtilisateur:
             "id": 22,
             "mdp": "1234",
             "nom_utilisateur": "jaimelestrains",
-            "role": "Client"}
+            "grade": "Client"}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Utilisateur(**dico)
 
     @pytest.mark.parametrize(
-        "id, mdp, nom_utilisateur, role, resultat_attendu",
+        "id, mdp, nom_utilisateur, grade, resultat_attendu",
         [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains 22 est un Client")]
     )
-    def test_str_utilisateurs(self, id, mdp, nom_utilisateur, role, resultat_attendu):
+    def test_str_utilisateurs(self, id, mdp, nom_utilisateur, grade, resultat_attendu):
         assert str(Utilisateur()) == resultat_attendu

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.utilisateurs_service.administrateur_service import (
-    ROLES_VALIDES,
+    gradeS_VALIDES,
     AdministrateurService,
 )
 from src.schema.administrateur_schema import (
@@ -50,19 +50,19 @@ def rechercher_compte(
 
 
 @router.put(
-    "/utilisateurs/{id_utilisateur}/role",
+    "/utilisateurs/{id_utilisateur}/grade",
     response_model=UtilisateurReponseModel,
     tags=["Administrateur"],
 )
-def modifier_role(
+def modifier_grade(
     id_utilisateur: int,
-    nouveau_role: str,
+    nouveau_grade: str,
     administrateur_service=Depends(get_administrateur_service),
 ):
     """Modifie le niveau d'habilitation d'un utilisateur (CLIENT, COLLABORATEUR ou ADMIN)
     Param:
         id_utilisateur (int)
-        nouveau_role (str)
+        nouveau_grade (str)
     Returns:
         UtilisateurReponseModel : l'utilisateur avec son nouveau rôle
     Raises:
@@ -72,7 +72,7 @@ def modifier_role(
     logger.info("Modification du rôle d'un utilisateur")
 
     try:
-        utilisateur = administrateur_service.gerer_habilitation(id_utilisateur, nouveau_role)
+        utilisateur = administrateur_service.gerer_habilitation(id_utilisateur, nouveau_grade)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -97,17 +97,17 @@ def ajouter_utilisateur(utilisateur: UtilisateurCreationModel):
     logger.info("Ajout d'un utilisateur")
 
     nom_utilisateur = utilisateur.nom_utilisateur.strip()
-    role = utilisateur.role.strip().upper()
+    grade = utilisateur.grade.strip().upper()
 
     if not nom_utilisateur or not utilisateur.mdp:
         raise HTTPException(status_code=400, detail="Le nom d'utilisateur et le mot de passe sont obligatoires.")
-    if role not in ROLES_VALIDES:
-        raise HTTPException(status_code=400, detail=f"Le rôle doit être parmi {', '.join(ROLES_VALIDES)}.")
+    if grade not in gradeS_VALIDES:
+        raise HTTPException(status_code=400, detail=f"Le rôle doit être parmi {', '.join(gradeS_VALIDES)}.")
     if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
         raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
 
     try:
-        nouvel_utilisateur = Utilisateur(id=None, mdp=utilisateur.mdp, nom_utilisateur=nom_utilisateur, role=role)
+        nouvel_utilisateur = Utilisateur(id=None, mdp=utilisateur.mdp, nom_utilisateur=nom_utilisateur, grade=grade)
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
