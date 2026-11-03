@@ -4,14 +4,16 @@ class Train:
 
     Params
     ------
-    id_train: int
-        Identifiant du train
     type_train: str
         Chaîne de caractère décrivant le type du train
     places_initiales: list[int]
         Nombre de places en première classe et en deuxième classe
+    num_train: int
+        Numéro du train sur l'API SNCF
+    id_train: int | None = None
+        id du train dans la BDD
     """
-    def __init__(self, type_train: str, places_initiales: list[int, int], num_train: int):
+    def __init__(self, type_train: str, places_initiales: list[int, int], num_train: int, id_train: int | None = None):
         self.type_train = type_train
         self.places_initiales = places_initiales
         self.num_train = num_train

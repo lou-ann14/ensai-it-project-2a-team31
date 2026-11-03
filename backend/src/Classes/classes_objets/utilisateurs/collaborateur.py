@@ -7,8 +7,8 @@ class Collaborateur(Utilisateur):
     Hérite de la classe Utilisateur.
     """
 
-    def __init__(self, id: int, mdp: str, nom_utilisateur: str):
-        super().__init__(id, mdp, nom_utilisateur, role="COLLABORATEUR")
+    def __init__(self, mdp: str, nom_utilisateur: str, id: int | None = None):
+        super().__init__(mdp, nom_utilisateur, id, grade="COLLABORATEUR")
 
     def __str__(self):
         return f"Collaborateur : {self.nom_utilisateur} (#{self.id})"

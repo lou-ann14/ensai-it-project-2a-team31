@@ -175,7 +175,7 @@ class TrajetDAO:
                 "       id_train,                                  "
                 "       heure_depart,                              "
                 "       heure_arrivee,                             "
-                "       tarif_base                                 "
+                "       tarif                                 "
                 "  FROM trajets                                    "
                 " WHERE id_trajet = %(id_trajet)s                  ",
                 {"id_trajet": id_trajet},
