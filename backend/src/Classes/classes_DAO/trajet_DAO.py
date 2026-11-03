@@ -29,8 +29,8 @@ class TrajetDAO:
                     "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s) "
                     "RETURNING id_trajet                                                                    ",
                     {
-                        "id_ligne": trajet.id_ligne,
-                        "id_train": trajet.id_train,
+                        "id_ligne": trajet.ligne.id_ligne,
+                        "id_train": trajet.train.id_train,
                         "heure_depart": trajet.heure_depart,
                         "heure_arrivee": trajet.heure_arrivee,
                         "tarif_base": trajet.tarif_base,
@@ -54,26 +54,25 @@ class TrajetDAO:
         bool
             True si la modification a réussi, False sinon
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE trajets                                    "
-                    "   SET id_ligne      = %(id_ligne)s,              "
-                    "       id_train      = %(id_train)s,              "
-                    "       heure_depart  = %(heure_depart)s,          "
-                    "       heure_arrivee = %(heure_arrivee)s,         "
-                    "       tarif_base    = %(tarif_base)s             "
-                    " WHERE id_trajet = %(id_trajet)s                  ",
-                    {
-                        "id_ligne": trajet.id_ligne,
-                        "id_train": trajet.id_train,
-                        "heure_depart": trajet.heure_depart,
-                        "heure_arrivee": trajet.heure_arrivee,
-                        "tarif_base": trajet.tarif_base,
-                        "id_trajet": trajet.id_trajet,
-                    },
-                )
-                nb_lignes_modifiees = cursor.rowcount
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE trajets                                    "
+                "   SET id_ligne      = %(id_ligne)s,              "
+                "       id_train      = %(id_train)s,              "
+                "       heure_depart  = %(heure_depart)s,          "
+                "       heure_arrivee = %(heure_arrivee)s,         "
+                "       tarif_base    = %(tarif_base)s             "
+                " WHERE id_trajet = %(id_trajet)s                  ",
+                {
+                    "id_ligne": trajet.ligne.id_ligne,
+                    "id_train": trajet.train.id_train,
+                    "heure_depart": trajet.heure_depart,
+                    "heure_arrivee": trajet.heure_arrivee,
+                    "tarif_base": trajet.tarif_base,
+                    "id_trajet": trajet.id_trajet,
+                },
+            )
+            nb_lignes_modifiees = cursor.rowcount
 
         return nb_lignes_modifiees > 0
 
@@ -91,14 +90,13 @@ class TrajetDAO:
         bool
             True si la suppression a réussi, False sinon
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "DELETE FROM trajets                               "
-                    " WHERE id_trajet = %(id_trajet)s                  ",
-                    {"id_trajet": id_trajet},
-                )
-                nb_lignes_supprimees = cursor.rowcount
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM trajets                               "
+                " WHERE id_trajet = %(id_trajet)s                  ",
+                {"id_trajet": id_trajet},
+            )
+            nb_lignes_supprimees = cursor.rowcount
 
         return nb_lignes_supprimees > 0
 
@@ -120,28 +118,26 @@ class TrajetDAO:
         list[Trajet]
             la liste des trajets correspondants, triés par heure de départ
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT t.id_trajet,                                       "
-                    "       t.id_ligne,                                        "
-                    "       t.id_train,                                        "
-                    "       t.heure_depart,                                    "
-                    "       t.heure_arrivee,                                   "
-                    "       t.tarif_base                                       "
-                    "  FROM trajets t                                          "
-                    "  JOIN lignes l ON l.id_ligne = t.id_ligne                "
-                    " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
-                    "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
-                    "   AND t.heure_depart::date = %(date)s::date              "
-                    " ORDER BY t.heure_depart                                  ",
-                    {
-                        "id_gare_depart": gare_depart.id_gare,
-                        "id_gare_arrivee": gare_arrivee.id_gare,
-                        "date": date,
-                    },
-                )
-                trajets_bdd = cursor.fetchall()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT t.id_trajet,                                       "
+                "       t.id_ligne,                                        "
+                "       t.id_train,                                        "                    "       t.heure_depart,                                    "
+                "       t.heure_arrivee,                                   "
+                "       t.tarif_base                                       "
+                "  FROM trajets t                                          "
+                "  JOIN lignes l ON l.id_ligne = t.id_ligne                "
+                " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
+                "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
+                "   AND t.heure_depart::date = %(date)s::date              "
+                " ORDER BY t.heure_depart                                  ",
+                {
+                    "id_gare_depart": gare_depart.id_gare,
+                    "id_gare_arrivee": gare_arrivee.id_gare,
+                    "date": date,
+                },
+            )
+            trajets_bdd = cursor.fetchall()
 
         trajets = []
         if trajets_bdd:
@@ -173,20 +169,19 @@ class TrajetDAO:
         Trajet
             l'objet Trajet trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_trajet,                                 "
-                    "       id_ligne,                                  "
-                    "       id_train,                                  "
-                    "       heure_depart,                              "
-                    "       heure_arrivee,                             "
-                    "       tarif_base                                 "
-                    "  FROM trajets                                    "
-                    " WHERE id_trajet = %(id_trajet)s                  ",
-                    {"id_trajet": id_trajet},
-                )
-                trajet_bdd = cursor.fetchone()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_trajet,                                 "
+                "       id_ligne,                                  "
+                "       id_train,                                  "
+                "       heure_depart,                              "
+                "       heure_arrivee,                             "
+                "       tarif_base                                 "
+                "  FROM trajets                                    "
+                " WHERE id_trajet = %(id_trajet)s                  ",
+                {"id_trajet": id_trajet},
+            )
+            trajet_bdd = cursor.fetchone()
 
         trajet = None
         if trajet_bdd:
