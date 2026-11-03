@@ -30,7 +30,7 @@ class TestUtilisateur:
             )
         ]
     )
-    def test_init_utilisateur(params, erreur, message_erreur):
+    def test_init_utilisateur(self, params, erreur, message_erreur):
         dico = {
             22,
             "1234",
@@ -44,5 +44,5 @@ class TestUtilisateur:
         "id, mdp, nom_utilisateur, role, resultat_attendu",
         [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains 22 est un Client")]
     )
-    def test_str_utilisateurs(id, mdp, nom_utilisateur, role, resultat_attendu):
-        assert Utilisateur.__str__() == resultat_attendu
+    def test_str_utilisateurs(self, id, mdp, nom_utilisateur, role, resultat_attendu):
+        assert str(Utilisateur()) == resultat_attendu
