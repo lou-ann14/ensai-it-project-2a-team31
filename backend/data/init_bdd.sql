@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS gares CASCADE;
 CREATE TABLE gares(
     id_gare SERIAL PRIMARY KEY,
+    id_sncf VARCHAR(64) UNIQUE,
     nom VARCHAR(256),
     ville VARCHAR(256)
 );
@@ -34,7 +35,7 @@ CREATE TABLE trajets(
     id_train INT REFERENCES trains(id_train),
     heure_depart TIMESTAMP,
     heure_arrivee TIMESTAMP,
-    temps_trajet TIMESTAMP
+    temps_trajet INT
 );
 
 CREATE TABLE reservations(
