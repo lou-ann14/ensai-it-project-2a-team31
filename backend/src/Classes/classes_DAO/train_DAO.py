@@ -6,7 +6,7 @@ from src.utils.log_utils import log
 class TrainDAO:
 
     @log
-    def creer(self, train : Train) -> bool:
+    def creer(self, train: Train) -> bool:
         """
         Enregistre un nouveau train dans la base de données.
 
@@ -42,7 +42,6 @@ class TrainDAO:
             id_train = cursor.fetchone()["id_train"]
 
         return id_train is not None
-        
 
     @log
     def modifier_capacite(self, num_train: int, capacite: list[int, int]) -> bool:
@@ -76,7 +75,6 @@ class TrainDAO:
             res = cursor.fetchone()["places_restantes"]
 
         return res == capa
-        
 
     def trouver_par_num(self, num_train: int) -> Train:
         """
@@ -92,7 +90,7 @@ class TrainDAO:
         Train
             l'objet Train trouvé
         """
-        
+
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT *                          "
