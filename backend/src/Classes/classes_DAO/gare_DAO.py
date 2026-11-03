@@ -75,3 +75,17 @@ class GareDAO:
                 ville=gare_bdd["ville"]
             )
         return gare
+    def creer_ou_mettre_a_jour(self, gare: Gare) -> Gare:
+        """Enregistre une gare, ou met à jour son nom et sa ville si son id_sncf existe déjà."""
+        with DBConnexion().connexion as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO gares(nom, ville, id_sncf)                  "
+                    "VALUES (%(nom)s, %(ville)s, %(id_sncf)s)                "
+                    "ON CONFLICT (id_sncf) DO UPDATE                         "
+                    "   SET nom = EXCLUDED.nom, ville = EXCLUDED.ville       "
+                    "RETURNING id_gare                                       ",
+                    {"nom": gare.nom, "ville": gare.ville, "id_sncf": gare.id_sncf},
+                )
+                gare.id_gare = cursor.fetchone()["id_gare"]
+        return gare
