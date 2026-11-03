@@ -6,18 +6,14 @@ from src.utils.log_utils import log
 class TrainDAO:
 
     @log
-    def creer(self, train : Train) -> bool:
+    def creer(self, train: Train) -> bool:
         """
         Enregistre un nouveau train dans la base de données.
 
         Param:
         ------
-        id_train: int
-            l'identifiant du train
-        type_train: str
-            le type de train (ex: TGV)
-        places_initiales: str
-            le nombre de places au départ
+        train: Train
+            le train à enregistrer dans la base de données
 
         Return:
         ------
@@ -42,7 +38,6 @@ class TrainDAO:
             id_train = cursor.fetchone()["id_train"]
 
         return id_train is not None
-        
 
     @log
     def modifier_capacite(self, num_train: int, capacite: list[int, int]) -> bool:
@@ -76,32 +71,32 @@ class TrainDAO:
             res = cursor.fetchone()["places_restantes"]
 
         return res == capa
-        
 
-    def trouver_par_num(self, num_train: int) -> Train:
+    @log
+    def trouver_train_par_num(self, num_train: int) -> Train:
         """
-        Récupère un train par son identifiant.
+        Récupère un train par son numéro.
 
         Param:
         ------
-        id_train: int
-            l'identifiant du train
+        num_train: int
+            le numéro du train
 
         Return:
         ------
         Train
             l'objet Train trouvé
         """
-        
+
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT *                          "
-                    "  FROM trains                     "
-                    " WHERE num_train = %(num_train)s",
-                    {
-                        "num_train": num_train
-                    })
-                train_bdd = cursor.fetchone()
+            cursor.execute(
+                "SELECT *                          "
+                "  FROM trains                     "
+                " WHERE num_train = %(num_train)s",
+                {
+                    "num_train": num_train
+                })
+            train_bdd = cursor.fetchone()
 
         train = Train(
                 type_train=train_bdd["type_train"],
@@ -110,3 +105,33 @@ class TrainDAO:
             )
 
         return train
+
+    @log
+    def trouver_id_par_num(self, num_train: int) -> int:
+        """
+        Récupère l'id d'un train par son numéro.
+
+        Param:
+        ------
+        num_train: int
+            le numéro du train
+
+        Return:
+        ------
+        int
+            l'identifiant trouvé
+        """
+
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id                          "
+                "  FROM trains                     "
+                " WHERE num_train = %(num_train)s",
+                {
+                    "num_train": num_train
+                })
+            id_bdd = cursor.fetchone()
+
+        id = id_bdd
+
+        return id
