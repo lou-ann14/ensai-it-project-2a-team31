@@ -27,9 +27,9 @@ class TestGare:
     )
     def test_init_gare(self, params, erreur, message_erreur):
         dico = {
-            1,
-            "Matabiau",
-            "Toulouse"}
+            "id_gare": 1,
+            "nom": "Matabiau",
+            "ville": "Toulouse"}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Gare(**dico)

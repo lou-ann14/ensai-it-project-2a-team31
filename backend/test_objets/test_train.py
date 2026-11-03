@@ -27,9 +27,9 @@ class TestTrain:
     )
     def test_init_train(self, params, erreur, message_erreur):
         dico = {
-            1,
-            "rouge",
-            [500, 1000]}
+            "id_train": 1,
+            "type_train": "rouge",
+            "places_initiales": [500, 1000]}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Train(**dico)
