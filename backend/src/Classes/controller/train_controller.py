@@ -8,7 +8,7 @@ router = APIRouter()
 logger = get_logger(__name__)
 
 def get_train_service():
-    """Dependency Injection provider for PlayerService."""
+    """Dependency Injection provider for TrainService."""
     return TrainService()
 
 @router.get("/{id_train}", response_model=list[TrainBaseModel], tags=["Trains"])
