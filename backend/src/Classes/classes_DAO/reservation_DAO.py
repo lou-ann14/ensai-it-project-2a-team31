@@ -26,8 +26,8 @@ class ReservationDAO:
                     "VALUES (%(id_client)s, %(id_trajet)s, %(place)s, %(classe)s, %(prix)s)   "
                     "RETURNING id_reservation                                                 ",
                     {
-                        "id_client": reservation.id_client,
-                        "id_trajet": reservation.id_trajet,
+                        "id_client": reservation.client.id,
+                        "id_trajet": reservation.trajet.id_trajet,
                         "place": reservation.place,
                         "classe": reservation.classe,
                         "prix": reservation.prix,
