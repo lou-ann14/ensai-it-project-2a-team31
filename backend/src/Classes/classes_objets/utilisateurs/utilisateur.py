@@ -5,7 +5,7 @@ class Utilisateur:
     ------
     id: int | None
         identifiant de l'utilisateur (None tant qu'il n'est pas enregistré en base)
-    mdp: str
+    mdp: str  
         mot de passe de l'utilisateur
     nom_utilisateur: str
         nom de l'utilisateur (15 caractères maximum)
