@@ -39,4 +39,4 @@ class TestGare:
         [(1, "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
     )
     def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
-        assert Gare.__str__() == resultat_attendu
+        assert str(Gare()) == resultat_attendu
