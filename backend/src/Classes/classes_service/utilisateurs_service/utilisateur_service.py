@@ -8,14 +8,14 @@ class UtilisateurService:
     def __init__(self, conn):
         self.conn = conn
 
-    def creer_compte(self, nom_utilisateur: str, mdp: str, role: str) -> int | None:
+    def creer_compte(self, nom_utilisateur: str, mdp: str, grade: str) -> int | None:
         query = """
-            INSERT INTO utilisateurs (nom_utilisateur, mdp, role, date_inscription)
+            INSERT INTO utilisateurs (nom_utilisateur, mdp, grade, date_inscription)
             VALUES (%s, %s, %s, %s)
             RETURNING id;
         """
         with self.conn.cursor() as cur:
-            cur.execute(query, (nom_utilisateur, mdp, role, date.today()))
+            cur.execute(query, (nom_utilisateur, mdp, grade, date.today()))
             new_id = cur.fetchone()[0]
             self.conn.commit()
             return new_id
@@ -59,7 +59,7 @@ class UtilisateurService:
             return False
 
     def _rechercher(self, nom_utilisateur: str | None = None, id_utilisateur: int | None = None) -> dict[str, Any] | None:
-        query = "SELECT id, nom_utilisateur, role, date_inscription FROM utilisateurs WHERE "
+        query = "SELECT id, nom_utilisateur, grade, date_inscription FROM utilisateurs WHERE "
         if id_utilisateur:
             query += "id = %s;"
             param = id_utilisateur

@@ -7,7 +7,7 @@ from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 # La base de données est simulée : DBConnexion est remplacé par un MagicMock,
 # on contrôle donc ce que renvoie le curseur et on vérifie les paramètres reçus.
 
-utilisateur_bdd = {"id": 1, "nom_utilisateur": "jaimelestrains", "mdp": "1234", "role": "CLIENT"}
+utilisateur_bdd = {"id": 1, "nom_utilisateur": "jaimelestrains", "mdp": "1234", "grade": "CLIENT"}
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def curseur():
 @pytest.fixture
 def utilisateur():
     """Utilisateur à enregistrer (MagicMock pour ne pas dépendre du constructeur d'Utilisateur)"""
-    return MagicMock(id=None, nom_utilisateur="jaimelestrains", mdp="1234", role="CLIENT")
+    return MagicMock(id=None, nom_utilisateur="jaimelestrains", mdp="1234", grade="CLIENT")
 
 
 class TestUtilisateurDAO:
@@ -53,7 +53,7 @@ class TestUtilisateurDAO:
         # THEN
         requete, parametres = curseur.execute.call_args.args
         assert "INSERT INTO utilisateurs" in requete
-        assert parametres == {"nom_utilisateur": "jaimelestrains", "mdp": "1234", "role": "CLIENT"}
+        assert parametres == {"nom_utilisateur": "jaimelestrains", "mdp": "1234", "grade": "CLIENT"}
 
     # tests modifier
 
@@ -98,7 +98,7 @@ class TestUtilisateurDAO:
         assert isinstance(resultat, Utilisateur)
         assert resultat.id == 1
         assert resultat.nom_utilisateur == "jaimelestrains"
-        assert resultat.role == "CLIENT"
+        assert resultat.grade == "CLIENT"
         assert curseur.execute.call_args.args[1] == {"id": 1}
 
     def test_trouver_par_id_inexistant(self, curseur):
