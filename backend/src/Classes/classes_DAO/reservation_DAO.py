@@ -1,4 +1,7 @@
+from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
+from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.utilisateurs.client import Client
 from src.utils.db_connexion import DBConnexion
 
 
@@ -94,18 +97,10 @@ class ReservationDAO:
 
         reservations = []
         if reservations_bdd:
-            for reservation in reservations_bdd:
-                reservations.append(
-                    Reservation(
-                        id_reservation=reservation["id_reservation"],
-                        id_client=reservation["id_client"],
-                        id_trajet=reservation["id_trajet"],
-                        place=reservation["place"],
-                        classe=reservation["classe"],
-                        prix=reservation["prix"],
-                    )
-                )
-
+            for reservation_bdd in reservations_bdd:
+                reservation = self._construire_reservation(reservation_bdd)
+                if reservation is not None:
+                    reservations.append(reservation)
         return reservations
 
     def trouver_par_id(self, id_reservation: int) -> Reservation | None:
@@ -137,14 +132,45 @@ class ReservationDAO:
                 )
                 reservation_bdd = cursor.fetchone()
 
-        reservation = None
-        if reservation_bdd:
-            reservation = Reservation(
-                id_reservation=reservation_bdd["id_reservation"],
-                id_client=reservation_bdd["id_client"],
-                id_trajet=reservation_bdd["id_trajet"],
-                place=reservation_bdd["place"],
-                classe=reservation_bdd["classe"],
-                prix=reservation_bdd["prix"],
-            )
-        return reservation
+        if reservation_bdd is None:
+            return None
+        else:
+            return self._construire_reservation(reservation_bdd)
+
+    def _construire_reservation(self, reservation_bdd: dict) -> Reservation | None:
+        """
+        Transforme une ligne de la table reservations en objet Reservation complet,
+        en récupérant le client et le trajet grâce aux autres DAO.
+
+        Param:
+        ------
+        reservation_bdd: dict
+            une ligne renvoyée par le curseur (id_reservation, id_client, id_trajet,
+            place, classe, prix)
+
+        Return:
+        ------
+        Reservation | None
+            la réservation avec ses objets Client et Trajet,
+            ou None si le client ou le trajet n'existe pas
+        """
+        utilisateur = UtilisateurDAO().trouver_par_id(reservation_bdd["id_client"])
+        trajet = TrajetDAO().trouver_par_id(reservation_bdd["id_trajet"])
+
+        if utilisateur is None or trajet is None:
+            return None
+
+        client = Client(
+            id=utilisateur.id,
+            mdp=utilisateur.mdp,
+            nom_utilisateur=utilisateur.nom_utilisateur,
+        )
+
+        return Reservation(
+            id_reservation=reservation_bdd["id_reservation"],
+            client=client,
+            trajet=trajet,
+            place=reservation_bdd["place"],
+            classe=reservation_bdd["classe"],
+            prix=reservation_bdd["prix"],
+        )
