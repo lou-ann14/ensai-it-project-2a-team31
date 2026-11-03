@@ -41,5 +41,5 @@ class TestLigne:
         "id_ligne, gare_depart, gare_arrivee, resultat_attendu",
         [(1, "Matabiau", "Rennes", "la gare de depart de la ligne : 1 est Matabiau et la gare d'arrivée est : Rennes")]
         )
-    def test_str_gare(id_ligne, gare_depart, gare_arrivee, resultat_attendu):
+    def test_str_ligne(id_ligne, gare_depart, gare_arrivee, resultat_attendu):
         assert Ligne.__str__() == resultat_attendu
