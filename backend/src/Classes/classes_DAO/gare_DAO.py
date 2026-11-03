@@ -20,19 +20,18 @@ class GareDAO:
         Gare
             l'objet Gare correspondant à la recherche
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_gare, nom, ville                          "
-                    "  FROM gares                     "
-                    " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s)          "
-                    "   AND (%(ville)s IS NULL OR ville ILIKE %(ville)s)"
-                    " ORDER BY nom",
-                    {
-                        "nom": f"{nom}%" if nom else None,
-                        "ville": f"{ville}%" if ville else None,
-                    })
-                gare_bdd = cursor.fetchall()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_gare, nom, ville                          "
+                "  FROM gares                     "
+                " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s)          "
+                "   AND (%(ville)s IS NULL OR ville ILIKE %(ville)s)"
+                " ORDER BY nom",
+                {
+                    "nom": f"{nom}%" if nom else None,
+                    "ville": f"{ville}%" if ville else None,
+                })
+            gare_bdd = cursor.fetchall()
 
         gares = []
         for trouve in gare_bdd:
@@ -57,16 +56,15 @@ class GareDAO:
         Gare
             l'objet Gare trouvé
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_gare, nom, ville             "
-                    "  FROM gares                           "
-                    " WHERE id_gare = %(id_gare)s           ",
-                    {"id_gare": id_gare}
-                )
-                gare_bdd = cursor.fetchone()
-       
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_gare, nom, ville             "
+                "  FROM gares                           "
+                " WHERE id_gare = %(id_gare)s           ",
+                {"id_gare": id_gare}
+            )
+            gare_bdd = cursor.fetchone()
+
         gare = None
         if gare_bdd:
             gare = Gare(
@@ -74,4 +72,18 @@ class GareDAO:
                 nom=gare_bdd["nom"],
                 ville=gare_bdd["ville"]
             )
+        return gare
+
+    def creer_ou_mettre_a_jour(self, gare: Gare) -> Gare:
+        """Enregistre une gare, ou met à jour son nom et sa ville si son id_sncf existe déjà."""
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO gares(nom, ville, id_sncf)                  "
+                "VALUES (%(nom)s, %(ville)s, %(id_sncf)s)                "
+                "ON CONFLICT (id_sncf) DO UPDATE                         "
+                "   SET nom = EXCLUDED.nom, ville = EXCLUDED.ville       "
+                "RETURNING id_gare                                       ",
+                {"nom": gare.nom, "ville": gare.ville, "id_sncf": gare.id_sncf},
+            )
+            gare.id_gare = cursor.fetchone()["id_gare"]
         return gare
