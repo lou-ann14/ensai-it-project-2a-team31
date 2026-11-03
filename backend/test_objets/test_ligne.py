@@ -30,9 +30,9 @@ class TestLigne:
         gare_depart = Gare(1, "Matabiau", "Toulouse")
         gare_arrivee = Gare(2, "Gare de Rennes", "Rennes")
         dico = {
-            1,
-            gare_depart,
-            gare_arrivee}
+            "id_ligne": 1,
+            "id_gare_depart": 1,
+            "id_gare_arrivee": 2}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Ligne(**dico)
