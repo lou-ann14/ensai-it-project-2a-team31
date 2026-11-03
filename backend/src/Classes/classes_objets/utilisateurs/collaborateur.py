@@ -1,4 +1,5 @@
-from utilisateur import Utilisateur
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
+
 
 class Collaborateur(Utilisateur):
     """Classe qui modélise un collaborateur (rôle qui peut créer de
