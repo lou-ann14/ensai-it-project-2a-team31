@@ -7,7 +7,7 @@ class Collaborateur(Utilisateur):
     """
 
     def __init__(self, id: int, mdp: str, nom_utilisateur: str):
-        super().__init__(id, mdp, nom_utilisateur, role="COLLABORATEUR")
+        super().__init__(id, mdp, nom_utilisateur, grade="COLLABORATEUR")
 
     def __str__(self):
         return f"Collaborateur : {self.nom_utilisateur} (#{self.id})"

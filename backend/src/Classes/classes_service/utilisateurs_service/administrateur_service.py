@@ -2,14 +2,14 @@ from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.utils.log_utils import log
 
-ROLES_VALIDES = ("CLIENT", "COLLABORATEUR", "ADMIN")
+gradeS_VALIDES = ("CLIENT", "COLLABORATEUR", "ADMIN")
 
 
 class AdministrateurService:
     """Classe qui gère les actions réservées aux administrateurs"""
 
     @log
-    def gerer_habilitation(self, id_utilisateur: int, nouveau_role: str) -> Utilisateur:
+    def gerer_habilitation(self, id_utilisateur: int, nouveau_grade: str) -> Utilisateur:
         """
         Modifie le niveau d'habilitation (rôle) d'un utilisateur.
 
@@ -17,7 +17,7 @@ class AdministrateurService:
         ------
         id_utilisateur: int
             l'identifiant de l'utilisateur à modifier
-        nouveau_role: str
+        nouveau_grade: str
             le nouveau rôle (CLIENT, COLLABORATEUR ou ADMIN)
 
         Return:
@@ -31,17 +31,17 @@ class AdministrateurService:
             si le rôle est invalide, si l'utilisateur n'existe pas
             ou si l'utilisateur est un administrateur
         """
-        nouveau_role = nouveau_role.strip().upper() if nouveau_role else ""
-        if nouveau_role not in ROLES_VALIDES:
-            raise ValueError(f"Le rôle doit être parmi {', '.join(ROLES_VALIDES)}.")
+        nouveau_grade = nouveau_grade.strip().upper() if nouveau_grade else ""
+        if nouveau_grade not in gradeS_VALIDES:
+            raise ValueError(f"Le rôle doit être parmi {', '.join(gradeS_VALIDES)}.")
 
         utilisateur = UtilisateurDAO().trouver_par_id(id_utilisateur)
         if utilisateur is None:
             raise ValueError(f"L'utilisateur #{id_utilisateur} n'existe pas.")
-        if utilisateur.role == "ADMIN":
+        if utilisateur.grade == "ADMIN":
             raise ValueError("Impossible de modifier les droits d'un administrateur.")
 
-        utilisateur.role = nouveau_role
+        utilisateur.grade = nouveau_grade
         UtilisateurDAO().modifier(utilisateur)
         return utilisateur
 
