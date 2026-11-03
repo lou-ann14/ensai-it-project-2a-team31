@@ -1,5 +1,6 @@
 from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.gare import Gare
+from src.utils.sncf_client import SncfClient
 
 
 class GareService:
@@ -28,3 +29,19 @@ class GareService:
         nom = nom.strip() if nom else None
         ville = ville.strip() if ville else None
         return self.gare_dao.rechercher(nom=nom or None, ville=ville or None)
+    def importer(self, texte: str) -> list[Gare]:
+        """Cherche des gares sur l'API SNCF et les enregistre dans notre base.
+
+        Raises:
+        ------
+        ValueError
+            si le texte contient moins de 2 caractères
+        """
+        texte = texte.strip() if texte else ""
+        if len(texte) < 2:
+            raise ValueError("Saisissez au moins 2 caractères.")
+        gares = []
+        for trouve in SncfClient().rechercher_gares(texte):
+            gare = Gare(None, trouve["nom"], trouve["ville"], trouve["id_sncf"])
+            gares.append(self.gare_dao.creer_ou_mettre_a_jour(gare))
+        return gares

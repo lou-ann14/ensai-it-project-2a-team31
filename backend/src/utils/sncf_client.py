@@ -2,6 +2,7 @@ import os
 
 import requests
 from src.utils.log_utils import get_logger
+from datetime import datetime
 
 logger = get_logger(__name__)
 
@@ -42,6 +43,8 @@ class SncfClient:
             })
         return gares
 
+
+
     @staticmethod
     def _trouver_ville(stop_area: dict) -> str | None:
         """Renvoie le nom de la commune (niveau administratif 8) d'une gare, ou None si absente"""
@@ -49,3 +52,31 @@ class SncfClient:
             if region.get("level") == 8:
                 return region["name"]
         return None
+    def duree_trajet(self, id_depart: str, id_arrivee: str, date_depart: datetime | None = None) -> int | None:
+        """Calcule la durée du trajet le plus rapide entre deux gares.
+
+        Param:
+        ------
+        id_depart, id_arrivee: str
+            les identifiants SNCF des gares (ex : "stop_area:SNCF:87391003")
+        date_depart: datetime | None
+            la date et l'heure de départ souhaitées (par défaut : maintenant)
+
+        Return:
+        ------
+        int | None
+            la durée en secondes, ou None si aucun trajet n'est possible
+        """
+        params = {"from": id_depart, "to": id_arrivee}
+        if date_depart:
+            params["datetime"] = date_depart.strftime("%Y%m%dT%H%M%S")
+        try:
+            donnees = self._get("journeys", params)
+        except requests.HTTPError as erreur:
+            if erreur.response is not None and erreur.response.status_code == 404:
+                return None
+            raise
+        itineraires = donnees.get("journeys", [])
+        if not itineraires:
+            return None
+        return min(itineraire["duration"] for itineraire in itineraires)
