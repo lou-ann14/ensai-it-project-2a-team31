@@ -47,7 +47,7 @@ async def creer_train(train: TrainBaseModel, train_service=Depends(get_train_ser
 
     return train
 
-@router.post("/{id_train}", response_model=TrainBaseModel, tags=["Trains"])
+@router.put("/{id_train}", response_model=TrainBaseModel, tags=["Trains"])
 async def modifier_capacite(id_train : int, t : TrainBaseModel, train_service=Depends(get_train_service)):
     """Modifie la capacité d'un train
     Param:
