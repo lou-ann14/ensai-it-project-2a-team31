@@ -8,4 +8,4 @@ class TestCollaborateur:
         [(22, "jaimelestrains", "Collaborateur : jaimelestrains 22")]
     )
     def test_str_collaborateur(self, id, nom_utilisateur, resultat_attendu):
-        assert Collaborateur.__str__() == resultat_attendu
+        assert str(Collaborateur()) == resultat_attendu
