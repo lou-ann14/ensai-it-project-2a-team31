@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.utilisateurs.client import Client
 
 # données préenregistrées (équivalent d'une bdd)
 
@@ -64,8 +65,7 @@ reservations_groupeprojetinfo = [
     ]
 
 # nouvelle réservation à insérer avec creer (pas encore d'id_reservation)
-# MagicMock fait en sorte que le DAO lit reservation.id_client / reservation.id_trajet,
-# attributs que la classe Reservation n'a pas pour l'instant
+# MagicMock fait en sorte que le DAO lit reservation.id_client / reservation.id_trajet
 nouvelle_reservation = MagicMock(
     id_reservation=None,
     id_client=3,
@@ -74,3 +74,22 @@ nouvelle_reservation = MagicMock(
     classe=1,
     prix=60.0,
 )
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_creer_ok(mock_db):
+    """Création d'une reservation : le DAO envoie les bons ids"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"id_reservation": 5} 
+    reservation_cree = ReservationDAO().creer(Reservation(
+        client=Client(
+            mpd="hainedestrains",
+            nom="vraifan2train",
+            id=19
+            ),
+        place="A14",
+        classe=1,
+        prix=150.5,
+        id_reservation=5)) 
+    requete, parametres = cursor.execute.call_args.args
+
+    assert {"id_reservation": 5}

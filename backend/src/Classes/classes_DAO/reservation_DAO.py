@@ -22,21 +22,20 @@ class ReservationDAO:
         Reservation
             l'objet Reservation créé, avec son id_reservation renseigné
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO reservations(id_client, id_trajet, place, classe, prix)      "
-                    "VALUES (%(id_client)s, %(id_trajet)s, %(place)s, %(classe)s, %(prix)s)   "
-                    "RETURNING id_reservation                                                 ",
-                    {
-                        "id_client": reservation.client.id,
-                        "id_trajet": reservation.trajet.id_trajet,
-                        "place": reservation.place,
-                        "classe": reservation.classe,
-                        "prix": reservation.prix,
-                    },
-                )
-                reservation.id_reservation = cursor.fetchone()["id_reservation"]
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO reservations(id_client, id_trajet, place, classe, prix)      "
+                "VALUES (%(id_client)s, %(id_trajet)s, %(place)s, %(classe)s, %(prix)s)   "
+                "RETURNING id_reservation                                                 ",
+                {
+                    "id_client": reservation.client.id,
+                    "id_trajet": reservation.trajet.id_trajet,
+                    "place": reservation.place,
+                    "classe": reservation.classe,
+                    "prix": reservation.prix,
+                },
+            )
+            reservation.id_reservation = cursor.fetchone()["id_reservation"]
 
         return reservation
 
@@ -54,14 +53,13 @@ class ReservationDAO:
         bool
             True si l'annulation a réussi, False sinon
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "DELETE FROM reservations                          "
-                    " WHERE id_reservation = %(id_reservation)s        ",
-                    {"id_reservation": id_reservation},
-                )
-                nb_lignes_supprimees = cursor.rowcount
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM reservations                          "
+                " WHERE id_reservation = %(id_reservation)s        ",
+                {"id_reservation": id_reservation},
+            )
+            nb_lignes_supprimees = cursor.rowcount
 
         return nb_lignes_supprimees > 0
 
@@ -79,21 +77,20 @@ class ReservationDAO:
         list[Reservation]
             la liste des réservations du client (vide si aucune)
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_reservation,                            "
-                    "       id_client,                                 "
-                    "       id_trajet,                                 "
-                    "       place,                                     "
-                    "       classe,                                    "
-                    "       prix                                       "
-                    "  FROM reservations                               "
-                    " WHERE id_client = %(id_client)s                  "
-                    " ORDER BY id_reservation                          ",
-                    {"id_client": id_client},
-                )
-                reservations_bdd = cursor.fetchall()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_reservation,                            "
+                "       id_client,                                 "
+                "       id_trajet,                                 "
+                "       place,                                     "
+                "       classe,                                    "
+                "       prix                                       "
+                "  FROM reservations                               "
+                " WHERE id_client = %(id_client)s                  "
+                " ORDER BY id_reservation                          ",
+                {"id_client": id_client},
+            )
+            reservations_bdd = cursor.fetchall()
 
         reservations = []
         if reservations_bdd:
@@ -117,20 +114,19 @@ class ReservationDAO:
         Reservation
             l'objet Reservation trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_reservation,                            "
-                    "       id_client,                                 "
-                    "       id_trajet,                                 "
-                    "       place,                                     "
-                    "       classe,                                    "
-                    "       prix                                       "
-                    "  FROM reservations                               "
-                    " WHERE id_reservation = %(id_reservation)s        ",
-                    {"id_reservation": id_reservation},
-                )
-                reservation_bdd = cursor.fetchone()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_reservation,                            "
+                "       id_client,                                 "
+                "       id_trajet,                                 "
+                "       place,                                     "
+                "       classe,                                    "
+                "       prix                                       "
+                "  FROM reservations                               "
+                " WHERE id_reservation = %(id_reservation)s        ",
+                {"id_reservation": id_reservation},
+            )
+            reservation_bdd = cursor.fetchone()
 
         if reservation_bdd is None:
             return None
