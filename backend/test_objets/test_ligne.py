@@ -1,6 +1,7 @@
 import re
 
 import pytest
+from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 
 
@@ -14,29 +15,36 @@ class TestLigne:
                 "L'identifiant de la gare doit être un entier."
             ),
             (
-                {"id_gare_depart": "Matabiau"},
+                {"gare_depart": 42},
                 TypeError,
-                "L'identifiant de la gare de départ doit être un entier."
+                "La gare de départ doit être de type Gare."
             ),
             (
-                {"id_gare_arrivee": "Rennes"},
+                {"gare_arrivee": 42},
                 TypeError,
-                "L'identifiant de la gare d'arrivée doit être un entier."
+                "La gare d'arrivée doit être de type Gare."
             )
         ]
     )
     def test_init_ligne(self, params, erreur, message_erreur):
+        gare_depart = Gare(1, "Matabiau", "Toulouse")
+        gare_arrivee = Gare(2, "Gare de Rennes", "Rennes")
         dico = {
             "id_ligne": 1,
-            "id_gare_depart": 1,
-            "id_gare_arrivee": 2}
+            "gare_depart": gare_depart,
+            "gare_arrivee": gare_arrivee}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Ligne(**dico)
 
     @pytest.mark.parametrize(
-        "id_ligne, id_gare_depart, id_gare_arrivee, resultat_attendu",
-        [(1, 1, 2, "la gare de depart de la ligne : 1 est 1 et la gare d'arrivée est : 2")]
-        )
-    def test_str_ligne(self, id_ligne, id_gare_depart, id_gare_arrivee, resultat_attendu):
-        assert str(Ligne(id_ligne, id_gare_depart, id_gare_arrivee)) == resultat_attendu
+        "id_ligne, gare_depart, gare_arrivee, resultat_attendu",
+        [(
+            1,
+            Gare(1, "Matabiau", "Toulouse"),
+            Gare(2, "Gare de Rennes", "Rennes"),
+            "la gare de depart de la ligne : 1 est Matabiau et la gare d'arrivée est : Gare de Rennes"
+        )]
+    )
+    def test_str_ligne(self, id_ligne, gare_depart, gare_arrivee, resultat_attendu):
+        assert str(Ligne(id_ligne, gare_depart, gare_arrivee)) == resultat_attendu
