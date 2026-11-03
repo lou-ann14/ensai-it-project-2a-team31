@@ -26,13 +26,13 @@ class TestLigne:
             )
         ]
     )
-    def test_init_ligne(params, erreur, message_erreur):
-        gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
-        gare_arrivee = Gare.__init__(2, "Gare de Rennes", "Rennes")
+    def test_init_ligne(self, params, erreur, message_erreur):
+        gare_depart = Gare(1, "Matabiau", "Toulouse")
+        gare_arrivee = Gare(2, "Gare de Rennes", "Rennes")
         dico = {
-            1,
-            gare_depart,
-            gare_arrivee}
+            "id_ligne": 1,
+            "id_gare_depart": 1,
+            "id_gare_arrivee": 2}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Ligne(**dico)
@@ -41,5 +41,5 @@ class TestLigne:
         "id_ligne, gare_depart, gare_arrivee, resultat_attendu",
         [(1, "Matabiau", "Rennes", "la gare de depart de la ligne : 1 est Matabiau et la gare d'arrivée est : Rennes")]
         )
-    def test_str_gare(id_ligne, gare_depart, gare_arrivee, resultat_attendu):
+    def test_str_ligne(id_ligne, gare_depart, gare_arrivee, resultat_attendu):
         assert Ligne.__str__() == resultat_attendu

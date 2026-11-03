@@ -1,7 +1,11 @@
+import datetime
 import re
 
 import pytest
+from src.Classes.classes_objets.gare import Gare
+from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_objets.utilisateurs.client import Client
 
@@ -42,21 +46,29 @@ class TestReservation:
             )
         ]
     )
-    def test_init_reservation(params, erreur, message_erreur):
+    def test_init_reservation(self, params, erreur, message_erreur):
         client = Client.__init__(4, "0000", "jaimelestrains")
-        trajet = Trajet.__init__()
+        heure_depart = datetime(2026, 11, 3, 11, 54)
+        heure_arrivee = datetime(2026, 11, 3, 17)
+        gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
+        gare_arrivee = Gare.__init__(2, "Montparnasse", "Paris")
+        ligne = Ligne.__init__(14, gare_depart, gare_arrivee)
+        train = Train.__init__("TGV", [120, 400])
+        trajet = Trajet.__init__(22, heure_depart, heure_arrivee, ligne, train, 150.0)
         dico = {
-            1,
+            45,
             client,
-            "Matabiau",
-            "Toulouse"}
+            trajet,
+            67,
+            1,
+            180.0}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Reservation(**dico)
 
     @pytest.mark.parametrize(
-        "id_gare, nom, ville, resultat_attendu",
-        [("1", "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
+        "id_reservation, client, trajet, place, classe, prix",
+        [("22", "Alice", "Matabiau-Montparnasse", "67", "1", "200.0", "La réservation 22 du client Alice pour le trajet Matabiau-Montparnasse, en 1 à la place 67 a coûté 200.0 euros")]
     )
-    def test_str_gare(id_gare, nom, ville, resultat_attendu):
-        assert Gare.__str__() == resultat_attendu
+    def test_str_reservation(self, id_reservation, client, trajet, place, classe, prix, resultat_attendu):
+        assert Reservation.__str__() == resultat_attendu

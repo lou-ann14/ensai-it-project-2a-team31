@@ -25,11 +25,11 @@ class TestGare:
             )
         ]
     )
-    def test_init_gare(params, erreur, message_erreur):
+    def test_init_gare(self, params, erreur, message_erreur):
         dico = {
-            1,
-            "Matabiau",
-            "Toulouse"}
+            "id_gare": 1,
+            "nom": "Matabiau",
+            "ville": "Toulouse"}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Gare(**dico)
@@ -38,5 +38,5 @@ class TestGare:
         "id_gare, nom, ville, resultat_attendu",
         [(1, "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
     )
-    def test_str_gare(id_gare, nom, ville, resultat_attendu):
-        assert Gare.__str__() == resultat_attendu
+    def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
+        assert str(Gare()) == resultat_attendu
