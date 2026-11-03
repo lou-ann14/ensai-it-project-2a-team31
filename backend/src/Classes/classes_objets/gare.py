@@ -3,13 +3,16 @@ class Gare:
 
     Params
     ------
-    id_gare: int
-        Identifiant de la gare
     nom: str
         Nom de la gare
     ville: str
-        Nom de la ville où se trouve la gare"""
-    def __init__(self, id_gare: int, nom: str, ville: str, id_sncf: str | None = None):
+        Nom de la ville où se trouve la gare
+    id_sncf: int
+        id donné sur l'API SNCF
+    id_gare: int | None = None
+        Identifiant de la gare dans la BDD
+    """
+    def __init__(self, nom: str, ville: str, id_sncf: int, id_gare: int | None = None):
         self.id_gare = id_gare
         self.nom = nom
         self.ville = ville
