@@ -22,21 +22,20 @@ class TrajetDAO:
         Trajet
             l'objet Trajet créé, avec son id_trajet renseigné
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)       "
-                    "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s) "
-                    "RETURNING id_trajet                                                                    ",
-                    {
-                        "id_ligne": trajet.ligne.id_ligne,
-                        "id_train": trajet.train.id_train,
-                        "heure_depart": trajet.heure_depart,
-                        "heure_arrivee": trajet.heure_arrivee,
-                        "tarif_base": trajet.tarif_base,
-                    },
-                )
-                trajet.id_trajet = cursor.fetchone()["id_trajet"]
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)       "
+                "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s) "
+                "RETURNING id_trajet                                                                    ",
+                {
+                    "id_ligne": trajet.ligne.id_ligne,
+                    "id_train": trajet.train.id_train,
+                    "heure_depart": trajet.heure_depart,
+                    "heure_arrivee": trajet.heure_arrivee,
+                    "tarif_base": trajet.tarif_base,
+                },
+            )
+            trajet.id_trajet = cursor.fetchone()["id_trajet"]
 
         return trajet
 
