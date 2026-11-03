@@ -39,8 +39,11 @@ CREATE TABLE trajets(
 
 CREATE TABLE reservations(
     id_reservation SERIAL PRIMARY KEY,
+    id_client INT REFERENCES utilisateurs(id),
     id_trajet INT REFERENCES trajets(id_trajet),
     places_restantes INTEGER,
+    place VARCHAR(10),
+    classe INTEGER,
     prix FLOAT,
     tarif FLOAT
 );
