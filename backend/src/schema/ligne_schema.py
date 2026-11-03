@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from src.Classes.classes_objets.utilisateurs.gare import Gare
+from src.Classes.classes_objets.gare import Gare
 
 
 class LigneBaseModel(BaseModel):
