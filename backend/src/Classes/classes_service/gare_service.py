@@ -29,6 +29,7 @@ class GareService:
         nom = nom.strip() if nom else None
         ville = ville.strip() if ville else None
         return self.gare_dao.rechercher(nom=nom or None, ville=ville or None)
+
     def importer(self, texte: str) -> list[Gare]:
         """Cherche des gares sur l'API SNCF et les enregistre dans notre base.
 

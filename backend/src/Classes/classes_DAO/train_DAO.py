@@ -46,8 +46,8 @@ class TrainDAO:
 
         Param:
         ------
-        id_train: int
-            l'identifiant du train
+        num_train: int
+            le numéro du train
         capacite: int
             la nouvelle capacité
 
