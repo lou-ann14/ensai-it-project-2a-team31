@@ -27,8 +27,8 @@ class TestLigne:
         ]
     )
     def test_init_ligne(self, params, erreur, message_erreur):
-        gare_depart = Gare(1, "Matabiau", "Toulouse")
-        gare_arrivee = Gare(2, "Gare de Rennes", "Rennes")
+        gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
+        gare_arrivee = Gare.__init__(2, "Gare de Rennes", "Rennes")
         dico = {
             "id_ligne": 1,
             "gare_depart": gare_depart,
