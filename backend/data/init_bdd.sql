@@ -3,7 +3,8 @@ DROP TABLE IF EXISTS gares CASCADE;
 CREATE TABLE gares(
     id_gare SERIAL PRIMARY KEY,
     nom VARCHAR(256),
-    ville VARCHAR(256)
+    ville VARCHAR(256),
+    id_sncf VARCHAR(64) UNIQUE
 );
 
 CREATE TABLE utilisateurs(

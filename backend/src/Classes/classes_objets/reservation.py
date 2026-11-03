@@ -1,5 +1,5 @@
-from client import Client
-from trajet import Trajet
+from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_objets.utilisateurs.client import Client
 
 
 class Reservation:

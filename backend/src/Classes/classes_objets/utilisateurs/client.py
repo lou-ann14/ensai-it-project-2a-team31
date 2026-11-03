@@ -1,4 +1,4 @@
-from utilisateur import Utilisateur
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
 
 class Client(Utilisateur):
