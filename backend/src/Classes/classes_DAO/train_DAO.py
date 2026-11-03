@@ -29,7 +29,7 @@ class TrainDAO:
 
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                    "INSERT INTO trains(id_train, type_train, places_restantes)   "
+                    "INSERT INTO trains(type_train, places_restantes)   "
                     "VALUES (%(type_train)s, %(places_restantes)s)      "
                     "RETURNING id_train                                    ",
                     {
