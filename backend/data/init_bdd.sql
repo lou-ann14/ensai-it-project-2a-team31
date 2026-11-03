@@ -4,7 +4,8 @@ CREATE TABLE gares(
     id_gare SERIAL PRIMARY KEY,
     id_sncf VARCHAR(64) UNIQUE,
     nom VARCHAR(256),
-    ville VARCHAR(256)
+    ville VARCHAR(256),
+    id_sncf VARCHAR(64) UNIQUE
 );
 
 CREATE TABLE utilisateurs(
