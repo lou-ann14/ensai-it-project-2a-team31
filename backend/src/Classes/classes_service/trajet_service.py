@@ -196,7 +196,7 @@ class TrajetService:
         if tarif_base is None or tarif_base < 0:
             raise ValueError("Le tarif de base doit être positif ou nul.")
 
-        def _verifier_ligne(self, ligne: Ligne) -> Ligne:
+    def _verifier_ligne(self, ligne: Ligne) -> Ligne:
         """Vérifie que la ligne existe en base et la renvoie (lève ValueError sinon)."""
         if LigneDAO().trouver_par_id(ligne.id_ligne) is None:
             raise ValueError(
@@ -204,7 +204,9 @@ class TrajetService:
             )
         return ligne
 
-    def _trajet_similaire_existe(self, ligne: Ligne, heure_depart: datetime, id_trajet_ignore: int | None = None) -> bool:
+    def _trajet_similaire_existe(
+        self, ligne: Ligne, heure_depart: datetime, id_trajet_ignore: int | None = None
+    ) -> bool:
         """Indique si un trajet existe déjà sur cette ligne avec exactement cette heure de départ."""
         trajets_du_jour = TrajetDAO().rechercher(ligne.gare_depart, ligne.gare_arrivee, heure_depart)
         return any(
