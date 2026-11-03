@@ -32,10 +32,10 @@ class TestUtilisateur:
     )
     def test_init_utilisateur(self, params, erreur, message_erreur):
         dico = {
-            22,
-            "1234",
-            "jaimelestrains",
-            "Client"}
+            "id": 22,
+            "mdp": "1234",
+            "nom_utilisateur": "jaimelestrains",
+            "role": "Client"}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Utilisateur(**dico)

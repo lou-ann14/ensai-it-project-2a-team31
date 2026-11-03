@@ -26,15 +26,17 @@ class TrainDAO:
         """
         type_train = train.type_train
         places_initiales = str(train.places_initiales)
+        num_train = train.num_train
 
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                    "INSERT INTO trains(type_train, places_restantes)   "
-                    "VALUES (%(type_train)s, %(places_restantes)s)      "
+                    "INSERT INTO trains(type_train, places_restantes, num_train)   "
+                    "VALUES (%(type_train)s, %(places_restantes)s, %(num_train)s)      "
                     "RETURNING id_train                                    ",
                     {
                         "type_train": type_train,
                         "places_restantes": places_initiales,
+                        "num_train": num_train
                     },
                 )
             id_train = cursor.fetchone()["id_train"]
@@ -43,7 +45,7 @@ class TrainDAO:
         
 
     @log
-    def modifier_capacite(self, id_train: int, capacite: list[int, int]) -> bool:
+    def modifier_capacite(self, num_train: int, capacite: list[int, int]) -> bool:
         """
         Met à jour la capacité d'un train existant.
 
@@ -65,10 +67,10 @@ class TrainDAO:
             cursor.execute(
                 "UPDATE trains"
                 "SET places_restantes = %(places_restantes)s"
-                "WHERE id_train = %(id_train)s",
+                "WHERE num_train = %(num_train)s",
                 {
                     "places_restantes": capa,
-                    "id_train": id_train
+                    "num_train": num_train
                 }
             )
             res = cursor.fetchone()["places_restantes"]
@@ -76,7 +78,7 @@ class TrainDAO:
         return res == capa
         
 
-    def trouver_par_id(self, id_train: int) -> Train:
+    def trouver_par_num(self, num_train: int) -> Train:
         """
         Récupère un train par son identifiant.
 
@@ -95,16 +97,16 @@ class TrainDAO:
                 cursor.execute(
                     "SELECT *                          "
                     "  FROM trains                     "
-                    " WHERE id_train = %(id_train)s",
+                    " WHERE num_train = %(num_train)s",
                     {
-                        "id_train": id_train
+                        "num_train": num_train
                     })
                 train_bdd = cursor.fetchone()
 
         train = Train(
-                id_train=train_bdd["id_train"],
                 type_train=train_bdd["type_train"],
-                places_initiales=train_bdd["places_restantes"]
+                places_initiales=train_bdd["places_restantes"],
+                num_train=train_bdd["num_train"]
             )
 
         return train
