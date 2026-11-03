@@ -25,7 +25,7 @@ class TestTrain:
             )
         ]
     )
-    def test_init_train(params, erreur, message_erreur):
+    def test_init_train(self, params, erreur, message_erreur):
         dico = {
             1,
             "rouge",
@@ -38,5 +38,5 @@ class TestTrain:
         "id_train, type_train, places_initiales, resultat_attendu",
         [(1, "rouge", [500, 1000], "Le train numéro 1 dispose de 500 places en première classe et 1000 en seconde classe, c'est un tgv rouge")]
     )
-    def test_str_gare(id_gare, nom, ville, resultat_attendu):
+    def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
         assert Train.__str__() == resultat_attendu
