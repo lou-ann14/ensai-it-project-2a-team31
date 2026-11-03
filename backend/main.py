@@ -7,7 +7,12 @@ from src.Classes.classes_service.utilisateurs_service.collaborateur_service impo
     CollaborateurService,
 )
 from src.utils.db_connexion import DBConnexion
-from src.Classes.controller import administrateur_controller, train_controller
+from src.Classes.controller import (
+    administrateur_controller,
+    gare_controller,
+    train_controller,
+    utilisateur_controller,
+)
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
@@ -41,9 +46,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": exc.errors(), "body": body_str},
     )
 
-
+app.include_router(gare_controller.router, prefix="/gares", tags=["Gares"])
 app.include_router(train_controller.router, prefix="/trains", tags=["Trains"])
 app.include_router(administrateur_controller.router, prefix="/admin", tags=["Administrateur"])
+app.include_router(utilisateur_controller.router, prefix="/utilisateur", tags=["Utilisateur"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():

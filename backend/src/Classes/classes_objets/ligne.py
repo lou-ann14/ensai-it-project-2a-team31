@@ -2,7 +2,7 @@ from src.Classes.classes_objets.gare import Gare
 
 
 class Ligne:
-    def __init__(self, id_ligne: int, gare_depart: Gare, gare_arrivee: Gare):
+    def __init__(self, gare_depart: Gare, gare_arrivee: Gare, id_ligne: int | None = None):
         self.id_ligne = id_ligne
         self.gare_depart = gare_depart
         self.gare_arrivee = gare_arrivee

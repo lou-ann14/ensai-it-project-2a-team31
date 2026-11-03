@@ -1,0 +1,16 @@
+30/10/2026 23:26:26 root                      INFO    - --------------------------------------------------
+30/10/2026 23:26:26 root                      INFO    - Starting Webservice                           
+30/10/2026 23:26:26 root                      INFO    - --------------------------------------------------
+30/10/2026 23:26:26 root                      INFO    - Load environment variables: SUCCES
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_HOST=127.0.0.1
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_PORT=5432
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_DATABASE=projet2a
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_USER=postgres
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_PASSWORD=*******
+30/10/2026 23:26:26 root                      INFO    - POSTGRES_SCHEMA=projet
+30/10/2026 23:27:05 root                      INFO    - GET / - START
+30/10/2026 23:27:05 root                      INFO    - GET / - END [Status: 307]
+30/10/2026 23:27:05 root                      INFO    - GET /docs - START
+30/10/2026 23:27:05 root                      INFO    - GET /docs - END [Status: 200]
+30/10/2026 23:27:06 root                      INFO    - GET /openapi.json - START
+30/10/2026 23:27:06 root                      INFO    - GET /openapi.json - END [Status: 200]
