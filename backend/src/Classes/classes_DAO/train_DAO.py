@@ -124,7 +124,7 @@ class TrainDAO:
 
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                "SELECT id                          "
+                "SELECT id_train                          "
                 "  FROM trains                     "
                 " WHERE num_train = %(num_train)s",
                 {
@@ -132,6 +132,6 @@ class TrainDAO:
                 })
             id_bdd = cursor.fetchone()
 
-        id = id_bdd
+        id_train = id_bdd
 
-        return id
+        return id_train

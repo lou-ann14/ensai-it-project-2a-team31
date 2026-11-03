@@ -43,6 +43,6 @@ class GareService:
             raise ValueError("Saisissez au moins 2 caractères.")
         gares = []
         for trouve in SncfClient().rechercher_gares(texte):
-            gare = Gare(None, trouve["nom"], trouve["ville"], trouve["id_sncf"])
+            gare = Gare(trouve["nom"], trouve["ville"], trouve["id_sncf"], None)
             gares.append(self.gare_dao.creer_ou_mettre_a_jour(gare))
         return gares
