@@ -42,7 +42,7 @@ class TestReservation:
             )
         ]
     )
-    def test_init_reservation(params, erreur, message_erreur):
+    def test_init_reservation(self, params, erreur, message_erreur):
         client = Client.__init__(4, "0000", "jaimelestrains")
         trajet = Trajet.__init__()
         dico = {
@@ -58,5 +58,5 @@ class TestReservation:
         "id_gare, nom, ville, resultat_attendu",
         [("1", "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
     )
-    def test_str_gare(id_gare, nom, ville, resultat_attendu):
+    def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
         assert Gare.__str__() == resultat_attendu

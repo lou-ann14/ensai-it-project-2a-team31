@@ -26,7 +26,7 @@ class TestLigne:
             )
         ]
     )
-    def test_init_ligne(params, erreur, message_erreur):
+    def test_init_ligne(self, params, erreur, message_erreur):
         gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
         gare_arrivee = Gare.__init__(2, "Gare de Rennes", "Rennes")
         dico = {
@@ -41,5 +41,5 @@ class TestLigne:
         "id_ligne, gare_depart, gare_arrivee, resultat_attendu",
         [(1, "Matabiau", "Rennes", "la gare de depart de la ligne : 1 est Matabiau et la gare d'arrivée est : Rennes")]
         )
-    def test_str_gare(id_ligne, gare_depart, gare_arrivee, resultat_attendu):
+    def test_str_gare(self, id_ligne, gare_depart, gare_arrivee, resultat_attendu):
         assert Ligne.__str__() == resultat_attendu
