@@ -11,20 +11,20 @@ def get_train_service():
     """Dependency Injection provider for TrainService."""
     return TrainService()
 
-@router.get("/{id_train}", response_model=list[TrainBaseModel], tags=["Trains"])
-async def trouve_par_id(id_train, train_service=Depends(get_train_service)):
-    """Trouve un train à l'aide de son id
+@router.get("/{num_train}", response_model=list[TrainBaseModel], tags=["Trains"])
+async def trouve_par_num(num_train, train_service=Depends(get_train_service)):
+    """Trouve un train à l'aide de son numéro
     Param:
-        id_train (int)
+        num_train (int)
     Returns:
         TrainBaseModel
     Raises:
         HTTPException: erreur 404 si le train n'est pas trouvé
     """
     logger.info("Trouve un train par son id")
-    train = train_service.trouver_par_id(id_train)
+    train = train_service.trouver_par_num(num_train)
     if not train:
-        raise HTTPException(status_code=404, detail="Train (id={id_train}) non trouvé.")
+        raise HTTPException(status_code=404, detail="Train (numéro={num_train}) non trouvé.")
     return train
 
 
@@ -47,8 +47,8 @@ async def creer_train(train: TrainBaseModel, train_service=Depends(get_train_ser
 
     return train
 
-@router.put("/{id_train}", response_model=TrainBaseModel, tags=["Trains"])
-async def modifier_capacite(id_train : int, t : TrainBaseModel, train_service=Depends(get_train_service)):
+@router.put("/{num_train}", response_model=TrainBaseModel, tags=["Trains"])
+async def modifier_capacite(num_train : int, t : TrainBaseModel, train_service=Depends(get_train_service)):
     """Modifie la capacité d'un train
     Param:
         id_train : int
@@ -60,9 +60,9 @@ async def modifier_capacite(id_train : int, t : TrainBaseModel, train_service=De
     """
     logger.info("Modification d'un train")
 
-    train = train_service.trouver_par_id(id_train)
+    train = train_service.trouver_par_num(num_train)
     if not train:
-        raise HTTPException(status_code=404, detail="Train (id={id_train}) non trouvé.")
+        raise HTTPException(status_code=404, detail="Train (numéro={num_train}) non trouvé.")
     
     train.places_initiales = t.places_initiales
 
