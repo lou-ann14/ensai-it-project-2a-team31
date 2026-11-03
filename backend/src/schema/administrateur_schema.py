@@ -7,7 +7,7 @@ class UtilisateurCreationModel(BaseModel):
 
     nom_utilisateur: str
     mdp: str
-    role: str = "CLIENT"
+    grade: str = "CLIENT"
 
 
 class UtilisateurReponseModel(BaseModel):
@@ -18,4 +18,4 @@ class UtilisateurReponseModel(BaseModel):
 
     id: int
     nom_utilisateur: str
-    role: str
+    grade: str
