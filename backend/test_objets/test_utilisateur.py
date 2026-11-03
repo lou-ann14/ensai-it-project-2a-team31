@@ -45,4 +45,4 @@ class TestUtilisateur:
         [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains 22 est un Client")]
     )
     def test_str_utilisateurs(self, id, mdp, nom_utilisateur, role, resultat_attendu):
-        assert Utilisateur.__str__() == resultat_attendu
+        assert str(Utilisateur()) == resultat_attendu

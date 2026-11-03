@@ -8,4 +8,4 @@ class TestAdministrateur:
         [(22, "jaimelestrains", "Administrateur : jaimelestrains 22")]
     )
     def test_str_administrateur(self, id, nom_utilisateur, resultat_attendu):
-        assert Administrateur.__str__() == resultat_attendu
+        assert str(Administrateur()) == resultat_attendu

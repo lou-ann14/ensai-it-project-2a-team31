@@ -39,4 +39,4 @@ class TestTrain:
         [(1, "rouge", [500, 1000], "Le train numéro 1 dispose de 500 places en première classe et 1000 en seconde classe, c'est un tgv rouge")]
     )
     def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
-        assert Train.__str__() == resultat_attendu
+        assert str(Train()) == resultat_attendu
