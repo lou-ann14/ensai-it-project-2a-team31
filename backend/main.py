@@ -7,13 +7,11 @@ from src.Classes.classes_service.utilisateurs_service.collaborateur_service impo
     CollaborateurService,
 )
 from src.utils.db_connexion import DBConnexion
-from src.Classes.controller import train_controller
+from src.Classes.controller import administrateur_controller, train_controller
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
-from fastapi import HTTPException   
-from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
-from src.Classes.classes_service.utilisateurs_service.administrateur_service import AdministrateurService
+
 
 
 logger = get_logger(__name__)
@@ -45,6 +43,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 app.include_router(train_controller.router, prefix="/trains", tags=["Trains"])
+app.include_router(administrateur_controller.router, prefix="/admin", tags=["Administrateur"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
@@ -61,33 +60,6 @@ async def reset_database():
     return {
         "message": f"Database re-initialization - {'SUCCES' if succes else 'ECHEC'}"
     }
-
-def utilisateur_en_json(utilisateur: Utilisateur) -> dict:
-    """Transforme un Utilisateur en dictionnaire, sans le mot de passe"""
-    return {"id": utilisateur.id, "nom_utilisateur": utilisateur.nom_utilisateur, "role": utilisateur.role}
-
-
-@app.get("/admin/utilisateurs", tags=["Administrateur"])
-def rechercher_compte(id_utilisateur: int | None = None, nom_utilisateur: str | None = None):
-    """Recherche un compte par identifiant ou par nom d'utilisateur"""
-    try:
-        utilisateur = AdministrateurService().recherche_compte(nom_utilisateur, id_utilisateur)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    if utilisateur is None:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
-    return utilisateur_en_json(utilisateur)
-
-
-@app.put("/admin/utilisateurs/{id_utilisateur}/role", tags=["Administrateur"])
-def modifier_role(id_utilisateur: int, nouveau_role: str):
-    """Modifie le niveau d'habilitation d'un utilisateur (CLIENT, COLLABORATEUR ou ADMIN)"""
-    try:
-        utilisateur = AdministrateurService().gerer_habilitation(id_utilisateur, nouveau_role)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return utilisateur_en_json(utilisateur)
-
 
 @app.post("/creer_ligne")
 async def creer_ligne(gare_depart_id: int, gare_arrivee_id: int, id_collaborateur: int):
