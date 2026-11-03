@@ -23,18 +23,17 @@ class LigneDAO:
         """
         id_gare_depart = gare_depart.id_gare
         id_gare_arrivee = gare_arrivee.id_gare
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO lignes(id_gare_depart, id_gare_arrivee)   "
-                    "VALUES (%(id_gare_depart)s, %(id_gare_arrivee)s)      "
-                    "RETURNING id_ligne                                    ",
-                    {
-                        "id_gare_depart": id_gare_depart,
-                        "id_gare_arrivee": id_gare_arrivee,
-                    },
-                )
-                id_ligne = cursor.fetchone()["id_ligne"]
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO lignes(id_gare_depart, id_gare_arrivee)   "
+                "VALUES (%(id_gare_depart)s, %(id_gare_arrivee)s)      "
+                "RETURNING id_ligne                                    ",
+                {
+                    "id_gare_depart": id_gare_depart,
+                    "id_gare_arrivee": id_gare_arrivee,
+                },
+            )
+            id_ligne = cursor.fetchone()["id_ligne"]
 
         return id_ligne is not None
 

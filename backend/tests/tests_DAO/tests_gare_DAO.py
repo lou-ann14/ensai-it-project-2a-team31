@@ -4,33 +4,118 @@ from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.gare import Gare
 
 
-def test_rechercher_plusieurs_gares():
-    pass
+# données préenregistrées (équivalent d'une bdd)
+gare_matabiau = {"id_gare": 1, "nom": "Matabiau", "ville": "Toulouse"}
+gare_massy = {"id_gare": 2, "nom": "MassyTGV", "ville": "Massy"}
+gare_montparnasse = {"id_gare": 3, "nom": "Montparnasse", "ville": "Paris"}
+gare_de_lyon = {"id_gare": 4, "nom": "Gare de Lyon", "ville": "Paris"}
+gare_part_dieu = {"id_gare": 5, "nom": "Part-Dieu", "ville": "Lyon"}
+gare_saint_charles = {"id_gare": 6, "nom": "Saint-Charles", "ville": "Marseille"}
+gare_rennes = {"id_gare": 7, "nom": "Gare de Rennes", "ville": "Rennes"}
+
+gares_bdd = [
+    gare_matabiau,
+    gare_massy,
+    gare_montparnasse,
+    gare_de_lyon,
+    gare_part_dieu,
+    gare_saint_charles,
+    gare_rennes,
+]
 
 
-def test_rechercher_aucune_gare():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion") #ce qui permet de remplacer la connexion a la bdd
+def test_rechercher_plusieurs_gares(mock_db):
+    """La BDD renvoie 2 gares parisiennes : on obtient 2 objets Gare"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__() #on connecte le cursor a la "fausse" bdd 
+    cursor.fetchall.return_value = [gare_de_lyon, gare_montparnasse] 
+    gares_trouvees = GareDAO().rechercher(nom=None, ville="Paris")
+
+    assert len(gares_trouvees) == 2  
+    assert gares_trouvees[0].nom == "Gare de Lyon"
+    assert gares_trouvees[1].id_gare == 3
 
 
-def test_rechercher_prefixe_nom_insensible_casse():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_aucune_gare(mock_db):
+    """La BDD ne renvoie aucune gare"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+    gares_trouvees = GareDAO().rechercher(nom=None, ville="Bruz")
+
+    assert gares_trouvees == []
 
 
-def test_rechercher_par_ville():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_prefixe_nom_insensible_casse(mock_db):
+    """La recherche 'mat' envoie le préfixe 'mat%' avec un ILIKE"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_matabiau]
+    gares_trouvees = GareDAO().rechercher(nom="mat", ville=None)
+    requete, parametres = cursor.execute.call_args.args  # il regarde ce que le DAO a éxécuté
+    
+    assert "ILIKE" in requete
+    assert parametres["nom"] == "mat%"
+    assert gares_trouvees[0].nom == "Matabiau"
 
 
-def test_rechercher_nom_et_ville():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_par_ville(mock_db):
+    """La recherche 'Paris' envoie 'Paris%' pour la ville et rien pour le nom"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_de_lyon, gare_montparnasse]
+    gares_trouvees = GareDAO().rechercher(nom=None, ville="Paris")
+    requete, parametres = cursor.execute.call_args.args
+
+    assert parametres["ville"] == "Paris%"
+    assert parametres["nom"] is None
+    assert gares_trouvees == [gare_de_lyon, gare_montparnasse]
 
 
-def test_rechercher_tri_par_nom():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_nom_et_ville(mock_db):
+    """Nom et ville renseignés : les deux préfixes sont envoyés avec un AND"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [gare_montparnasse]
+    gares_trouvees = GareDAO().rechercher(nom="Mont", ville="Paris")
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "AND" in requete
+    assert parametres["nom"] == "Mont%"
+    assert parametres["ville"] == "Paris%"
+    assert gares_trouvees[0].nom == "Montparnasse"
 
 
-def test_trouver_par_id_ok():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_rechercher_tri_par_nom(mock_db):
+    """La requête demande un tri par nom"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = gares_bdd
+    GareDAO().rechercher(nom=None, ville=None)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "ORDER BY nom" in requete
 
 
-def test_trouver_par_id_introuvable():
-    pass
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_trouver_par_id_ok(mock_db):
+    """L'id 1 existe donc on obtient la gare Matabiau"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = gare_matabiau
+    gare_trouvee = GareDAO().trouver_par_id(1)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert parametres["id_gare"] == 1
+    assert isinstance(gare_trouvee, Gare)
+    assert gare_trouvee.nom == "Matabiau"
+    assert gare_trouvee.ville == "Toulouse"
+
+
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_trouver_par_id_introuvable(mock_db):
+    """L'id 99 n'existe pas : on obtient None"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = None
+    gare_trouvee = GareDAO().trouver_par_id(99)
+
+    assert gare_trouvee is None
