@@ -46,10 +46,12 @@ class TestReservation:
         client = Client.__init__(4, "0000", "jaimelestrains")
         trajet = Trajet.__init__()
         dico = {
-            1,
-            client,
-            "Matabiau",
-            "Toulouse"}
+            "id_reservation": 1,
+            "client": client,
+            "trajet": trajet,
+            "place": "12A",
+            "classe": 2,
+            "prix": 35.0}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Reservation(**dico)
