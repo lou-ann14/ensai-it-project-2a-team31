@@ -8,4 +8,4 @@ class TestClient:
         [(22, "jaimelestrains", "Client : jaimelestrains 22")]
     )
     def test_str_client(self, id, nom_utilisateur, resultat_attendu):
-        assert Client.__str__() == resultat_attendu
+        assert str(Client()) == resultat_attendu

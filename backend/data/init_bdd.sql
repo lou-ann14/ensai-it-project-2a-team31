@@ -25,7 +25,8 @@ CREATE TABLE lignes(
 CREATE TABLE trains(
     id_train SERIAL PRIMARY KEY,
     type_train VARCHAR(256),
-    places_restantes VARCHAR(256)
+    places_restantes VARCHAR(256),
+    num_train INTEGER
 );
 
 CREATE TABLE trajets(

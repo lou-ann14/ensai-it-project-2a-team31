@@ -12,7 +12,7 @@ class LigneDAO:
         ------
         gare_depart:
             l'identifiant de la gare qui se trouvera en début de la ligne
-        
+
         gare_arrivee:
             l'identifiant de la gare qui se retrouvera en bout de ligne
 
@@ -52,18 +52,17 @@ class LigneDAO:
         Ligne
             l'objet Ligne trouvé, ou None si aucune ligne ne relie ces deux gares
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
-                    "  FROM lignes                                         "
-                    " WHERE id_gare_depart    = %(id_gare_depart)s         "
-                    "   AND id_gare_arrivee   = %(id_gare_arrivee)s        ",
-                    {
-                        "id_gare_depart": gare_depart.id_gare,
-                        "id_gare_arrivee": gare_arrivee.id_gare,
-                    })
-                ligne_bdd = cursor.fetchone()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
+                "  FROM lignes                                         "
+                " WHERE id_gare_depart    = %(id_gare_depart)s         "
+                "   AND id_gare_arrivee   = %(id_gare_arrivee)s        ",
+                {
+                    "id_gare_depart": gare_depart.id_gare,
+                    "id_gare_arrivee": gare_arrivee.id_gare,
+                })
+            ligne_bdd = cursor.fetchone()
 
         ligne = None
         if ligne_bdd:
@@ -88,16 +87,15 @@ class LigneDAO:
         Ligne
             l'objet Ligne trouvé
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
-                    "  FROM lignes                                         "
-                    " WHERE id_ligne = %(id_ligne)s                        ",
-                    {"id_ligne": id_ligne}
-                )
-                ligne_bdd = cursor.fetchone()
-       
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_ligne, id_gare_depart, id_gare_arrivee      "
+                "  FROM lignes                                         "
+                " WHERE id_ligne = %(id_ligne)s                        ",
+                {"id_ligne": id_ligne}
+            )
+            ligne_bdd = cursor.fetchone()
+
         ligne = None
         if ligne_bdd:
             ligne = Ligne(

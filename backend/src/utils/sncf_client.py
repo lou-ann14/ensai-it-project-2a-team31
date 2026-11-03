@@ -1,7 +1,6 @@
 import os
 
 import requests
-
 from src.utils.log_utils import get_logger
 from datetime import datetime
 
