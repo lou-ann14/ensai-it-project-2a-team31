@@ -98,6 +98,9 @@ class TrainDAO:
                 })
             train_bdd = cursor.fetchone()
 
+        if train_bdd is None:
+            return None
+
         train = Train(
                 type_train=train_bdd["type_train"],
                 places_initiales=train_bdd["places_restantes"],
@@ -131,6 +134,9 @@ class TrainDAO:
                     "num_train": num_train
                 })
             id_bdd = cursor.fetchone()
+
+        if id_bdd is None:
+            return None
 
         id_train = id_bdd
 
