@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
+from src.schema.administrateur_schema import UtilisateurReponseModel
 
 
 class TrajetReponseModel(BaseModel):
@@ -40,8 +41,8 @@ class ReservationReponseModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id_reservation: int
-    id_client: int
-    id_trajet: int
+    client: UtilisateurReponseModel
+    trajet: TrajetReponseModel
     place: str
     classe: int
     prix: float

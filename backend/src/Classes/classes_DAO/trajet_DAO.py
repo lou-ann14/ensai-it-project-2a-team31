@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 from src.Classes.classes_objets.gare import Gare
@@ -16,7 +15,7 @@ SELECT_TRAJET = (
     "       gd.ville AS ville_gare_depart, gd.id_sncf AS id_sncf_gare_depart,  "
     "       ga.id_gare AS id_gare_arrivee, ga.nom AS nom_gare_arrivee,         "
     "       ga.ville AS ville_gare_arrivee, ga.id_sncf AS id_sncf_gare_arrivee,"
-    "       tr.id_train, tr.type_train, tr.places_restantes, tr.num_train      "
+    "       tr.id_train, tr.type_train, tr.places_premieres, tr.places_secondes, tr.num_train      "
     "  FROM trajets t                                                          "
     "  JOIN lignes l ON l.id_ligne = t.id_ligne                                "
     "  JOIN gares gd ON gd.id_gare = l.id_gare_depart                          "
@@ -51,8 +50,7 @@ class TrajetDAO:
         if trajet_bdd["id_train"] is not None:
             train = Train(
                 type_train=trajet_bdd["type_train"],
-                # La colonne stocke la liste sous forme de texte, ex : "[100, 300]"
-                places_initiales=json.loads(trajet_bdd["places_restantes"]),
+                places_initiales=[trajet_bdd["places_premieres"], trajet_bdd["places_secondes"]],
                 num_train=trajet_bdd["num_train"],
                 id_train=trajet_bdd["id_train"],
             )

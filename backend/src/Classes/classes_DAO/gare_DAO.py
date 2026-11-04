@@ -22,7 +22,7 @@ class GareDAO:
         """
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                "SELECT id_gare, nom, ville                          "
+                "SELECT id_gare, nom, ville, id_sncf                 "
                 "  FROM gares                     "
                 " WHERE (%(nom)s IS NULL OR nom ILIKE %(nom)s)          "
                 "   AND (%(ville)s IS NULL OR ville ILIKE %(ville)s)"
@@ -38,7 +38,8 @@ class GareDAO:
             gares.append(Gare(
                 id_gare=trouve["id_gare"],
                 nom=trouve["nom"],
-                ville=trouve["ville"]
+                ville=trouve["ville"],
+                id_sncf=trouve["id_sncf"],
             ))
         return gares
 
@@ -58,7 +59,7 @@ class GareDAO:
         """
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                "SELECT id_gare, nom, ville             "
+                "SELECT id_gare, nom, ville, id_sncf    "
                 "  FROM gares                           "
                 " WHERE id_gare = %(id_gare)s           ",
                 {"id_gare": id_gare}
@@ -70,7 +71,8 @@ class GareDAO:
             gare = Gare(
                 id_gare=gare_bdd["id_gare"],
                 nom=gare_bdd["nom"],
-                ville=gare_bdd["ville"]
+                ville=gare_bdd["ville"],
+                id_sncf=gare_bdd["id_sncf"],
             )
         return gare
 
