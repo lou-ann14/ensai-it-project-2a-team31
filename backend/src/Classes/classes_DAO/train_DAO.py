@@ -1,6 +1,8 @@
 from src.Classes.classes_objets.train import Train
 from src.utils.db_connexion import DBConnexion
-from src.utils.log_utils import log
+from src.utils.log_utils import get_logger, log
+
+logger = get_logger(__name__)
 
 
 class TrainDAO:
@@ -20,19 +22,23 @@ class TrainDAO:
         Train
             le train créé, avec son id_train renseigné
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                    "INSERT INTO trains(type_train, places_premieres, places_secondes, num_train)   "
-                    "VALUES (%(type_train)s, %(places_premieres)s, %(places_secondes)s, %(num_train)s) "
-                    "RETURNING id_train                                                             ",
-                    {
-                        "type_train": train.type_train,
-                        "places_premieres": train.places_premieres,
-                        "places_secondes": train.places_secondes,
-                        "num_train": train.num_train,
-                    },
-                )
-            train.id_train = cursor.fetchone()["id_train"]
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                        "INSERT INTO trains(type_train, places_premieres, places_secondes, num_train)   "
+                        "VALUES (%(type_train)s, %(places_premieres)s, %(places_secondes)s, %(num_train)s) "
+                        "RETURNING id_train                                                             ",
+                        {
+                            "type_train": train.type_train,
+                            "places_premieres": train.places_premieres,
+                            "places_secondes": train.places_secondes,
+                            "num_train": train.num_train,
+                        },
+                    )
+                train.id_train = cursor.fetchone()["id_train"]
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.creer : {e}")
+            raise
 
         return train
 
@@ -55,19 +61,23 @@ class TrainDAO:
         Bool
             Réussite ou échec de la modification
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE trains                               "
-                "   SET places_premieres = %(places_premieres)s, "
-                "       places_secondes  = %(places_secondes)s   "
-                " WHERE num_train = %(num_train)s            ",
-                {
-                    "places_premieres": capacite_premiere,
-                    "places_secondes": capacite_seconde,
-                    "num_train": num_train,
-                }
-            )
-            nb_lignes_modifiees = cursor.rowcount
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE trains                               "
+                    "   SET places_premieres = %(places_premieres)s, "
+                    "       places_secondes  = %(places_secondes)s   "
+                    " WHERE num_train = %(num_train)s            ",
+                    {
+                        "places_premieres": capacite_premiere,
+                        "places_secondes": capacite_seconde,
+                        "num_train": num_train,
+                    }
+                )
+                nb_lignes_modifiees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.modifier_capacite : {e}")
+            raise
 
         return nb_lignes_modifiees > 0
 
@@ -87,15 +97,19 @@ class TrainDAO:
             l'objet Train trouvé
         """
 
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT *                          "
-                "  FROM trains                     "
-                " WHERE num_train = %(num_train)s",
-                {
-                    "num_train": num_train
-                })
-            train_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT *                          "
+                    "  FROM trains                     "
+                    " WHERE num_train = %(num_train)s",
+                    {
+                        "num_train": num_train
+                    })
+                train_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.trouver_train_par_num : {e}")
+            raise
 
         if train_bdd is None:
             return None
@@ -126,15 +140,19 @@ class TrainDAO:
             l'identifiant trouvé
         """
 
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT id_train                          "
-                "  FROM trains                     "
-                " WHERE num_train = %(num_train)s",
-                {
-                    "num_train": num_train
-                })
-            id_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_train                          "
+                    "  FROM trains                     "
+                    " WHERE num_train = %(num_train)s",
+                    {
+                        "num_train": num_train
+                    })
+                id_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.trouver_id_par_num : {e}")
+            raise
 
         if id_bdd is None:
             return None
