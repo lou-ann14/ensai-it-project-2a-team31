@@ -107,9 +107,9 @@ def creer_compte(compte: CompteCreationModel):
     if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
         raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
 
-    # Le rôle est imposé : on ne laisse pas quelqu'un se créer un compte ADMIN
+    # Le grade est imposé : on ne laisse pas quelqu'un se créer un compte ADMIN
     try:
-        nouvel_utilisateur = Utilisateur(id=None, mdp=compte.mdp, nom_utilisateur=nom_utilisateur, role="CLIENT")
+        nouvel_utilisateur = Utilisateur(id=None, mdp=compte.mdp, nom_utilisateur=nom_utilisateur, grade="CLIENT")
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
