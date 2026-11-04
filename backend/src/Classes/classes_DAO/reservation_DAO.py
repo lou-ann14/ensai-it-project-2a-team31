@@ -3,11 +3,15 @@ from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.utilisateurs.client import Client
 from src.utils.db_connexion import DBConnexion
+from src.utils.log_utils import get_logger, log
+
+logger = get_logger(__name__)
 
 
 class ReservationDAO:
     """Classe qui interagit avec la base de données pour les objets de type Reservation"""
 
+    @log
     def creer(self, reservation: Reservation) -> Reservation:
         """
         Enregistre une nouvelle réservation dans la base de données.
@@ -22,23 +26,28 @@ class ReservationDAO:
         Reservation
             l'objet Reservation créé, avec son id_reservation renseigné
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO reservations(id_client, id_trajet, place, classe, prix)      "
-                "VALUES (%(id_client)s, %(id_trajet)s, %(place)s, %(classe)s, %(prix)s)   "
-                "RETURNING id_reservation                                                 ",
-                {
-                    "id_client": reservation.client.id,
-                    "id_trajet": reservation.trajet.id_trajet,
-                    "place": reservation.place,
-                    "classe": reservation.classe,
-                    "prix": reservation.prix,
-                },
-            )
-            reservation.id_reservation = cursor.fetchone()["id_reservation"]
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO reservations(id_client, id_trajet, place, classe, prix)      "
+                    "VALUES (%(id_client)s, %(id_trajet)s, %(place)s, %(classe)s, %(prix)s)   "
+                    "RETURNING id_reservation                                                 ",
+                    {
+                        "id_client": reservation.client.id,
+                        "id_trajet": reservation.trajet.id_trajet,
+                        "place": reservation.place,
+                        "classe": reservation.classe,
+                        "prix": reservation.prix,
+                    },
+                )
+                reservation.id_reservation = cursor.fetchone()["id_reservation"]
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.creer : {e}")
+            raise
 
         return reservation
 
+    @log
     def annuler(self, id_reservation: int) -> bool:
         """
         Supprime une réservation de la base de données.
@@ -53,16 +62,21 @@ class ReservationDAO:
         bool
             True si l'annulation a réussi, False sinon
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM reservations                          "
-                " WHERE id_reservation = %(id_reservation)s        ",
-                {"id_reservation": id_reservation},
-            )
-            nb_lignes_supprimees = cursor.rowcount
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM reservations                          "
+                    " WHERE id_reservation = %(id_reservation)s        ",
+                    {"id_reservation": id_reservation},
+                )
+                nb_lignes_supprimees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.annuler : {e}")
+            raise
 
         return nb_lignes_supprimees > 0
 
+    @log
     def trouver_par_client(self, id_client: int) -> list[Reservation]:
         """
         Récupère toutes les réservations d'un client spécifique.
@@ -77,20 +91,24 @@ class ReservationDAO:
         list[Reservation]
             la liste des réservations du client (vide si aucune)
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT id_reservation,                            "
-                "       id_client,                                 "
-                "       id_trajet,                                 "
-                "       place,                                     "
-                "       classe,                                    "
-                "       prix                                       "
-                "  FROM reservations                               "
-                " WHERE id_client = %(id_client)s                  "
-                " ORDER BY id_reservation                          ",
-                {"id_client": id_client},
-            )
-            reservations_bdd = cursor.fetchall()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_reservation,                            "
+                    "       id_client,                                 "
+                    "       id_trajet,                                 "
+                    "       place,                                     "
+                    "       classe,                                    "
+                    "       prix                                       "
+                    "  FROM reservations                               "
+                    " WHERE id_client = %(id_client)s                  "
+                    " ORDER BY id_reservation                          ",
+                    {"id_client": id_client},
+                )
+                reservations_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.trouver_par_client : {e}")
+            raise
 
         reservations = []
         if reservations_bdd:
@@ -100,6 +118,7 @@ class ReservationDAO:
                     reservations.append(reservation)
         return reservations
 
+    @log
     def trouver_par_id(self, id_reservation: int) -> Reservation | None:
         """
         Récupère une réservation par son identifiant.
@@ -114,19 +133,23 @@ class ReservationDAO:
         Reservation
             l'objet Reservation trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT id_reservation,                            "
-                "       id_client,                                 "
-                "       id_trajet,                                 "
-                "       place,                                     "
-                "       classe,                                    "
-                "       prix                                       "
-                "  FROM reservations                               "
-                " WHERE id_reservation = %(id_reservation)s        ",
-                {"id_reservation": id_reservation},
-            )
-            reservation_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_reservation,                            "
+                    "       id_client,                                 "
+                    "       id_trajet,                                 "
+                    "       place,                                     "
+                    "       classe,                                    "
+                    "       prix                                       "
+                    "  FROM reservations                               "
+                    " WHERE id_reservation = %(id_reservation)s        ",
+                    {"id_reservation": id_reservation},
+                )
+                reservation_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.trouver_par_id : {e}")
+            raise
 
         if reservation_bdd is None:
             return None

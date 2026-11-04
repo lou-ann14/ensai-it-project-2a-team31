@@ -5,6 +5,9 @@ from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
 from src.utils.db_connexion import DBConnexion
+from src.utils.log_utils import get_logger, log
+
+logger = get_logger(__name__)
 
 # Récupère un trajet avec sa ligne, ses deux gares et son train.
 # LEFT JOIN sur trains : un trajet peut ne pas encore avoir de train (id_train vide).
@@ -66,6 +69,7 @@ class TrajetDAO:
             temps_trajet=trajet_bdd["temps_trajet"],
         )
 
+    @log
     def creer(self, trajet: Trajet) -> Trajet:
         """
         Enregistre un nouveau trajet dans la base de données.
@@ -80,24 +84,29 @@ class TrajetDAO:
         Trajet
             l'objet Trajet créé, avec son id_trajet renseigné
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base, temps_trajet)                "
-                "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s, %(temps_trajet)s)    "
-                "RETURNING id_trajet                                                                                           ",
-                {
-                    "id_ligne": trajet.ligne.id_ligne,
-                    "id_train": trajet.train.id_train,
-                    "heure_depart": trajet.heure_depart,
-                    "heure_arrivee": trajet.heure_arrivee,
-                    "tarif_base": trajet.tarif_base,
-                    "temps_trajet": trajet.temps_trajet,
-                },
-            )
-            trajet.id_trajet = cursor.fetchone()["id_trajet"]
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base, temps_trajet)                "
+                    "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s, %(temps_trajet)s)    "
+                    "RETURNING id_trajet                                                                                           ",
+                    {
+                        "id_ligne": trajet.ligne.id_ligne,
+                        "id_train": trajet.train.id_train,
+                        "heure_depart": trajet.heure_depart,
+                        "heure_arrivee": trajet.heure_arrivee,
+                        "tarif_base": trajet.tarif_base,
+                        "temps_trajet": trajet.temps_trajet,
+                    },
+                )
+                trajet.id_trajet = cursor.fetchone()["id_trajet"]
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.creer : {e}")
+            raise
 
         return trajet
 
+    @log
     def modifier(self, trajet: Trajet) -> bool:
         """
         Met à jour les informations d'un trajet existant.
@@ -112,30 +121,35 @@ class TrajetDAO:
         bool
             True si la modification a réussi, False sinon
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE trajets                                    "
-                "   SET id_ligne      = %(id_ligne)s,              "
-                "       id_train      = %(id_train)s,              "
-                "       heure_depart  = %(heure_depart)s,          "
-                "       heure_arrivee = %(heure_arrivee)s,         "
-                "       tarif_base    = %(tarif_base)s,            "
-                "       temps_trajet  = %(temps_trajet)s             "
-                " WHERE id_trajet = %(id_trajet)s                  ",
-                {
-                    "id_ligne": trajet.ligne.id_ligne,
-                    "id_train": trajet.train.id_train,
-                    "heure_depart": trajet.heure_depart,
-                    "heure_arrivee": trajet.heure_arrivee,
-                    "tarif_base": trajet.tarif_base,
-                    "temps_trajet": trajet.temps_trajet,
-                    "id_trajet": trajet.id_trajet,
-                },
-            )
-            nb_lignes_modifiees = cursor.rowcount
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE trajets                                    "
+                    "   SET id_ligne      = %(id_ligne)s,              "
+                    "       id_train      = %(id_train)s,              "
+                    "       heure_depart  = %(heure_depart)s,          "
+                    "       heure_arrivee = %(heure_arrivee)s,         "
+                    "       tarif_base    = %(tarif_base)s,            "
+                    "       temps_trajet  = %(temps_trajet)s             "
+                    " WHERE id_trajet = %(id_trajet)s                  ",
+                    {
+                        "id_ligne": trajet.ligne.id_ligne,
+                        "id_train": trajet.train.id_train,
+                        "heure_depart": trajet.heure_depart,
+                        "heure_arrivee": trajet.heure_arrivee,
+                        "tarif_base": trajet.tarif_base,
+                        "temps_trajet": trajet.temps_trajet,
+                        "id_trajet": trajet.id_trajet,
+                    },
+                )
+                nb_lignes_modifiees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.modifier : {e}")
+            raise
 
         return nb_lignes_modifiees > 0
 
+    @log
     def supprimer(self, id_trajet: int) -> bool:
         """
         Supprime un trajet de la base de données.
@@ -150,16 +164,21 @@ class TrajetDAO:
         bool
             True si la suppression a réussi, False sinon
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM trajets                               "
-                " WHERE id_trajet = %(id_trajet)s                  ",
-                {"id_trajet": id_trajet},
-            )
-            nb_lignes_supprimees = cursor.rowcount
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM trajets                               "
+                    " WHERE id_trajet = %(id_trajet)s                  ",
+                    {"id_trajet": id_trajet},
+                )
+                nb_lignes_supprimees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.supprimer : {e}")
+            raise
 
         return nb_lignes_supprimees > 0
 
+    @log
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime) -> list[Trajet]:
         """
         Recherche des trajets selon les critères de lieu et de date.
@@ -178,23 +197,28 @@ class TrajetDAO:
         list[Trajet]
             la liste des trajets correspondants, triés par heure de départ
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                SELECT_TRAJET +
-                " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
-                "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
-                "   AND t.heure_depart::date = %(date)s::date              "
-                " ORDER BY t.heure_depart                                  ",
-                {
-                    "id_gare_depart": gare_depart.id_gare,
-                    "id_gare_arrivee": gare_arrivee.id_gare,
-                    "date": date,
-                },
-            )
-            trajets_bdd = cursor.fetchall()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    SELECT_TRAJET +
+                    " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
+                    "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
+                    "   AND t.heure_depart::date = %(date)s::date              "
+                    " ORDER BY t.heure_depart                                  ",
+                    {
+                        "id_gare_depart": gare_depart.id_gare,
+                        "id_gare_arrivee": gare_arrivee.id_gare,
+                        "date": date,
+                    },
+                )
+                trajets_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.rechercher : {e}")
+            raise
 
         return [self._construire_trajet(trajet_bdd) for trajet_bdd in trajets_bdd]
 
+    @log
     def trouver_par_id(self, id_trajet: int) -> Trajet:
         """
         Récupère un trajet spécifique par son identifiant.
@@ -209,12 +233,16 @@ class TrajetDAO:
         Trajet
             l'objet Trajet trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                SELECT_TRAJET +
-                " WHERE t.id_trajet = %(id_trajet)s                ",
-                {"id_trajet": id_trajet},
-            )
-            trajet_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    SELECT_TRAJET +
+                    " WHERE t.id_trajet = %(id_trajet)s                ",
+                    {"id_trajet": id_trajet},
+                )
+                trajet_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.trouver_par_id : {e}")
+            raise
 
         return self._construire_trajet(trajet_bdd) if trajet_bdd else None
