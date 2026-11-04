@@ -118,7 +118,7 @@ def test_modifier_recalcule_arrivee_et_temps(mocks):
     mocks.dao.trouver_par_id.return_value = MagicMock()
     mocks.dao.modifier.return_value = True
     mocks.api.duree_trajet.return_value = 3600
-    trajet = Trajet(DEPART, DEPART, faire_ligne(), Train("TGV", [100, 300], 8541, id_train=1), 40.0)
+    trajet = Trajet(DEPART, DEPART, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
 
     assert TrajetService().modifier(1, trajet) is True
 
@@ -133,7 +133,7 @@ def test_dao_enregistre_temps_trajet(mock_db):
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.fetchone.return_value = {"id_trajet": 1}
     trajet = Trajet(
-        DEPART, datetime(2027, 6, 1, 9, 21), faire_ligne(), Train("TGV", [100, 300], 8541, id_train=1), 40.0, temps_trajet=81
+        DEPART, datetime(2027, 6, 1, 9, 21), faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0, temps_trajet=81
     )
 
     TrajetDAO().creer(trajet)

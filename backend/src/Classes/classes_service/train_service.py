@@ -8,15 +8,13 @@ from src.utils.log_utils import log
 class TrainService:
 
     @staticmethod
-    def _verifier_capacite(capacite: list[int, int]) -> None:
-        """Vérifie qu'il y a deux nombres de places positifs ou nuls (lève ValueError sinon)."""
-        if len(capacite) != 2:
-            raise ValueError("capacité incorrecte, la longueur de la liste doit être de 2")
-        if capacite[0] < 0 or capacite[1] < 0:
+    def _verifier_capacite(places_premieres: int, places_secondes: int) -> None:
+        """Vérifie que les nombres de places sont positifs ou nuls (lève ValueError sinon)."""
+        if places_premieres < 0 or places_secondes < 0:
             raise ValueError("capacité incorrecte, le nombre de places doit être positif ou nul")
 
     @log
-    def creer(self, type_train: str, places_initiales: list[int, int], num_train: int):
+    def creer(self, type_train: str, places_premieres: int, places_secondes: int, num_train: int):
         """
         Méthode servant à créer un nouveau train.
 
@@ -24,8 +22,10 @@ class TrainService:
         ------
         type_train: str
             le type de train (ex: TGV, TER)
-        places_initiales: list[int]
-            le nombre de places disponibles au départ
+        places_premieres: int
+            le nombre de places en première classe disponibles au départ
+        places_secondes: int
+            le nombre de places en seconde classe disponibles au départ
         num_train
             le numéro du train
 
@@ -39,8 +39,8 @@ class TrainService:
         ValueError
             si la capacité est incorrecte ou si ce numéro de train existe déjà
         """
-        self._verifier_capacite(places_initiales)
-        train = Train(type_train, places_initiales, num_train)
+        self._verifier_capacite(places_premieres, places_secondes)
+        train = Train(type_train, places_premieres, places_secondes, num_train)
 
         try:
             return TrainDAO().creer(train)
@@ -75,7 +75,7 @@ class TrainService:
         return train
 
     @log
-    def modifier_capacite(self, num_train: int, capacite: list[int, int]):
+    def modifier_capacite(self, num_train: int, capacite_premiere: int, capacite_seconde: int):
         """
         Méthode servant à modifier la capacité d'un train existant.
 
@@ -83,19 +83,21 @@ class TrainService:
         ------
         num_train: int
             le numéro du train à modifier
-        capacite: list[int, int]
-            la nouvelle capacité du train
+        capacite_premiere: int
+            la nouvelle capacité du train en premiere classe
+        capacite_seconde: int
+            la nouvelle capacité du train en seconde classe
 
         Return:
         ------
         bool
             True si la modification a réussi, False sinon
         """
-        self._verifier_capacite(capacite)
+        self._verifier_capacite(capacite_premiere, capacite_seconde)
 
         train = TrainDAO().trouver_train_par_num(num_train)
 
         if not train:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
 
-        return TrainDAO().modifier_capacite(num_train, capacite=capacite)
+        return TrainDAO().modifier_capacite(num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde)

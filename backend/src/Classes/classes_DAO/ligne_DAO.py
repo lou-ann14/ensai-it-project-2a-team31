@@ -119,3 +119,78 @@ class LigneDAO:
             ligne_bdd = cursor.fetchone()
 
         return self._construire_ligne(ligne_bdd) if ligne_bdd else None
+
+    def modifier(self, ligne: Ligne) -> bool:
+        """
+        Met à jour les gares d'une ligne existante.
+
+        Param:
+        ------
+        ligne: Ligne
+            la ligne contenant les nouvelles gares (identifiée par son id_ligne)
+
+        Return:
+        ------
+        bool
+            True si la modification a réussi, False sinon
+        """
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE lignes                                     "
+                "   SET id_gare_depart  = %(id_gare_depart)s,      "
+                "       id_gare_arrivee = %(id_gare_arrivee)s      "
+                " WHERE id_ligne = %(id_ligne)s                    ",
+                {
+                    "id_gare_depart": ligne.gare_depart.id_gare,
+                    "id_gare_arrivee": ligne.gare_arrivee.id_gare,
+                    "id_ligne": ligne.id_ligne,
+                },
+            )
+            nb_lignes_modifiees = cursor.rowcount
+
+        return nb_lignes_modifiees > 0
+
+    def supprimer(self, id_ligne: int) -> bool:
+        """
+        Supprime une ligne de la base de données.
+
+        Param:
+        ------
+        id_ligne: int
+            l'identifiant de la ligne à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False sinon
+        """
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM lignes                                "
+                " WHERE id_ligne = %(id_ligne)s                    ",
+                {"id_ligne": id_ligne},
+            )
+            nb_lignes_supprimees = cursor.rowcount
+
+        return nb_lignes_supprimees > 0
+
+    def a_des_trajets(self, id_ligne: int) -> bool:
+        """
+        Indique si des trajets sont prévus sur cette ligne.
+
+        Param:
+        ------
+        id_ligne: int
+            l'identifiant de la ligne
+
+        Return:
+        ------
+        bool
+            True si au moins un trajet utilise cette ligne, False sinon
+        """
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT EXISTS (SELECT 1 FROM trajets WHERE id_ligne = %(id_ligne)s) AS existe",
+                {"id_ligne": id_ligne},
+            )
+            return cursor.fetchone()["existe"]

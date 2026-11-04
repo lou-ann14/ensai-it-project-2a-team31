@@ -63,7 +63,7 @@ class TrajetService:
 
         # TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
         # En attendant, seul l'id du train est connu : la base vérifie qu'il existe (clé étrangère).
-        train = Train(type_train=None, places_initiales=None, num_train=None, id_train=id_train)
+        train = Train(type_train=None, places_premieres=None, places_secondes=None, num_train=None, id_train=id_train)
         trajet = Trajet(
             heure_depart=heure_depart,
             heure_arrivee=heure_depart + timedelta(seconds=duree),

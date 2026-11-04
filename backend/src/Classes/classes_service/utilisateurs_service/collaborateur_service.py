@@ -2,6 +2,7 @@ from datetime import datetime
 
 from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.ligne import Ligne
+from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_service.ligne_service import LigneService
 from src.Classes.classes_service.trajet_service import TrajetService
@@ -10,6 +11,17 @@ from src.utils.log_utils import log
 
 class CollaborateurService:
     """Classe qui gère les actions réservées aux collaborateurs"""
+
+    @staticmethod
+    def _trouver_gares(gare_depart_id: int, gare_arrivee_id: int):
+        """Récupère les deux gares à partir de leur id (lève ValueError si l'une n'existe pas)."""
+        gare_depart = GareDAO().trouver_par_id(gare_depart_id)
+        if gare_depart is None:
+            raise ValueError(f"La gare #{gare_depart_id} n'existe pas.")
+        gare_arrivee = GareDAO().trouver_par_id(gare_arrivee_id)
+        if gare_arrivee is None:
+            raise ValueError(f"La gare #{gare_arrivee_id} n'existe pas.")
+        return gare_depart, gare_arrivee
 
     @log
     def creer_ligne(self, gare_depart_id: int, gare_arrivee_id: int, id_collaborateur: int) -> Ligne:
@@ -36,12 +48,7 @@ class CollaborateurService:
             si une gare ou le collaborateur n'existe pas, si les deux gares sont identiques
             ou si la ligne existe déjà
         """
-        gare_depart = GareDAO().trouver_par_id(gare_depart_id)
-        if gare_depart is None:
-            raise ValueError(f"La gare #{gare_depart_id} n'existe pas.")
-        gare_arrivee = GareDAO().trouver_par_id(gare_arrivee_id)
-        if gare_arrivee is None:
-            raise ValueError(f"La gare #{gare_arrivee_id} n'existe pas.")
+        gare_depart, gare_arrivee = self._trouver_gares(gare_depart_id, gare_arrivee_id)
 
         return LigneService().creer(gare_depart, gare_arrivee, id_collaborateur)
 
@@ -83,3 +90,134 @@ class CollaborateurService:
             si l'API SNCF est indisponible
         """
         return TrajetService().creer(id_ligne, id_train, heure_depart, tarif_base)
+
+    @log
+    def modifier_ligne(self, id_ligne: int, gare_depart_id: int, gare_arrivee_id: int) -> Ligne | None:
+        """
+        Méthode servant à modifier les gares d'une ligne.
+
+        Param:
+        ------
+        id_ligne: int
+            l'id de la ligne à modifier
+        gare_depart_id: int
+            l'id de la nouvelle gare de départ
+        gare_arrivee_id: int
+            l'id de la nouvelle gare d'arrivée
+
+        Return:
+        ------
+        Ligne | None
+            la ligne modifiée, ou None si elle n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si une gare n'existe pas, si les deux gares sont identiques,
+            si une autre ligne relie déjà ces gares ou si la ligne a des trajets
+        """
+        if LigneService().trouver_par_id(id_ligne) is None:
+            return None
+
+        gare_depart, gare_arrivee = self._trouver_gares(gare_depart_id, gare_arrivee_id)
+        ligne = Ligne(gare_depart, gare_arrivee, id_ligne=id_ligne)
+
+        return ligne if LigneService().modifier(ligne) else None
+
+    @log
+    def supprimer_ligne(self, id_ligne: int) -> bool:
+        """
+        Méthode servant à supprimer une ligne.
+
+        Param:
+        ------
+        id_ligne: int
+            l'id de la ligne à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False si la ligne n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si des trajets existent encore sur cette ligne
+        """
+        return LigneService().supprimer(id_ligne)
+
+    @log
+    def modifier_trajet(
+        self,
+        id_trajet: int,
+        id_ligne: int,
+        id_train: int,
+        heure_depart: datetime,
+        tarif_base: float,
+    ) -> Trajet | None:
+        """
+        Méthode servant à modifier un trajet.
+        L'heure d'arrivée et le temps de trajet sont recalculés grâce à l'API SNCF.
+
+        Param:
+        ------
+        id_trajet: int
+            l'id du trajet à modifier
+        id_ligne: int
+            l'id de la ligne
+        id_train: int
+            l'id du train utilisé
+        heure_depart: datetime
+            la date et l'heure de départ
+        tarif_base: float
+            le prix de base du trajet
+
+        Return:
+        ------
+        Trajet | None
+            le trajet modifié, ou None s'il n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si une donnée est invalide, si la ligne ou le train n'existe pas,
+            si un autre trajet existe déjà sur cette ligne à cette heure de départ
+            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+        requests.RequestException
+            si l'API SNCF est indisponible
+        """
+        if TrajetService().trouver_par_id(id_trajet) is None:
+            return None
+
+        ligne = LigneService().trouver_par_id(id_ligne)
+        if ligne is None:
+            raise ValueError(f"La ligne #{id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante.")
+
+        # Seul l'id du train est connu : la base vérifie qu'il existe (clé étrangère).
+        train = Train(type_train=None, places_premieres=None, places_secondes=None, num_train=None, id_train=id_train)
+        # L'heure d'arrivée est provisoire : TrajetService.modifier la recalcule.
+        trajet = Trajet(heure_depart, heure_depart, ligne, train, tarif_base, id_trajet=id_trajet)
+
+        return trajet if TrajetService().modifier(id_trajet, trajet) else None
+
+    @log
+    def supprimer_trajet(self, id_trajet: int) -> bool:
+        """
+        Méthode servant à supprimer un trajet.
+
+        Param:
+        ------
+        id_trajet: int
+            l'id du trajet à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False si le trajet n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si des réservations existent encore sur ce trajet
+        """
+        return TrajetService().supprimer(id_trajet)
