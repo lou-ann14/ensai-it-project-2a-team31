@@ -6,6 +6,9 @@ logger = get_logger(__name__)
 
 
 class TrainDAO:
+    """
+    Classe qui interagit avec la base de données pour les objets de type Train
+    """
 
     @log
     def creer(self, train: Train) -> Train:
@@ -15,12 +18,18 @@ class TrainDAO:
         Param:
         ------
         train: Train
-            le train à enregistrer dans la base de données
+            le train à enregistrer (son id_train est None avant l'insertion)
 
         Return:
         ------
         Train
-            le train créé, avec son id_train renseigné
+            le même train, avec son id_train renseigné
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -45,21 +54,27 @@ class TrainDAO:
     @log
     def modifier_capacite(self, num_train: int, capacite_premiere: int, capacite_seconde: int) -> bool:
         """
-        Met à jour la capacité d'un train existant.
+        Met à jour le nombre de places en première et en seconde classe d'un train.
 
         Param:
         ------
         num_train: int
             le numéro du train
         capacite_premiere: int
-            la nouvelle capacité en première classe
+            le nouveau nombre de places en première classe
         capacite_seconde: int
-            la nouvelle capacité en seconde classe
+            le nouveau nombre de places en seconde classe
 
         Return:
         ------
-        Bool
-            Réussite ou échec de la modification
+        bool
+            True si la modification a réussi, False si aucun train n'a ce numéro
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -93,8 +108,14 @@ class TrainDAO:
 
         Return:
         ------
-        Train
-            l'objet Train trouvé
+        Train | None
+            le train trouvé, ou None si aucun train n'a ce numéro
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
 
         try:
@@ -127,7 +148,7 @@ class TrainDAO:
     @log
     def trouver_id_par_num(self, num_train: int) -> int:
         """
-        Récupère l'id d'un train par son numéro.
+        Récupère l'identifiant d'un train à partir de son numéro.
 
         Param:
         ------
@@ -136,8 +157,14 @@ class TrainDAO:
 
         Return:
         ------
-        int
-            l'identifiant trouvé
+        int | None
+            l'identifiant du train, ou None si aucun train n'a ce numéro
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
 
         try:
