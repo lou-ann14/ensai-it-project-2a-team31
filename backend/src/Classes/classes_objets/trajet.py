@@ -7,7 +7,7 @@ from src.Classes.classes_objets.train import Train
 class Trajet:
     """classe qui modélise un trajet et ses différentes caractéristiques.
     """
-    def __init__(self, id_trajet: int, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train, tarif_base: float):
+    def __init__(self, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train, tarif_base: float, id_trajet: int | None = None):
         self.id_trajet = id_trajet
         self.heure_depart = heure_depart
         self.heure_arrivee = heure_arrivee

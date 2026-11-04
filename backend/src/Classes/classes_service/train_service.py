@@ -7,7 +7,7 @@ from src.utils.log_utils import log
 class TrainService:
 
     @log
-    def creer(self, type_train: str, places_initiales: list[int, int], num_train : int):
+    def creer(self, type_train: str, places_initiales: list[int, int], num_train: int):
         """
         Méthode servant à créer un nouveau train.
 
@@ -17,42 +17,44 @@ class TrainService:
             le type de train (ex: TGV, TER)
         places_initiales: list[int]
             le nombre de places disponibles au départ
+        num_train
+            le numéro du train
 
         Return:
         ------
         Train
-            Le Train créer ou None si la création a échoué
+            Le Train créé ou None si la création a échoué
         """
         train = Train(type_train, places_initiales, num_train)
 
         return train if TrainDAO().creer(train) else None
 
     @log
-    def trouver_par_num(self, num_train: int):
+    def trouver_train_par_num(self, num_train: int):
         """
-        Méthode servant à trouver un train avec son id.
+        Méthode servant à trouver un train avec son numéro.
 
         Param:
         ------
-        id_train: int
-            l'identifiant du train à modifier
+        num_train: int
+            le numéro du train recherché
 
         Return:
         ------
         Train
             Le train trouvé
-        
+
         Raises:
         ------
         HTTPException 404
             Erreur 404 si le train n'est pas trouvé
         """
-        train = TrainDAO().trouver_par_num(num_train)
+        train = TrainDAO().trouver_train_par_num(num_train)
 
         if not train:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
 
-        return train 
+        return train
 
     @log
     def modifier_capacite(self, num_train: int, capacite: list[int, int]):
@@ -61,9 +63,9 @@ class TrainService:
 
         Param:
         ------
-        id_train: int
-            l'identifiant du train à modifier
-        capacite: list[int]
+        num_train: int
+            le numéro du train à modifier
+        capacite: list[int, int]
             la nouvelle capacité du train
 
         Return:
@@ -79,5 +81,4 @@ class TrainService:
         if not train:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
 
-        return TrainDAO().modifier_capacite(num_train, capacite = capacite)
-
+        return TrainDAO().modifier_capacite(num_train, capacite=capacite)

@@ -123,7 +123,6 @@ def test_verifier_donnees_tarif_manquant():
             None
             )
 
-# TODO rajouter tests verifier ligne et trajet similaire
 
 # tests creer
 
@@ -187,5 +186,3 @@ def test_creer_donnees_invalides():
             heure_arrivee,
             tarif_base
             )
-
-# TODO test creer: ligne inexistante, trajet déjà existant, train inexistant
