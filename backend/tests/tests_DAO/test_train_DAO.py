@@ -60,7 +60,7 @@ class TestsTrainDAO:
         requete, parametres = curseur.execute.call_args.args
         assert "UPDATE trains" in requete
         assert " SET " in requete
-        assert " WHERE " in requete
+        assert "WHERE num_train = %(num_train)s" in requete
         assert parametres == {"places_premieres": 100, "places_secondes": 300, "num_train": 8541}
 
     def test_modifier_capacite_train_inexistant(self, curseur):
@@ -77,6 +77,12 @@ class TestsTrainDAO:
 
         resultat = TrainDAO().trouver_train_par_num(8541)
 
+        requete, parametres = curseur.execute.call_args.args
+
+        assert "SELECT *" in requete
+        assert "FROM trains" in requete
+        assert "WHERE num_train = %(num_train)s" in requete
+        assert parametres == {"num_train": 8541}
         assert isinstance(resultat, Train)
         assert resultat.id_train == 1
         assert resultat.type_train == "TGV"
@@ -97,6 +103,12 @@ class TestsTrainDAO:
         """Le train existe : son id est renvoyé sous forme d'entier"""
         curseur.fetchone.return_value = {"id_train": 1}
 
+        requete, parametres = curseur.execute.call_args.args
+
+        assert "SELECT id_train" in requete
+        assert "FROM trains" in requete
+        assert "WHERE num_train = %(num_train)s" in requete
+        assert parametres == {"num_train": 8541}
         assert TrainDAO().trouver_id_par_num(8541) == 1
 
     def test_trouver_id_par_num_inexistant(self, curseur):

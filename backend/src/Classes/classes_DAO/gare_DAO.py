@@ -6,23 +6,33 @@ logger = get_logger(__name__)
 
 
 class GareDAO:
+    """
+    Classe qui interagit avec la base de données pour les objets de type Gare
+    """
 
     @log
     def rechercher(self, nom: str | None, ville: str | None) -> list[Gare]:
         """
-        Recherche des gares en fonction du nom ou de la ville.
+        Recherche des gares dont le nom et/ou la ville commencent par le texte donné
+        (insensible à la casse). Si aucun critère n'est renseigné, toutes les gares sont renvoyées.
 
         Param:
         ------
         nom: str | None
-            le nom de la gare (optionnel)
+            le début du nom de la gare (optionnel)
         ville: str | None
-            la ville de la gare (optionnel)
+            le début du nom de la ville (optionnel)
 
         Return:
         ------
-        Gare
-            l'objet Gare correspondant à la recherche
+        list[Gare]
+            la liste des gares trouvées, triées par nom (vide si aucune)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -54,7 +64,7 @@ class GareDAO:
     @log
     def trouver_par_id(self, id_gare: int) -> Gare:
         """
-        Récupère une gare spécifique par son identifiant.
+        Récupère une gare par son identifiant.
 
         Param:
         ------
@@ -63,8 +73,14 @@ class GareDAO:
 
         Return:
         ------
-        Gare
-            l'objet Gare trouvé
+        Gare | None
+            l'objet Gare trouvé, ou None s'il n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -91,7 +107,27 @@ class GareDAO:
 
     @log
     def creer_ou_mettre_a_jour(self, gare: Gare) -> Gare:
-        """Enregistre une gare, ou met à jour son nom et sa ville si son id_sncf existe déjà."""
+        """
+        Enregistre une gare dans la base de données.
+        Si une gare avec le même id_sncf existe déjà, son nom et sa ville sont mis à jour
+        au lieu de créer un doublon.
+
+        Param:
+        ------
+        gare: Gare
+            la gare à enregistrer (avec son id_sncf renseigné)
+
+        Return:
+        ------
+        Gare
+            la même gare, avec son id_gare renseigné
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
@@ -107,3 +143,40 @@ class GareDAO:
             logger.error(f"Erreur base de données dans GareDAO.creer_ou_mettre_a_jour : {e}")
             raise
         return gare
+
+    @log
+    def supprimer(self, id_gare: int) -> bool:
+        """
+        Supprime une gare de la base de données.
+
+        Param:
+        ------
+        id_gare: int
+            l'identifiant de la gare à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False si la gare n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si des lignes partent de cette gare ou y arrivent encore
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM gares                                 "
+                    " WHERE id_gare = %(id_gare)s                      ",
+                    {"id_gare": id_gare},
+                )
+                nb_lignes_supprimees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans GareDAO.supprimer : {e}")
+            raise
+
+        return nb_lignes_supprimees > 0

@@ -9,7 +9,9 @@ logger = get_logger(__name__)
 
 
 class ReservationDAO:
-    """Classe qui interagit avec la base de données pour les objets de type Reservation"""
+    """
+    Classe qui interagit avec la base de données pour les objets de type Reservation
+    """
 
     @log
     def creer(self, reservation: Reservation) -> Reservation:
@@ -24,7 +26,15 @@ class ReservationDAO:
         Return:
         ------
         Reservation
-            l'objet Reservation créé, avec son id_reservation renseigné
+            la même réservation, avec son id_reservation renseigné
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si le client ou le trajet n'existe pas
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -60,7 +70,13 @@ class ReservationDAO:
         Return:
         ------
         bool
-            True si l'annulation a réussi, False sinon
+            True si l'annulation a réussi, False si la réservation n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -79,7 +95,8 @@ class ReservationDAO:
     @log
     def trouver_par_client(self, id_client: int) -> list[Reservation]:
         """
-        Récupère toutes les réservations d'un client spécifique.
+        Récupère toutes les réservations d'un client, triées par identifiant.
+        Les réservations dont le client ou le trajet n'existe plus sont ignorées.
 
         Param:
         ------
@@ -90,6 +107,12 @@ class ReservationDAO:
         ------
         list[Reservation]
             la liste des réservations du client (vide si aucune)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -130,8 +153,15 @@ class ReservationDAO:
 
         Return:
         ------
-        Reservation
-            l'objet Reservation trouvé, ou None s'il n'existe pas
+        Reservation | None
+            la réservation trouvée, ou None si elle n'existe pas
+            (ou si son client ou son trajet n'existe plus)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -159,19 +189,25 @@ class ReservationDAO:
     def _construire_reservation(self, reservation_bdd: dict) -> Reservation | None:
         """
         Transforme une ligne de la table reservations en objet Reservation complet,
-        en récupérant le client et le trajet grâce aux autres DAO.
+        en récupérant le client et le trajet grâce à UtilisateurDAO et TrajetDAO.
 
         Param:
         ------
         reservation_bdd: dict
-            une ligne renvoyée par le curseur (id_reservation, id_client, id_trajet,
-            place, classe, prix)
+            une ligne renvoyée par le curseur
+            (id_reservation, id_client, id_trajet, place, classe, prix)
 
         Return:
         ------
         Reservation | None
             la réservation avec ses objets Client et Trajet,
             ou None si le client ou le trajet n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         utilisateur = UtilisateurDAO().trouver_par_id(reservation_bdd["id_client"])
         trajet = TrajetDAO().trouver_par_id(reservation_bdd["id_trajet"])
