@@ -1,10 +1,13 @@
 from datetime import datetime
 
 from src.Classes.classes_DAO.gare_DAO import GareDAO
+from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.ligne_service import LigneService
+from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
 from src.utils.log_utils import log
 
@@ -221,3 +224,91 @@ class CollaborateurService:
             si des réservations existent encore sur ce trajet
         """
         return TrajetService().supprimer(id_trajet)
+
+    @log
+    def importer_gares(self, texte: str) -> list[Gare]:
+        """
+        Méthode servant à importer dans notre base les gares trouvées sur l'API SNCF.
+
+        Param:
+        ------
+        texte: str
+            le texte à rechercher (au moins 2 caractères)
+
+        Return:
+        ------
+        list[Gare]
+            les gares importées
+
+        Raises:
+        ------
+        ValueError
+            si le texte est trop court
+        requests.RequestException
+            si l'API SNCF est indisponible
+        """
+        return GareService().importer(texte)
+
+    @log
+    def creer_train(self, type_train: str, places_premieres: int, places_secondes: int, num_train: int) -> Train:
+        """
+        Méthode servant à créer un nouveau train.
+
+        Param:
+        ------
+        type_train: str
+            le type de train (ex: TGV, TER)
+        places_premieres: int
+            le nombre de places en première classe
+        places_secondes: int
+            le nombre de places en seconde classe
+        num_train: int
+            le numéro du train
+
+        Return:
+        ------
+        Train
+            le train créé, avec son id_train renseigné
+
+        Raises:
+        ------
+        ValueError
+            si la capacité est incorrecte ou si ce numéro de train existe déjà
+        """
+        return TrainService().creer(type_train, places_premieres, places_secondes, num_train)
+
+    @log
+    def modifier_capacite(self, num_train: int, places_premieres: int, places_secondes: int) -> Train | None:
+        """
+        Méthode servant à modifier la capacité d'un train.
+
+        Param:
+        ------
+        num_train: int
+            le numéro du train à modifier
+        places_premieres: int
+            le nouveau nombre de places en première classe
+        places_secondes: int
+            le nouveau nombre de places en seconde classe
+
+        Return:
+        ------
+        Train | None
+            le train modifié, ou None si la modification ne s'est pas exécutée
+
+        Raises:
+        ------
+        ValueError
+            si la capacité est incorrecte
+        HTTPException 404
+            si le train n'existe pas
+        """
+        train_service = TrainService()
+        train = train_service.trouver_train_par_num(num_train)
+
+        if not train_service.modifier_capacite(num_train, places_premieres, places_secondes):
+            return None
+
+        train.places_premieres = places_premieres
+        train.places_secondes = places_secondes
+        return train
