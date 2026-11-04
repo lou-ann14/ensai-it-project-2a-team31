@@ -1,3 +1,4 @@
+from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.ligne_DAO import LigneDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
@@ -6,7 +7,7 @@ from src.Classes.classes_objets.ligne import Ligne
 class LigneService:
     """Classe qui gère les opérations métier sur les lignes"""
 
-    def creer(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne:
+    def creer(self, gare_depart: Gare, gare_arrivee: Gare, id_collaborateur: int | None = None) -> Ligne:
         """
         Méthode servant à créer une ligne.
 
@@ -16,6 +17,8 @@ class LigneService:
             la gare de départ de la ligne
         gare_arrivee: Gare
             la gare d'arrivée de la ligne
+        id_collaborateur: int | None
+            l'id du collaborateur qui crée la ligne (optionnel)
 
         Return:
         ------
@@ -26,7 +29,7 @@ class LigneService:
         ------
         ValueError
             si une gare est manquante, si les deux gares sont identiques
-            ou si la ligne existe déjà
+            si la ligne existe déjà ou si le collaborateur n'existe pas
         """
         if gare_depart is None or gare_arrivee is None:
             raise ValueError("La gare de départ et la gare d'arrivée sont obligatoires.")
@@ -35,7 +38,10 @@ class LigneService:
         if self.rechercher(gare_depart, gare_arrivee) is not None:
             raise ValueError("Une ligne existe déjà entre ces deux gares.")
 
-        return LigneDAO().creer(gare_depart, gare_arrivee)
+        try:
+            return LigneDAO().creer(gare_depart, gare_arrivee, id_collaborateur)
+        except ForeignKeyViolation:
+            raise ValueError(f"Le collaborateur #{id_collaborateur} n'existe pas.")
 
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
         """
