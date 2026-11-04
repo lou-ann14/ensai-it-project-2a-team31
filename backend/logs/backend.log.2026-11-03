@@ -1,0 +1,227 @@
+03/11/2026 09:03:29 root                      INFO    - --------------------------------------------------
+03/11/2026 09:03:29 root                      INFO    - Starting Webservice                           
+03/11/2026 09:03:29 root                      INFO    - --------------------------------------------------
+03/11/2026 09:03:29 root                      INFO    - Load environment variables: FAIL
+03/11/2026 09:07:59 root                      INFO    - --------------------------------------------------
+03/11/2026 09:07:59 root                      INFO    - Starting Webservice                           
+03/11/2026 09:07:59 root                      INFO    - --------------------------------------------------
+03/11/2026 09:07:59 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:07:59 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:07:59 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:07:59 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:07:59 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:07:59 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:07:59 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:08:12 root                      INFO    - --------------------------------------------------
+03/11/2026 09:08:12 root                      INFO    - Starting Webservice                           
+03/11/2026 09:08:12 root                      INFO    - --------------------------------------------------
+03/11/2026 09:08:12 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:08:12 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:08:12 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:08:12 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:08:12 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:08:12 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:08:12 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:08:29 root                      INFO    - --------------------------------------------------
+03/11/2026 09:08:29 root                      INFO    - Starting Webservice                           
+03/11/2026 09:08:29 root                      INFO    - --------------------------------------------------
+03/11/2026 09:08:29 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:08:29 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:08:29 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:08:29 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:08:29 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:08:29 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:08:29 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:10:16 root                      INFO    - --------------------------------------------------
+03/11/2026 09:10:16 root                      INFO    - Starting Webservice                           
+03/11/2026 09:10:16 root                      INFO    - --------------------------------------------------
+03/11/2026 09:10:16 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:10:16 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:10:16 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:10:16 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:10:16 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:10:16 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:10:16 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:15:31 root                      INFO    - --------------------------------------------------
+03/11/2026 09:15:31 root                      INFO    - Starting Webservice                           
+03/11/2026 09:15:31 root                      INFO    - --------------------------------------------------
+03/11/2026 09:15:31 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:15:31 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:15:31 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:15:31 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:15:31 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:15:31 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:15:31 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:15:41 root                      INFO    - GET / - START
+03/11/2026 09:15:41 root                      INFO    - GET / - END [Status: 307]
+03/11/2026 09:15:41 root                      INFO    - GET /docs - START
+03/11/2026 09:15:41 root                      INFO    - GET /docs - END [Status: 200]
+03/11/2026 09:15:41 root                      INFO    - GET /openapi.json - START
+03/11/2026 09:15:41 root                      INFO    - GET /openapi.json - END [Status: 200]
+03/11/2026 09:21:22 root                      INFO    - POST /trains/ - START
+03/11/2026 09:21:22 __main__                  ERROR   - Validation Error
+Errors: [{'type': 'json_invalid', 'loc': ('body', 78), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Expecting value'}}]
+Body: {
+  "type_train": "string",
+  "places_initiales": [
+    0
+  ],
+  "id_train": 
+}
+03/11/2026 09:21:22 root                      INFO    - POST /trains/ - END [Status: 422]
+03/11/2026 09:23:08 root                      INFO    - POST /trains/ - START
+03/11/2026 09:23:08 s.C.c.train_controller    INFO    - Créer un train
+03/11/2026 09:23:08 s.C.c.train_service       INFO    -   creer('string', '[0]') - START
+03/11/2026 09:23:08 root                      ERROR   - POST /trains/ - FAILED [Status: 500] Error: list index out of range
+03/11/2026 09:32:36 root                      INFO    - GET /admin/utilisateurs - START
+03/11/2026 09:32:36 s.C.c.u.administrateur_service INFO    -       recherche_compte('None', 44) - START
+03/11/2026 09:32:36 root                      ERROR   - GET /admin/utilisateurs - FAILED [Status: 500] Error: column "role" does not exist
+LINE 1: SELECT id, nom_utilisateur, mdp, role               FROM uti...
+                                         ^
+
+03/11/2026 09:41:16 root                      INFO    - --------------------------------------------------
+03/11/2026 09:41:16 root                      INFO    - Starting Webservice                           
+03/11/2026 09:41:16 root                      INFO    - --------------------------------------------------
+03/11/2026 09:41:16 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:41:16 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:41:16 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:41:16 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:41:16 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:41:16 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:41:16 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:41:23 root                      INFO    - GET / - START
+03/11/2026 09:41:23 root                      INFO    - GET / - END [Status: 307]
+03/11/2026 09:41:23 root                      INFO    - GET /docs - START
+03/11/2026 09:41:23 root                      INFO    - GET /docs - END [Status: 200]
+03/11/2026 09:41:23 root                      INFO    - GET /openapi.json - START
+03/11/2026 09:41:23 root                      INFO    - GET /openapi.json - END [Status: 200]
+03/11/2026 09:43:27 root                      INFO    - POST /admin/utilisateurs - START
+03/11/2026 09:43:27 __main__                  INFO    - Ajout d'un utilisateur
+03/11/2026 09:43:27 root                      ERROR   - POST /admin/utilisateurs - FAILED [Status: 500] Error: column "role" does not exist
+LINE 1: SELECT id, nom_utilisateur, mdp, role               FROM uti...
+                                         ^
+
+03/11/2026 09:44:06 root                      INFO    - POST /admin/utilisateurs - START
+03/11/2026 09:44:06 __main__                  INFO    - Ajout d'un utilisateur
+03/11/2026 09:44:06 root                      ERROR   - POST /admin/utilisateurs - FAILED [Status: 500] Error: column "role" does not exist
+LINE 1: SELECT id, nom_utilisateur, mdp, role               FROM uti...
+                                         ^
+
+03/11/2026 09:56:04 root                      INFO    - --------------------------------------------------
+03/11/2026 09:56:04 root                      INFO    - Starting Webservice                           
+03/11/2026 09:56:04 root                      INFO    - --------------------------------------------------
+03/11/2026 09:56:04 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:56:04 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:56:04 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:56:04 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:56:04 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:56:04 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:56:04 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:56:09 root                      INFO    - --------------------------------------------------
+03/11/2026 09:56:09 root                      INFO    - Starting Webservice                           
+03/11/2026 09:56:09 root                      INFO    - --------------------------------------------------
+03/11/2026 09:56:09 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 09:56:09 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 09:56:09 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 09:56:09 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 09:56:09 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 09:56:09 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 09:56:09 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -   recherche_compte('None', 1) - START
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -   recherche_compte('None', 1) - END
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -     └─> Output: L'utilisateur bob (#1) est un CLIENT
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -   gerer_habilitation(1, 'collaborateur') - START
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -   gerer_habilitation(1, 'collaborateur') - END
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -     └─> Output: L'utilisateur bob (#1) est un COLLABORATEUR
+03/11/2026 09:56:09 s.C.c.u.administrateur_service INFO    -   recherche_compte('None', 'None') - START
+03/11/2026 10:01:58 __main__                  INFO    - Webservice stopped
+03/11/2026 15:20:15 root                      INFO    - --------------------------------------------------
+03/11/2026 15:20:15 root                      INFO    - Starting Webservice                           
+03/11/2026 15:20:15 root                      INFO    - --------------------------------------------------
+03/11/2026 15:20:15 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 15:20:15 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 15:20:15 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 15:20:15 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 15:20:15 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 15:20:15 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 15:20:15 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 15:20:15 root                      INFO    - SNCF_API_TOKEN=*******
+03/11/2026 15:20:15 s.C.c.reservations_service INFO    -   creer(1, 3, '12A', 2) - START
+03/11/2026 15:20:15 s.C.c.train_service       INFO    -     trouver_par_num(8541,) - START
+03/11/2026 15:49:40 root                      INFO    - --------------------------------------------------
+03/11/2026 15:49:40 root                      INFO    - Starting Webservice                           
+03/11/2026 15:49:40 root                      INFO    - --------------------------------------------------
+03/11/2026 15:49:40 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 15:49:40 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 15:49:40 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 15:49:40 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 15:49:40 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 15:49:40 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 15:49:40 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 15:49:40 root                      INFO    - SNCF_API_TOKEN=*******
+03/11/2026 15:51:10 root                      INFO    - --------------------------------------------------
+03/11/2026 15:51:10 root                      INFO    - Starting Webservice                           
+03/11/2026 15:51:10 root                      INFO    - --------------------------------------------------
+03/11/2026 15:51:10 root                      INFO    - Load environment variables: SUCCES
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_HOST=postgresql-cnpg-892866-rw.user-adambenamer
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_PORT=5432
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_DATABASE=defaultdb
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_USER=user-adambenamer
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_PASSWORD=*******
+03/11/2026 15:51:10 root                      INFO    - POSTGRES_SCHEMA=project
+03/11/2026 15:51:10 root                      INFO    - UVICORN_HOST=0.0.0.0
+03/11/2026 15:51:10 root                      INFO    - UVICORN_PORT=5000
+03/11/2026 15:51:10 root                      INFO    - BACKEND_URL=http://localhost:5000
+03/11/2026 15:51:10 root                      INFO    - BACKEND_TIMEOUT=5
+03/11/2026 15:51:10 root                      INFO    - ELO_K_FACTOR=32
+03/11/2026 15:51:10 root                      INFO    - SNCF_API_TOKEN=*******
