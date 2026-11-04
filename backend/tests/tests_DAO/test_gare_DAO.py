@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.gare import Gare
 
-
 # données préenregistrées (équivalent d'une bdd)
 gare_matabiau = {"id_gare": 1, "nom": "Matabiau", "ville": "Toulouse", "id_sncf": "stop_area:SNCF:1"}
 gare_massy = {"id_gare": 2, "nom": "MassyTGV", "ville": "Massy", "id_sncf": "stop_area:SNCF:2"}
@@ -119,3 +118,27 @@ def test_trouver_par_id_introuvable(mock_db):
     gare_trouvee = GareDAO().trouver_par_id(99)
 
     assert gare_trouvee is None
+
+
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_supprimer_ok(mock_db):
+    """Suppression de la gare de Rennes : 1 gare supprimée, le DAO renvoie True"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 1  # la BDD a supprimé 1 gare
+    id_gare = gare_rennes["id_gare"]
+    suppression = GareDAO().supprimer(id_gare)
+    requete, parametres = cursor.execute.call_args.args  # ce que le DAO a exécuté
+
+    assert "DELETE FROM gares" in requete
+    assert parametres["id_gare"] == id_gare
+    assert suppression is True
+
+
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_supprimer_inexistante(mock_db):
+    """Suppression d'une gare qui n'existe pas : 0 gare supprimée, le DAO renvoie False"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 0  # aucune gare supprimée
+    suppression = GareDAO().supprimer(99)
+
+    assert suppression is False
