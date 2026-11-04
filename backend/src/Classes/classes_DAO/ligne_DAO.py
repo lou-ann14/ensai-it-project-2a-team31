@@ -19,9 +19,24 @@ SELECT_LIGNE = (
 
 
 class LigneDAO:
+    """
+    Classe qui interagit avec la base de données pour les objets de type Ligne
+    """
     @staticmethod
     def _construire_ligne(ligne_bdd: dict) -> Ligne:
-        """Transforme une ligne renvoyée par SELECT_LIGNE en objet Ligne complet."""
+        """
+        Transforme une ligne renvoyée par SELECT_LIGNE en objet Ligne complet (avec ses deux Gares).
+
+        Param:
+        ------
+        ligne_bdd: dict
+            une ligne renvoyée par le curseur après la requête SELECT_LIGNE
+
+        Return:
+        ------
+        Ligne
+            la ligne avec ses gares de départ et d'arrivée
+        """
         return Ligne(
             gare_depart=Gare(
                 nom=ligne_bdd["nom_gare_depart"],
@@ -41,21 +56,29 @@ class LigneDAO:
     @log
     def creer(self, gare_depart: Gare, gare_arrivee: Gare, id_collaborateur: int | None = None) -> Ligne:
         """
-        Insère une ligne dans la base de données.
+        Enregistre une nouvelle ligne dans la base de données.
 
         Param:
         ------
         gare_depart: Gare
-            la gare qui se trouvera en début de ligne
+            la gare de début de ligne
         gare_arrivee: Gare
-            la gare qui se trouvera en bout de ligne
+            la gare de fin de ligne
         id_collaborateur: int | None
-            l'id du collaborateur qui crée la ligne (optionnel)
+            l'identifiant du collaborateur qui crée la ligne (optionnel)
 
         Return:
         ------
         Ligne
             la ligne créée, avec son id_ligne renseigné
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si une des gares ou le collaborateur n'existe pas
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -78,7 +101,8 @@ class LigneDAO:
 
     @log
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
-        """Recherche la ligne reliant une gare de départ à une gare d'arrivée.
+        """
+        Recherche la ligne reliant une gare de départ à une gare d'arrivée.
 
         Param:
         ------
@@ -88,9 +112,15 @@ class LigneDAO:
             la gare d'arrivée
 
         Return:
-        -------
-        Ligne
-            l'objet Ligne trouvé, ou None si aucune ligne ne relie ces deux gares
+        ------
+        Ligne | None
+            la ligne trouvée, ou None si aucune ligne ne relie ces deux gares
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -112,7 +142,7 @@ class LigneDAO:
     @log
     def trouver_par_id(self, id_ligne: int) -> Ligne | None:
         """
-        Récupère une ligne spécifique par son identifiant.
+        Récupère une ligne par son identifiant.
 
         Param:
         ------
@@ -121,8 +151,14 @@ class LigneDAO:
 
         Return:
         ------
-        Ligne
-            l'objet Ligne trouvé
+        Ligne | None
+            la ligne trouvée, ou None si elle n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -141,7 +177,7 @@ class LigneDAO:
     @log
     def modifier(self, ligne: Ligne) -> bool:
         """
-        Met à jour les gares d'une ligne existante.
+        Met à jour les gares de départ et d'arrivée d'une ligne existante.
 
         Param:
         ------
@@ -151,7 +187,15 @@ class LigneDAO:
         Return:
         ------
         bool
-            True si la modification a réussi, False sinon
+            True si la modification a réussi, False si la ligne n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si une des nouvelles gares n'existe pas
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -186,7 +230,15 @@ class LigneDAO:
         Return:
         ------
         bool
-            True si la suppression a réussi, False sinon
+            True si la suppression a réussi, False si la ligne n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si des trajets utilisent encore cette ligne
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -205,7 +257,7 @@ class LigneDAO:
     @log
     def a_des_trajets(self, id_ligne: int) -> bool:
         """
-        Indique si des trajets sont prévus sur cette ligne.
+        Indique si des trajets sont prévus sur une ligne.
 
         Param:
         ------
@@ -216,6 +268,12 @@ class LigneDAO:
         ------
         bool
             True si au moins un trajet utilise cette ligne, False sinon
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:

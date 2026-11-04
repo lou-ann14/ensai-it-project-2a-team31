@@ -28,11 +28,26 @@ SELECT_TRAJET = (
 
 
 class TrajetDAO:
-    """Classe qui interagit avec la base de données pour les objets de type Trajet"""
+    """
+    Classe qui interagit avec la base de données pour les objets de type Trajet
+    """
 
     @staticmethod
     def _construire_trajet(trajet_bdd: dict) -> Trajet:
-        """Transforme une ligne renvoyée par SELECT_TRAJET en objet Trajet complet."""
+        """
+        Transforme une ligne renvoyée par SELECT_TRAJET en objet Trajet complet
+        (avec sa Ligne, ses deux Gares et son Train).
+
+        Param:
+        ------
+        trajet_bdd: dict
+            une ligne renvoyée par le curseur après la requête SELECT_TRAJET
+
+        Return:
+        ------
+        Trajet
+            le trajet complet (son train vaut None si aucun train ne lui est encore associé)
+        """
         ligne = Ligne(
             gare_depart=Gare(
                 nom=trajet_bdd["nom_gare_depart"],
@@ -77,12 +92,20 @@ class TrajetDAO:
         Param:
         ------
         trajet: Trajet
-            l'objet Trajet à enregistrer (son id_trajet est None avant l'insertion)
+            le trajet à enregistrer (son id_trajet est None avant l'insertion)
 
         Return:
         ------
         Trajet
-            l'objet Trajet créé, avec son id_trajet renseigné
+            le même trajet, avec son id_trajet renseigné
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si la ligne ou le train n'existe pas
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -114,12 +137,20 @@ class TrajetDAO:
         Param:
         ------
         trajet: Trajet
-            l'objet contenant les nouvelles données (identifié par son id_trajet)
+            le trajet contenant les nouvelles données (identifié par son id_trajet)
 
         Return:
         ------
         bool
-            True si la modification a réussi, False sinon
+            True si la modification a réussi, False si le trajet n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si la nouvelle ligne ou le nouveau train n'existe pas
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -162,7 +193,15 @@ class TrajetDAO:
         Return:
         ------
         bool
-            True si la suppression a réussi, False sinon
+            True si la suppression a réussi, False si le trajet n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si des réservations existent encore sur ce trajet
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -181,7 +220,7 @@ class TrajetDAO:
     @log
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime) -> list[Trajet]:
         """
-        Recherche des trajets selon les critères de lieu et de date.
+        Recherche les trajets entre deux gares à une date donnée.
 
         Param:
         ------
@@ -195,7 +234,13 @@ class TrajetDAO:
         Return:
         ------
         list[Trajet]
-            la liste des trajets correspondants, triés par heure de départ
+            les trajets trouvés, triés par heure de départ (vide si aucun)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -221,7 +266,7 @@ class TrajetDAO:
     @log
     def trouver_par_id(self, id_trajet: int) -> Trajet:
         """
-        Récupère un trajet spécifique par son identifiant.
+        Récupère un trajet par son identifiant.
 
         Param:
         ------
@@ -230,8 +275,14 @@ class TrajetDAO:
 
         Return:
         ------
-        Trajet
-            l'objet Trajet trouvé, ou None s'il n'existe pas
+        Trajet | None
+            le trajet trouvé, ou None s'il n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
