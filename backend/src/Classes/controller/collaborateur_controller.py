@@ -1,3 +1,4 @@
+import requests
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_service.utilisateurs_service.collaborateur_service import (
     CollaborateurService,
@@ -59,12 +60,15 @@ def creer_ligne(ligne: LigneCreationModel, collaborateur_service=Depends(get_col
 def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_collaborateur_service)):
     """Permet à un collaborateur de créer un trajet
     Param:
-        trajet: l'id de la ligne, l'id du train, les heures de départ et d'arrivée et le tarif de base
+        trajet: l'id de la ligne, l'id du train, l'heure de départ et le tarif de base
     Returns:
-        TrajetCreeModel : un message de confirmation et l'id du trajet créé
+        TrajetCreeModel : un message de confirmation, l'id du trajet créé,
+                          et l'heure d'arrivée et le temps de trajet calculés avec l'API SNCF
     Raises:
         HTTPException: erreur 400 si une donnée est invalide, si la ligne ou le train n'existe pas
-                       ou si un trajet existe déjà sur cette ligne à cette heure
+                       si un trajet existe déjà sur cette ligne à cette heure
+                       ou si l'API SNCF ne trouve aucun itinéraire
+        HTTPException: erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Création d'un trajet")
 
@@ -73,10 +77,17 @@ def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_
             trajet.id_ligne,
             trajet.id_train,
             trajet.heure_depart,
-            trajet.heure_arrivee,
             trajet.tarif_base,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except requests.RequestException:
+        logger.exception("Erreur lors de l'appel à l'API SNCF")
+        raise HTTPException(status_code=502, detail="L'API SNCF est indisponible ou a refusé la requête.")
 
-    return {"message": "Création du trajet réussie", "id_trajet": nouveau_trajet.id_trajet}
+    return {
+        "message": "Création du trajet réussie",
+        "id_trajet": nouveau_trajet.id_trajet,
+        "heure_arrivee": nouveau_trajet.heure_arrivee,
+        "temps_trajet": nouveau_trajet.temps_trajet,
+    }

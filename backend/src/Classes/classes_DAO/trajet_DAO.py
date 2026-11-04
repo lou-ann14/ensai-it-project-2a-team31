@@ -9,7 +9,7 @@ from src.utils.db_connexion import DBConnexion
 # Récupère un trajet avec sa ligne, ses deux gares et son train.
 # LEFT JOIN sur trains : un trajet peut ne pas encore avoir de train (id_train vide).
 SELECT_TRAJET = (
-    "SELECT t.id_trajet, t.heure_depart, t.heure_arrivee, t.tarif_base,        "
+    "SELECT t.id_trajet, t.heure_depart, t.heure_arrivee, t.tarif_base, t.temps_trajet, "
     "       l.id_ligne,                                                        "
     "       gd.id_gare AS id_gare_depart, gd.nom AS nom_gare_depart,           "
     "       gd.ville AS ville_gare_depart, gd.id_sncf AS id_sncf_gare_depart,  "
@@ -62,6 +62,7 @@ class TrajetDAO:
             train=train,
             tarif_base=trajet_bdd["tarif_base"],
             id_trajet=trajet_bdd["id_trajet"],
+            temps_trajet=trajet_bdd["temps_trajet"],
         )
 
     def creer(self, trajet: Trajet) -> Trajet:
@@ -80,15 +81,16 @@ class TrajetDAO:
         """
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)       "
-                "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s) "
-                "RETURNING id_trajet                                                                    ",
+                "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base, temps_trajet)                "
+                "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s, %(temps_trajet)s)    "
+                "RETURNING id_trajet                                                                                           ",
                 {
                     "id_ligne": trajet.ligne.id_ligne,
                     "id_train": trajet.train.id_train,
                     "heure_depart": trajet.heure_depart,
                     "heure_arrivee": trajet.heure_arrivee,
                     "tarif_base": trajet.tarif_base,
+                    "temps_trajet": trajet.temps_trajet,
                 },
             )
             trajet.id_trajet = cursor.fetchone()["id_trajet"]
@@ -116,7 +118,8 @@ class TrajetDAO:
                 "       id_train      = %(id_train)s,              "
                 "       heure_depart  = %(heure_depart)s,          "
                 "       heure_arrivee = %(heure_arrivee)s,         "
-                "       tarif_base    = %(tarif_base)s             "
+                "       tarif_base    = %(tarif_base)s,            "
+                "       temps_trajet  = %(temps_trajet)s             "
                 " WHERE id_trajet = %(id_trajet)s                  ",
                 {
                     "id_ligne": trajet.ligne.id_ligne,
@@ -124,6 +127,7 @@ class TrajetDAO:
                     "heure_depart": trajet.heure_depart,
                     "heure_arrivee": trajet.heure_arrivee,
                     "tarif_base": trajet.tarif_base,
+                    "temps_trajet": trajet.temps_trajet,
                     "id_trajet": trajet.id_trajet,
                 },
             )

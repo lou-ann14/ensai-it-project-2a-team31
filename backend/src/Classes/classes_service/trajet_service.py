@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.ligne_DAO import LigneDAO
@@ -7,6 +7,7 @@ from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
 from src.utils.log_utils import log
+from src.utils.sncf_client import SncfClient
 
 
 class TrajetService:
@@ -21,11 +22,11 @@ class TrajetService:
         id_ligne: int,
         id_train: int,
         heure_depart: datetime,
-        heure_arrivee: datetime,
         tarif_base: float,
     ) -> Trajet:
         """
         Méthode servant à créer un nouveau trajet.
+        Le temps de trajet et l'heure d'arrivée sont calculés grâce à l'API SNCF.
 
         Param:
         ------
@@ -35,37 +36,41 @@ class TrajetService:
             l'identifiant du train utilisé pour le trajet
         heure_depart: datetime
             la date et l'heure de départ
-        heure_arrivee: datetime
-            la date et l'heure d'arrivée
         tarif_base: float
             le prix de base du trajet
 
         Return:
         ------
         Trajet
-            le trajet créé, avec son id_trajet renseigné
+            le trajet créé, avec son id_trajet, son heure d'arrivée et son temps de trajet renseignés
 
         Raises:
         ------
         ValueError
-            si une donnée est invalide, si la ligne ou le train n'existe pas
-            ou si un trajet existe déjà sur cette ligne à cette heure de départ
+            si une donnée est invalide, si la ligne ou le train n'existe pas,
+            si un trajet existe déjà sur cette ligne à cette heure de départ
+            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+        requests.RequestException
+            si l'API SNCF est indisponible
         """
-        self._verifier_donnees(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)
+        self._verifier_donnees(id_ligne, id_train, heure_depart, tarif_base)
         ligne = self._verifier_ligne(id_ligne)
 
         if self._trajet_similaire_existe(ligne, heure_depart):
             raise ValueError("Un trajet existe déjà sur cette ligne à cette date et à cette heure.")
+
+        duree = self._calculer_duree(ligne, heure_depart)
 
         # TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
         # En attendant, seul l'id du train est connu : la base vérifie qu'il existe (clé étrangère).
         train = Train(type_train=None, places_initiales=None, num_train=None, id_train=id_train)
         trajet = Trajet(
             heure_depart=heure_depart,
-            heure_arrivee=heure_arrivee,
+            heure_arrivee=heure_depart + timedelta(seconds=duree),
             ligne=ligne,
             train=train,
             tarif_base=tarif_base,
+            temps_trajet=round(duree / 60),
         )
         try:
             return self.trajet_dao.creer(trajet)
@@ -76,6 +81,7 @@ class TrajetService:
     def modifier(self, id_trajet: int, trajet: Trajet) -> bool:
         """
         Méthode servant à modifier les informations d'un trajet existant.
+        Le temps de trajet et l'heure d'arrivée sont recalculés grâce à l'API SNCF.
 
         Param:
         ------
@@ -92,8 +98,11 @@ class TrajetService:
         Raises:
         ------
         ValueError
-            si le trajet n'existe pas, si une donnée est invalide, si la ligne n'existe pas
-            ou si un autre trajet existe déjà sur cette ligne à cette heure de départ
+            si le trajet n'existe pas, si une donnée est invalide, si la ligne n'existe pas,
+            si un autre trajet existe déjà sur cette ligne à cette heure de départ
+            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+        requests.RequestException
+            si l'API SNCF est indisponible
         """
         if trajet is None:
             raise ValueError("Le trajet à modifier est obligatoire.")
@@ -102,11 +111,16 @@ class TrajetService:
 
         id_ligne = trajet.ligne.id_ligne if trajet.ligne else None
         id_train = trajet.train.id_train if trajet.train else None
-        self._verifier_donnees(id_ligne, id_train, trajet.heure_depart, trajet.heure_arrivee, trajet.tarif_base)
+        self._verifier_donnees(id_ligne, id_train, trajet.heure_depart, trajet.tarif_base)
         ligne = self._verifier_ligne(id_ligne)
 
         if self._trajet_similaire_existe(ligne, trajet.heure_depart, id_trajet_ignore=id_trajet):
             raise ValueError("Un autre trajet existe déjà sur cette ligne à cette date et à cette heure.")
+
+        duree = self._calculer_duree(ligne, trajet.heure_depart)
+        trajet.heure_arrivee = trajet.heure_depart + timedelta(seconds=duree)
+        trajet.horaires = f"{trajet.heure_depart}, {trajet.heure_arrivee}"
+        trajet.temps_trajet = round(duree / 60)
 
         trajet.id_trajet = id_trajet
         try:
@@ -190,16 +204,31 @@ class TrajetService:
         """
         return self.trajet_dao.trouver_par_id(id_trajet)
 
-    def _verifier_donnees(self, id_ligne, id_train, heure_depart, heure_arrivee, tarif_base) -> None:
+    def _verifier_donnees(self, id_ligne, id_train, heure_depart, tarif_base) -> None:
         """Vérifie la validité des données d'un trajet (lève ValueError sinon)."""
         if id_ligne is None or id_train is None:
             raise ValueError("La ligne et le train sont obligatoires.")
-        if not isinstance(heure_depart, datetime) or not isinstance(heure_arrivee, datetime):
-            raise TypeError("Les heures de départ et d'arrivée doivent être des dates avec heure.")
-        if heure_arrivee <= heure_depart:
-            raise ValueError("L'heure d'arrivée doit être postérieure à l'heure de départ.")
+        if not isinstance(heure_depart, datetime):
+            raise TypeError("L'heure de départ doit être une date avec heure.")
         if tarif_base is None or tarif_base < 0:
             raise ValueError("Le tarif de base doit être positif ou nul.")
+
+    def _calculer_duree(self, ligne, heure_depart: datetime) -> int:
+        """Demande à l'API SNCF la durée du trajet sur cette ligne, en secondes (lève ValueError si aucune)."""
+        id_sncf_depart = ligne.gare_depart.id_sncf
+        id_sncf_arrivee = ligne.gare_arrivee.id_sncf
+        if not id_sncf_depart or not id_sncf_arrivee:
+            raise ValueError("Les gares de cette ligne ne viennent pas de l'API SNCF : temps de trajet impossible à calculer.")
+
+        client = SncfClient()
+        duree = client.duree_trajet(id_sncf_depart, id_sncf_arrivee, heure_depart)
+        if duree is None:
+            # L'API ne connaît les horaires que sur quelques semaines : pour une date
+            # plus lointaine, on retient la durée du trajet selon les horaires actuels.
+            duree = client.duree_trajet(id_sncf_depart, id_sncf_arrivee)
+        if duree is None:
+            raise ValueError("L'API SNCF ne trouve aucun itinéraire entre ces deux gares.")
+        return duree
 
     def _verifier_ligne(self, id_ligne: int):
         """Vérifie que la ligne existe et la renvoie (lève ValueError sinon)."""

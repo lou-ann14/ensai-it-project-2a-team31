@@ -1,10 +1,19 @@
 from fastapi import HTTPException
+from psycopg2.errors import UniqueViolation
 from src.Classes.classes_DAO.train_DAO import TrainDAO
 from src.Classes.classes_objets.train import Train
 from src.utils.log_utils import log
 
 
 class TrainService:
+
+    @staticmethod
+    def _verifier_capacite(capacite: list[int, int]) -> None:
+        """Vérifie qu'il y a deux nombres de places positifs ou nuls (lève ValueError sinon)."""
+        if len(capacite) != 2:
+            raise ValueError("capacité incorrecte, la longueur de la liste doit être de 2")
+        if capacite[0] < 0 or capacite[1] < 0:
+            raise ValueError("capacité incorrecte, le nombre de places doit être positif ou nul")
 
     @log
     def creer(self, type_train: str, places_initiales: list[int, int], num_train: int):
@@ -23,11 +32,20 @@ class TrainService:
         Return:
         ------
         Train
-            Le Train créé ou None si la création a échoué
+            Le Train créé, avec son id_train renseigné
+
+        Raises:
+        ------
+        ValueError
+            si la capacité est incorrecte ou si ce numéro de train existe déjà
         """
+        self._verifier_capacite(places_initiales)
         train = Train(type_train, places_initiales, num_train)
 
-        return train if TrainDAO().creer(train) else None
+        try:
+            return TrainDAO().creer(train)
+        except UniqueViolation:
+            raise ValueError(f"Le train numéro {num_train} existe déjà.")
 
     @log
     def trouver_train_par_num(self, num_train: int):
@@ -73,10 +91,9 @@ class TrainService:
         bool
             True si la modification a réussi, False sinon
         """
-        if len(capacite) != 2:
-            raise ValueError("capacité incorrecte, la longueur de la liste doit être de 2")
+        self._verifier_capacite(capacite)
 
-        train = TrainDAO().trouver_par_num(num_train)
+        train = TrainDAO().trouver_train_par_num(num_train)
 
         if not train:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
