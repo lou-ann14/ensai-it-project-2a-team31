@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_service.utilisateurs_service.collaborateur_service import (
     CollaborateurService,
 )
@@ -8,7 +8,6 @@ from src.schema.collaborateur_schema import (
     TrajetCreationModel,
     TrajetCreeModel,
 )
-from src.utils.db_connexion import DBConnexion
 from src.utils.log_utils import get_logger
 
 router = APIRouter()
@@ -18,7 +17,7 @@ logger = get_logger(__name__)
 
 def get_collaborateur_service():
     """Dependency Injection provider for CollaborateurService."""
-    return CollaborateurService(DBConnexion().connexion)
+    return CollaborateurService()
 
 
 @router.post(
@@ -33,16 +32,22 @@ def creer_ligne(ligne: LigneCreationModel, collaborateur_service=Depends(get_col
         ligne: la gare de départ, la gare d'arrivée et l'id du collaborateur
     Returns:
         LigneCreeeModel : un message de confirmation et l'id de la ligne créée
+    Raises:
+        HTTPException: erreur 400 si une gare ou le collaborateur n'existe pas, si les deux gares
+                       sont identiques ou si la ligne existe déjà
     """
     logger.info("Création d'une ligne")
 
-    id_ligne = collaborateur_service.creer_ligne(
-        ligne.gare_depart_id,
-        ligne.gare_arrivee_id,
-        ligne.id_collaborateur,
-    )
+    try:
+        nouvelle_ligne = collaborateur_service.creer_ligne(
+            ligne.gare_depart_id,
+            ligne.gare_arrivee_id,
+            ligne.id_collaborateur,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    return {"message": "Création de la ligne réussie", "id_ligne": id_ligne}
+    return {"message": "Création de la ligne réussie", "id_ligne": nouvelle_ligne.id_ligne}
 
 
 @router.post(
@@ -54,17 +59,24 @@ def creer_ligne(ligne: LigneCreationModel, collaborateur_service=Depends(get_col
 def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_collaborateur_service)):
     """Permet à un collaborateur de créer un trajet
     Param:
-        trajet: l'id de la ligne, les heures de départ et d'arrivée et le temps de trajet en minutes
+        trajet: l'id de la ligne, l'id du train, les heures de départ et d'arrivée et le tarif de base
     Returns:
         TrajetCreeModel : un message de confirmation et l'id du trajet créé
+    Raises:
+        HTTPException: erreur 400 si une donnée est invalide, si la ligne ou le train n'existe pas
+                       ou si un trajet existe déjà sur cette ligne à cette heure
     """
     logger.info("Création d'un trajet")
 
-    id_trajet = collaborateur_service.creer_trajet(
-        trajet.id_ligne,
-        trajet.heure_depart,
-        trajet.heure_arrivee,
-        trajet.temps_trajet,
-    )
+    try:
+        nouveau_trajet = collaborateur_service.creer_trajet(
+            trajet.id_ligne,
+            trajet.id_train,
+            trajet.heure_depart,
+            trajet.heure_arrivee,
+            trajet.tarif_base,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    return {"message": "Création du trajet réussie", "id_trajet": id_trajet}
+    return {"message": "Création du trajet réussie", "id_trajet": nouveau_trajet.id_trajet}

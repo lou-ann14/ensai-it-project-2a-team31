@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.gare import Gare
+from src.Classes.classes_objets.utilisateurs.client import Client
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
@@ -99,22 +100,36 @@ def rechercher_gares(
 def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
+    trajet_service=Depends(get_trajet_service),
 ):
     """Réserve une place sur un trajet
     Param:
         reservation: l'id du client, l'id du trajet, la place et la classe (1 ou 2)
     Returns:
-        ReservationReponseModel : la réservation créée, avec son prix
+        ReservationReponseModel : la réservation créée, avec son client, son trajet et son prix
     Raises:
-        HTTPException: erreur 400 si une donnée est invalide, si le trajet n'existe pas
-                       ou est déjà parti, si le client n'existe pas ou si la place est déjà prise
+        HTTPException: erreur 400 si une donnée est invalide, si le trajet est déjà parti,
+                       si le compte n'est pas un compte client ou si la place est déjà prise
+        HTTPException: erreur 404 si le client ou le trajet n'existe pas
     """
     logger.info("Création d'une réservation")
 
+    # Les id servent seulement à désigner le client et le trajet : le service reçoit des objets
+    utilisateur = UtilisateurDAO().trouver_par_id(reservation.id_client)
+    if utilisateur is None:
+        raise HTTPException(status_code=404, detail=f"Le client #{reservation.id_client} n'existe pas.")
+    if utilisateur.grade != "CLIENT":
+        raise HTTPException(status_code=400, detail="Seul un compte client peut réserver un trajet.")
+    client = Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
+
+    trajet = trajet_service.trouver_par_id(reservation.id_trajet)
+    if trajet is None:
+        raise HTTPException(status_code=404, detail=f"Le trajet #{reservation.id_trajet} n'existe pas.")
+
     try:
         return reservation_service.creer(
-            reservation.id_client,
-            reservation.id_trajet,
+            client,
+            trajet,
             reservation.place,
             reservation.classe,
         )
