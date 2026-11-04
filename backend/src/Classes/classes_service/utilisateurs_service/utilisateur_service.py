@@ -1,7 +1,5 @@
-from datetime import datetime
-from typing import Any
+import secrets
 
-from psycopg2.extras import DictCursor
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.utils.log_utils import log
@@ -27,36 +25,6 @@ class UtilisateurService:
         return utilisateur if UtilisateurDAO().creer(utilisateur) else None
 
 
-
-    @log
-    def recherche_trajet(self, id_gare_depart: int, id_gare_arrivee: int, date_trajet: datetime) -> list[dict[str, Any]]:
-        query = """
-            SELECT t.id_trajet, t.heure_depart, t.heure_arrivee, t.temps_trajet
-            FROM trajets t
-            JOIN lignes l ON t.id_ligne = l.id_ligne
-            WHERE l.gare_depart_id = %s
-              AND l.gare_arrivee_id = %s
-              AND DATE(t.heure_depart) = DATE(%s);
-        """
-        with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute(query, (id_gare_depart, id_gare_arrivee, date_trajet))
-            return [dict(row) for row in cur.fetchall()]
-            
-    @log
-    def recherche_gare(self, nom: str | None = None, ville: str | None = None) -> list[dict[str, Any]]:
-        query = "SELECT id_gare, nom, ville FROM gares WHERE 1=1"
-        params = []
-        if nom:
-            query += " AND nom ILIKE %s"
-            params.append(f"%{nom}%")
-        if ville:
-            query += " AND ville ILIKE %s"
-            params.append(f"%{ville}%")
-
-        with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute(query, tuple(params))
-            return [dict(row) for row in cur.fetchall()]
-
     @log
     def changer_mdp(self, id_utilisateur: int, ancien_mdp: str, nouveau_mdp: str) -> bool:
         check_query = "SELECT id FROM utilisateurs WHERE id = %s AND mdp = %s;"
@@ -70,18 +38,33 @@ class UtilisateurService:
             return False
 
     @log
-    def _rechercher(self, nom_utilisateur: str | None = None, id_utilisateur: int | None = None) -> dict[str, Any] | None:
-        query = "SELECT id, nom_utilisateur, grade, date_inscription FROM utilisateurs WHERE "
-        if id_utilisateur:
-            query += "id = %s;"
-            param = id_utilisateur
-        elif nom_utilisateur:
-            query += "nom_utilisateur = %s;"
-            param = nom_utilisateur
-        else:
-            return None
+    def rechercher(self, nom: str | None = None, id_utilisateur: int | None = None) -> Utilisateur | None:
+        """Recherche un utilisateur à l'aide de son id ou de son nom
+        Param:
+            nom (str): le nom de l'utilisateur recherché.
+            id_utilisateur (int): l'id de l'utilisateur recherché.
+        Returns:
 
-        with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute(query, (param,))
-            row = cur.fetchone()
-            return dict(row) if row else None
+        """
+        res = None
+        if nom:
+            res = UtilisateurDAO().trouver_par_nom_utilisateur(nom)
+            return res
+        elif id_utilisateur:
+            res = UtilisateurDAO().trouver_par_id(id_utilisateur)
+            return res
+        else:
+            return res
+
+    @log
+    def modifier(self, utilisateur: Utilisateur):
+        return utilisateur if UtilisateurDAO().modifier(utilisateur) else None
+    
+    @log
+    def login(self, nom: str, mdp: str):
+        utilisateur = UtilisateurDAO().login(nom=nom, mdp=hash_password(mdp, nom))
+        if utilisateur:
+            utilisateur.token=secrets.token_urlsafe(32)
+            self.modifier(utilisateur=utilisateur)
+            return utilisateur
+        return None
