@@ -1,31 +1,87 @@
-from typing import Any
-
-from psycopg2.extras import DictCursor
+from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
+from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_service.reservations_service import ReservationService
+from src.utils.log_utils import log
 
 
 class ClientService:
-    def __init__(self, conn):
-        self.conn = conn
+    """Classe qui gère les actions réservées aux clients"""
 
-    def reserver_trajet(self, id_client: int, id_trajet: int, places: int, prix: float, tarif: str) -> int | None:
-        query = """
-            INSERT INTO reservations (id_trajet, id_client, places_restantes, prix, tarif)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id_reservation;
+    @log
+    def reserver_trajet(self, client: Client, trajet: Trajet, place: str, classe: int) -> Reservation:
         """
-        with self.conn.cursor() as cur:
-            cur.execute(query, (id_trajet, id_client, places, prix, tarif))
-            new_id = cur.fetchone()[0]
-            self.conn.commit()
-            return new_id
+        Méthode servant à réserver une place sur un trajet.
 
-    def voir_historique_reservations(self, id_client: int) -> list[dict[str, Any]]:
-        query = """
-            SELECT r.id_reservation, r.places_restantes, r.prix, r.tarif, t.heure_depart, t.heure_arrivee
-            FROM reservations r
-            JOIN trajets t ON r.id_trajet = t.id_trajet
-            WHERE r.id_client = %s; 
+        Param:
+        ------
+        client: Client
+            le client qui réserve
+        trajet: Trajet
+            le trajet réservé
+        place: str
+            le numéro de place
+        classe: int
+            la classe choisie (1 ou 2)
+
+        Return:
+        ------
+        Reservation
+            la réservation créée, avec son id_reservation et son prix renseignés
+
+        Raises:
+        ------
+        ValueError
+            si une donnée est invalide, si le trajet est déjà parti,
+            si le client n'existe pas en base ou si la place est déjà réservée
         """
-        with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute(query, (id_client,))
-            return [dict(row) for row in cur.fetchall()]
+        return ReservationService().creer(client, trajet, place, classe)
+
+    @log
+    def voir_historique_reservations(self, client: Client) -> list[Reservation]:
+        """
+        Méthode servant à consulter toutes les réservations d'un client (passées et à venir).
+
+        Param:
+        ------
+        client: Client
+            le client dont on veut l'historique
+
+        Return:
+        ------
+        list[Reservation]
+            la liste des réservations du client (vide si aucune)
+        """
+        return ReservationService().historique_par_client(client.id)
+
+    @log
+    def annuler_reservation(self, client: Client, id_reservation: int) -> bool:
+        """
+        Méthode servant à annuler une réservation du client.
+
+        Param:
+        ------
+        client: Client
+            le client qui annule
+        id_reservation: int
+            l'identifiant de la réservation à annuler
+
+        Return:
+        ------
+        bool
+            True si l'annulation a réussi, False si la réservation n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si la réservation appartient à un autre client
+            ou si le trajet est déjà parti
+        """
+        reservation = ReservationDAO().trouver_par_id(id_reservation)
+        if reservation is None:
+            return False
+        if reservation.client.id != client.id:
+            raise ValueError("Cette réservation appartient à un autre client.")
+
+        return ReservationService().annuler(id_reservation)

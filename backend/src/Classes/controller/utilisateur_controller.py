@@ -9,7 +9,9 @@ from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
+from src.Classes.classes_service.utilisateurs_service.client_service import ClientService
 from src.schema.administrateur_schema import UtilisateurReponseModel
+from src.schema.collaborateur_schema import MessageModel
 from src.schema.gare_schema import GareReponseModel
 from src.schema.train_schema import TrainReponseModel
 from src.schema.utilisateur_schema import (
@@ -43,6 +45,25 @@ def get_train_service():
 def get_trajet_service():
     """Dependency Injection provider for TrajetService."""
     return TrajetService()
+
+
+def get_client_service():
+    """Dependency Injection provider for ClientService."""
+    return ClientService()
+
+
+def trouver_client(id_client: int) -> Client:
+    """Récupère le client à partir de son id
+    Raises:
+        HTTPException: erreur 400 si le compte n'est pas un compte client
+        HTTPException: erreur 404 si le client n'existe pas
+    """
+    utilisateur = UtilisateurDAO().trouver_par_id(id_client)
+    if utilisateur is None:
+        raise HTTPException(status_code=404, detail=f"Le client #{id_client} n'existe pas.")
+    if utilisateur.grade != "CLIENT":
+        raise HTTPException(status_code=400, detail="Cette action est réservée aux comptes clients.")
+    return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
 
 
 @router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
@@ -115,12 +136,7 @@ def reserver(
     logger.info("Création d'une réservation")
 
     # Les id servent seulement à désigner le client et le trajet : le service reçoit des objets
-    utilisateur = UtilisateurDAO().trouver_par_id(reservation.id_client)
-    if utilisateur is None:
-        raise HTTPException(status_code=404, detail=f"Le client #{reservation.id_client} n'existe pas.")
-    if utilisateur.grade != "CLIENT":
-        raise HTTPException(status_code=400, detail="Seul un compte client peut réserver un trajet.")
-    client = Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
+    client = trouver_client(reservation.id_client)
 
     trajet = trajet_service.trouver_par_id(reservation.id_trajet)
     if trajet is None:
@@ -135,6 +151,49 @@ def reserver(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
+def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service)):
+    """Affiche toutes les réservations d'un client (passées et à venir)
+    Param:
+        id_client (int) : l'id du client
+    Returns:
+        list[ReservationReponseModel] : les réservations du client (liste vide si aucune)
+    Raises:
+        HTTPException: erreur 400 si le compte n'est pas un compte client
+        HTTPException: erreur 404 si le client n'existe pas
+    """
+    logger.info("Consultation de l'historique des réservations")
+
+    return client_service.voir_historique_reservations(trouver_client(id_client))
+
+
+@router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
+def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service)):
+    """Annule une réservation d'un client
+    Param:
+        id_reservation (int) : l'id de la réservation à annuler
+        id_client (int) : l'id du client qui annule
+    Returns:
+        MessageModel : un message de confirmation
+    Raises:
+        HTTPException: erreur 400 si le compte n'est pas un compte client, si la réservation
+                       appartient à un autre client ou si le trajet est déjà parti
+        HTTPException: erreur 404 si le client ou la réservation n'existe pas
+    """
+    logger.info("Annulation d'une réservation")
+
+    client = trouver_client(id_client)
+
+    try:
+        annulee = client_service.annuler_reservation(client, id_reservation)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not annulee:
+        raise HTTPException(status_code=404, detail=f"La réservation #{id_reservation} n'existe pas.")
+
+    return {"message": "Annulation de la réservation réussie"}
 
 
 @router.post(
