@@ -25,7 +25,7 @@ class UtilisateurService:
             SELECT t.id_trajet, t.heure_depart, t.heure_arrivee, t.temps_trajet
             FROM trajets t
             JOIN lignes l ON t.id_ligne = l.id_ligne
-            WHERE l.gare_depart_id = %s 
+            WHERE l.gare_depart_id = %s
               AND l.gare_arrivee_id = %s
               AND DATE(t.heure_depart) = DATE(%s);
         """
@@ -42,7 +42,7 @@ class UtilisateurService:
         if ville:
             query += " AND ville ILIKE %s"
             params.append(f"%{ville}%")
-            
+
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute(query, tuple(params))
             return [dict(row) for row in cur.fetchall()]
