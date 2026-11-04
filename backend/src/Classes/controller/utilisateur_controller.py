@@ -1,9 +1,13 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
+from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
+from src.Classes.classes_service.trajet_service import TrajetService
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.schema.gare_schema import GareReponseModel
 from src.schema.train_schema import TrainBaseModel
@@ -11,6 +15,7 @@ from src.schema.utilisateur_schema import (
     CompteCreationModel,
     ReservationCreationModel,
     ReservationReponseModel,
+    TrajetReponseModel,
 )
 from src.utils.log_utils import get_logger
 
@@ -32,6 +37,40 @@ def get_reservation_service():
 def get_train_service():
     """Dependency Injection provider for TrainService."""
     return TrainService()
+
+
+def get_trajet_service():
+    """Dependency Injection provider for TrajetService."""
+    return TrajetService()
+
+
+@router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
+def rechercher_trajets(
+    id_gare_depart: int,
+    id_gare_arrivee: int,
+    date_voyage: date,
+    trajet_service=Depends(get_trajet_service),
+):
+    """Recherche les trajets entre deux gares pour un jour donné
+    Param:
+        id_gare_depart (int) : l'id de la gare de départ
+        id_gare_arrivee (int) : l'id de la gare d'arrivée
+        date_voyage (date) : le jour du voyage (format AAAA-MM-JJ)
+    Returns:
+        list[TrajetReponseModel] : les trajets triés par heure de départ (liste vide si aucun)
+    Raises:
+        HTTPException: erreur 400 si les deux gares sont identiques
+    """
+    logger.info("Recherche de trajets par un utilisateur")
+
+    # La recherche n'utilise que l'id des gares
+    gare_depart = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_depart)
+    gare_arrivee = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_arrivee)
+
+    try:
+        return trajet_service.rechercher(gare_depart, gare_arrivee, date_voyage)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/gares", response_model=list[GareReponseModel], tags=["Utilisateur"])
@@ -107,9 +146,9 @@ def creer_compte(compte: CompteCreationModel):
     if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
         raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
 
-    # Le rôle est imposé : on ne laisse pas quelqu'un se créer un compte ADMIN
+    # Le grade est imposé : on ne laisse pas quelqu'un se créer un compte ADMIN
     try:
-        nouvel_utilisateur = Utilisateur(id=None, mdp=compte.mdp, nom_utilisateur=nom_utilisateur, role="CLIENT")
+        nouvel_utilisateur = Utilisateur(id=None, mdp=compte.mdp, nom_utilisateur=nom_utilisateur, grade="CLIENT")
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 

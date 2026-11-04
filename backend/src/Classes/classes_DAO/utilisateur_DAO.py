@@ -1,6 +1,8 @@
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.utils.db_connexion import DBConnexion
+from src.utils.log_utils import get_logger, log
 
+logger = get_logger(__name__)
 
 class UtilisateurDAO:
     """Classe qui interagit avec la base de données pour les objets de type Utilisateur"""
@@ -20,19 +22,18 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur créé, avec son id renseigné
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO utilisateurs(nom_utilisateur, mdp, grade, date_inscription)  "
-                    "VALUES (%(nom_utilisateur)s, %(mdp)s, %(grade)s, CURRENT_DATE)            "
-                    "RETURNING id                                                             ",
-                    {
-                        "nom_utilisateur": utilisateur.nom_utilisateur,
-                        "mdp": utilisateur.mdp,
-                        "grade": utilisateur.grade,
-                    },
-                )
-                utilisateur.id = cursor.fetchone()["id"]
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO utilisateurs(nom_utilisateur, mdp, grade, date_inscription)  "
+                "VALUES (%(nom_utilisateur)s, %(mdp)s, %(grade)s, CURRENT_DATE)            "
+                "RETURNING id                                                             ",
+                {
+                    "nom_utilisateur": utilisateur.nom_utilisateur,
+                    "mdp": utilisateur.mdp,
+                    "grade": utilisateur.grade,
+                },
+            )
+            utilisateur.id = cursor.fetchone()["id"]
 
         return utilisateur
 
@@ -51,22 +52,21 @@ class UtilisateurDAO:
         bool
             True si la modification a réussi, False sinon
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE utilisateurs                               "
-                    "   SET nom_utilisateur = %(nom_utilisateur)s,     "
-                    "       mdp             = %(mdp)s,                 "
-                    "       grade            = %(grade)s                 "
-                    " WHERE id = %(id)s                                ",
-                    {
-                        "nom_utilisateur": utilisateur.nom_utilisateur,
-                        "mdp": utilisateur.mdp,
-                        "grade": utilisateur.grade,
-                        "id": utilisateur.id,
-                    },
-                )
-                nb_lignes_modifiees = cursor.rowcount
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE utilisateurs                               "
+                "   SET nom_utilisateur = %(nom_utilisateur)s,     "
+                "       mdp             = %(mdp)s,                 "
+                "       grade            = %(grade)s                 "
+                " WHERE id = %(id)s                                ",
+                {
+                    "nom_utilisateur": utilisateur.nom_utilisateur,
+                    "mdp": utilisateur.mdp,
+                    "grade": utilisateur.grade,
+                    "id": utilisateur.id,
+                },
+            )
+            nb_lignes_modifiees = cursor.rowcount
 
         return nb_lignes_modifiees > 0
 
@@ -84,15 +84,14 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, grade             "
-                    "  FROM utilisateurs                               "
-                    " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
-                    {"nom_utilisateur": nom_utilisateur},
-                )
-                utilisateur_bdd = cursor.fetchone()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, nom_utilisateur, mdp, grade             "
+                "  FROM utilisateurs                               "
+                " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
+                {"nom_utilisateur": nom_utilisateur},
+            )
+            utilisateur_bdd = cursor.fetchone()
 
         utilisateur = None
         if utilisateur_bdd:
@@ -118,15 +117,14 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, grade             "
-                    "  FROM utilisateurs                               "
-                    " WHERE id = %(id)s                                ",
-                    {"id": id},
-                )
-                utilisateur_bdd = cursor.fetchone()
+        with DBConnexion().connexion as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, nom_utilisateur, mdp, grade             "
+                "  FROM utilisateurs                               "
+                " WHERE id = %(id)s                                ",
+                {"id": id},
+            )
+            utilisateur_bdd = cursor.fetchone()
 
         utilisateur = None
         if utilisateur_bdd:
@@ -135,5 +133,39 @@ class UtilisateurDAO:
                 mdp=utilisateur_bdd["mdp"],
                 nom_utilisateur=utilisateur_bdd["nom_utilisateur"],
                 grade=utilisateur_bdd["grade"],
+            )
+        return utilisateur
+    
+    @log
+    def trouver_par_token(self, token: str) -> Utilisateur:
+        """Trouve un utilisateur à partir de son token.
+        Param:
+            token (str): le token à partir duquel faire la recherche
+        Returns:
+            Utilisateur : l'utilisateur trouvé, et None sinon.
+        """
+        if not token:
+            return None
+        
+        res = None
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT * FROM utilisateurs"
+                    "WHERE token_acces = %(token)s;",
+                    {"token":token},
+                )
+                res = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Error finding player by token: {e}")
+            raise
+
+        utilisateur = None
+        if res:
+            utilisateur = Utilisateur(
+                nom_utilisateur=res["nom_utilisateur"],
+                mdp=res["mdp"],
+                grade=res["grade"],
+                token_acces=res["token_acces"]
             )
         return utilisateur
