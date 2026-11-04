@@ -50,7 +50,8 @@ class TrajetDAO:
         if trajet_bdd["id_train"] is not None:
             train = Train(
                 type_train=trajet_bdd["type_train"],
-                places_initiales=[trajet_bdd["places_premieres"], trajet_bdd["places_secondes"]],
+                places_premieres=trajet_bdd["places_premieres"],
+                places_secondes=trajet_bdd["places_secondes"],
                 num_train=trajet_bdd["num_train"],
                 id_train=trajet_bdd["id_train"],
             )

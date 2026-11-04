@@ -165,7 +165,7 @@ def importer_gares(q: str, gare_service=Depends(get_gare_service)):
 def creer_train(train: TrainBaseModel, train_service=Depends(get_train_service)):
     """Crée un nouveau train
     Param:
-        train: le type, les places initiales [1re classe, 2de classe] et le numéro du train
+        train: le type, les places en 1re et en 2de classe et le numéro du train
     Returns:
         TrainReponseModel : le train créé, avec son id_train
     Raises:
@@ -174,7 +174,7 @@ def creer_train(train: TrainBaseModel, train_service=Depends(get_train_service))
     logger.info("Création d'un train")
 
     try:
-        return train_service.creer(train.type_train, train.places_initiales, train.num_train)
+        return train_service.creer(train.type_train, train.places_premieres, train.places_secondes, train.num_train)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -184,7 +184,7 @@ def modifier_capacite(num_train: int, t: TrainBaseModel, train_service=Depends(g
     """Modifie la capacité d'un train
     Param:
         num_train (int) : le numéro du train à modifier
-        t: le train avec ses nouvelles places [1re classe, 2de classe]
+        t: le train avec ses nouvelles places en 1re et en 2de classe
     Returns:
         TrainReponseModel : le train modifié
     Raises:
@@ -197,11 +197,12 @@ def modifier_capacite(num_train: int, t: TrainBaseModel, train_service=Depends(g
     train = train_service.trouver_train_par_num(num_train)
 
     try:
-        modifie = train_service.modifier_capacite(num_train, t.places_initiales)
+        modifie = train_service.modifier_capacite(num_train, t.places_premieres, t.places_secondes)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not modifie:
         raise HTTPException(status_code=500, detail="Erreur pendant la modification du train.")
 
-    train.places_initiales = t.places_initiales
+    train.places_premieres = t.places_premieres
+    train.places_secondes = t.places_secondes
     return train

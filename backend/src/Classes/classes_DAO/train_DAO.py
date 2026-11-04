@@ -27,8 +27,8 @@ class TrainDAO:
                     "RETURNING id_train                                                             ",
                     {
                         "type_train": train.type_train,
-                        "places_premieres": train.places_initiales[0],
-                        "places_secondes": train.places_initiales[1],
+                        "places_premieres": train.places_premieres,
+                        "places_secondes": train.places_secondes,
                         "num_train": train.num_train,
                     },
                 )
@@ -37,7 +37,7 @@ class TrainDAO:
         return train
 
     @log
-    def modifier_capacite(self, num_train: int, capacite: list[int, int]) -> bool:
+    def modifier_capacite(self, num_train: int, capacite_premiere: int, capacite_seconde: int) -> bool:
         """
         Met à jour la capacité d'un train existant.
 
@@ -45,8 +45,10 @@ class TrainDAO:
         ------
         num_train: int
             le numéro du train
-        capacite: list[int, int]
-            la nouvelle capacité [première classe, seconde classe]
+        capacite_premiere: int
+            la nouvelle capacité en première classe
+        capacite_seconde: int
+            la nouvelle capacité en seconde classe
 
         Return:
         ------
@@ -60,8 +62,8 @@ class TrainDAO:
                 "       places_secondes  = %(places_secondes)s   "
                 " WHERE num_train = %(num_train)s            ",
                 {
-                    "places_premieres": capacite[0],
-                    "places_secondes": capacite[1],
+                    "places_premieres": capacite_premiere,
+                    "places_secondes": capacite_seconde,
                     "num_train": num_train,
                 }
             )
@@ -100,7 +102,8 @@ class TrainDAO:
 
         train = Train(
                 type_train=train_bdd["type_train"],
-                places_initiales=[train_bdd["places_premieres"], train_bdd["places_secondes"]],
+                places_premieres=train_bdd["places_premieres"],
+                places_secondes=train_bdd["places_secondes"],
                 num_train=train_bdd["num_train"],
                 id_train=train_bdd["id_train"],
             )

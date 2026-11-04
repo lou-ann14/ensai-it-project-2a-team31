@@ -22,7 +22,7 @@ def curseur():
 @pytest.fixture
 def train():
     """Train à enregistrer"""
-    return Train("TGV", [200, 400], 8541)
+    return Train("TGV", 200, 400, 8541)
 
 
 class TestsTrainDAO:
@@ -54,7 +54,7 @@ class TestsTrainDAO:
         """Une ligne est modifiée : True"""
         curseur.rowcount = 1
 
-        resultat = TrainDAO().modifier_capacite(8541, [100, 300])
+        resultat = TrainDAO().modifier_capacite(8541, 100, 300)
 
         assert resultat is True
         requete, parametres = curseur.execute.call_args.args
@@ -67,7 +67,7 @@ class TestsTrainDAO:
         """Aucune ligne modifiée (numéro inconnu) : False"""
         curseur.rowcount = 0
 
-        assert TrainDAO().modifier_capacite(9999, [100, 300]) is False
+        assert TrainDAO().modifier_capacite(9999, 100, 300) is False
 
     # Tests trouver_train_par_num
 
@@ -80,7 +80,8 @@ class TestsTrainDAO:
         assert isinstance(resultat, Train)
         assert resultat.id_train == 1
         assert resultat.type_train == "TGV"
-        assert resultat.places_initiales == [200, 400]
+        assert resultat.places_premieres == 200
+        assert resultat.places_secondes == 400
         assert resultat.num_train == 8541
         assert curseur.execute.call_args.args[1] == {"num_train": 8541}
 

@@ -4,7 +4,8 @@ from pydantic import BaseModel, ConfigDict
 class TrainBaseModel(BaseModel):
 
     type_train: str
-    places_initiales: list[int]  # [première classe, seconde classe]
+    places_premieres: int
+    places_secondes: int
     num_train: int
 
 
