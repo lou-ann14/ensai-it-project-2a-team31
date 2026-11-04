@@ -129,3 +129,27 @@ def test_trouver_par_id_introuvable(mock_db):
     ligne_trouvee = LigneDAO().trouver_par_id(99)
 
     assert ligne_trouvee is None
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_supprimer_ok(mock_db):
+    """Suppression de la ligne Part-Dieu -> Saint-Charles : 1 ligne supprimée, le DAO renvoie True"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 1  # la BDD a supprimé 1 ligne
+    id_ligne = ligne_lyon_marseille["id_ligne"]
+    suppression = LigneDAO().supprimer(id_ligne)
+    requete, parametres = cursor.execute.call_args.args  # ce que le DAO a exécuté
+
+    assert "DELETE FROM lignes" in requete
+    assert parametres["id_ligne"] == id_ligne
+    assert suppression is True
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_supprimer_inexistante(mock_db):
+    """Suppression d'une ligne qui n'existe pas : 0 ligne supprimée, le DAO renvoie False"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 0  # aucune ligne supprimée
+    suppression = LigneDAO().supprimer(99)
+
+    assert suppression is False

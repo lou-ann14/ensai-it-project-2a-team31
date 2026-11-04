@@ -185,3 +185,40 @@ class TrainDAO:
             return None
 
         return id_bdd["id_train"]
+
+    @log
+    def supprimer(self, id_train: int) -> bool:
+        """
+        Supprime un train de la base de données.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False si le train n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si des trajets utilisent encore ce train
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM trains                                "
+                    " WHERE id_train = %(id_train)s                    ",
+                    {"id_train": id_train},
+                )
+                nb_lignes_supprimees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.supprimer : {e}")
+            raise
+
+        return nb_lignes_supprimees > 0
