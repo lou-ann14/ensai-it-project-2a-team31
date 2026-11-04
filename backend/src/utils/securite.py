@@ -35,7 +35,7 @@ def verif_niv_hab(niv_hab: str, x_auth_token=Header(None)) -> UtilisateurDAO:
     if not x_auth_token:
         raise HTTPException(status_code=401, detail="Token manquant.")
 
-    utilisateur = UtilisateurDAO().find_by_token(x_auth_token)
+    utilisateur = UtilisateurDAO().trouver_par_token(x_auth_token)
     if not utilisateur:
         raise HTTPException(status_code=401, detail="Token invalide.")
     if utilisateur.grade != niv_hab:
