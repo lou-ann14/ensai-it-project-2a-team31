@@ -143,3 +143,40 @@ class GareDAO:
             logger.error(f"Erreur base de données dans GareDAO.creer_ou_mettre_a_jour : {e}")
             raise
         return gare
+
+    @log
+    def supprimer(self, id_gare: int) -> bool:
+        """
+        Supprime une gare de la base de données.
+
+        Param:
+        ------
+        id_gare: int
+            l'identifiant de la gare à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False si la gare n'existe pas
+
+        Raises:
+        ------
+        psycopg2.errors.ForeignKeyViolation
+            si des lignes partent de cette gare ou y arrivent encore
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM gares                                 "
+                    " WHERE id_gare = %(id_gare)s                      ",
+                    {"id_gare": id_gare},
+                )
+                nb_lignes_supprimees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans GareDAO.supprimer : {e}")
+            raise
+
+        return nb_lignes_supprimees > 0
