@@ -23,18 +23,22 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur créé, avec son id renseigné
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO utilisateurs(nom_utilisateur, mdp, grade, date_inscription)  "
-                "VALUES (%(nom_utilisateur)s, %(mdp)s, %(grade)s, CURRENT_DATE)            "
-                "RETURNING id                                                             ",
-                {
-                    "nom_utilisateur": utilisateur.nom_utilisateur,
-                    "mdp": utilisateur.mdp,
-                    "grade": utilisateur.grade,
-                },
-            )
-            utilisateur.id = cursor.fetchone()["id"]
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO utilisateurs(nom_utilisateur, mdp, grade, date_inscription)  "
+                    "VALUES (%(nom_utilisateur)s, %(mdp)s, %(grade)s, CURRENT_DATE)            "
+                    "RETURNING id                                                             ",
+                    {
+                        "nom_utilisateur": utilisateur.nom_utilisateur,
+                        "mdp": utilisateur.mdp,
+                        "grade": utilisateur.grade,
+                    },
+                )
+                utilisateur.id = cursor.fetchone()["id"]
+        except Exception as e:
+            logger.error(f"Erreur base de données dans UtilisateurDAO.creer : {e}")
+            raise
 
         return utilisateur
 
@@ -54,23 +58,27 @@ class UtilisateurDAO:
         bool
             True si la modification a réussi, False sinon
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE utilisateurs                               "
-                "   SET nom_utilisateur = %(nom_utilisateur)s,     "
-                "       mdp             = %(mdp)s,                 "
-                "       grade           = %(grade)s,              "
-                "       token_acces     = %(token_acces)s         "
-                " WHERE id = %(id)s                                ",
-                {
-                    "nom_utilisateur": utilisateur.nom_utilisateur,
-                    "mdp": utilisateur.mdp,
-                    "grade": utilisateur.grade,
-                    "id": utilisateur.id,
-                    "token_acces": utilisateur.token
-                },
-            )
-            nb_lignes_modifiees = cursor.rowcount
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE utilisateurs                               "
+                    "   SET nom_utilisateur = %(nom_utilisateur)s,     "
+                    "       mdp             = %(mdp)s,                 "
+                    "       grade           = %(grade)s,              "
+                    "       token_acces     = %(token_acces)s         "
+                    " WHERE id = %(id)s                                ",
+                    {
+                        "nom_utilisateur": utilisateur.nom_utilisateur,
+                        "mdp": utilisateur.mdp,
+                        "grade": utilisateur.grade,
+                        "id": utilisateur.id,
+                        "token_acces": utilisateur.token
+                    },
+                )
+                nb_lignes_modifiees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans UtilisateurDAO.modifier : {e}")
+            raise
 
         return nb_lignes_modifiees > 0
 
@@ -89,14 +97,18 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, nom_utilisateur, mdp, grade             "
-                "  FROM utilisateurs                               "
-                " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
-                {"nom_utilisateur": nom_utilisateur},
-            )
-            utilisateur_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, nom_utilisateur, mdp, grade             "
+                    "  FROM utilisateurs                               "
+                    " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
+                    {"nom_utilisateur": nom_utilisateur},
+                )
+                utilisateur_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans UtilisateurDAO.trouver_par_nom_utilisateur : {e}")
+            raise
 
         utilisateur = None
         if utilisateur_bdd:
@@ -123,14 +135,18 @@ class UtilisateurDAO:
         Utilisateur
             l'objet Utilisateur trouvé, ou None s'il n'existe pas
         """
-        with DBConnexion().connexion as connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, nom_utilisateur, mdp, grade             "
-                "  FROM utilisateurs                               "
-                " WHERE id = %(id)s                                ",
-                {"id": id},
-            )
-            utilisateur_bdd = cursor.fetchone()
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, nom_utilisateur, mdp, grade             "
+                    "  FROM utilisateurs                               "
+                    " WHERE id = %(id)s                                ",
+                    {"id": id},
+                )
+                utilisateur_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans UtilisateurDAO.trouver_par_id : {e}")
+            raise
 
         utilisateur = None
         if utilisateur_bdd:
