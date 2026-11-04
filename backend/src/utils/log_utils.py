@@ -80,6 +80,7 @@ def log(func):
         "token",
         "secret",
         "key",
+        "mdp"
     }
 
     @wraps(func)
