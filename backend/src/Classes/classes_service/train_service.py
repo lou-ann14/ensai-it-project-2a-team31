@@ -30,7 +30,7 @@ class TrainService:
         return train if TrainDAO().creer(train) else None
 
     @log
-    def trouver_par_num(self, num_train: int):
+    def trouver_train_par_num(self, num_train: int):
         """
         Méthode servant à trouver un train avec son numéro.
 
@@ -49,7 +49,7 @@ class TrainService:
         HTTPException 404
             Erreur 404 si le train n'est pas trouvé
         """
-        train = TrainDAO().trouver_par_num(num_train)
+        train = TrainDAO().trouver_train_par_num(num_train)
 
         if not train:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
