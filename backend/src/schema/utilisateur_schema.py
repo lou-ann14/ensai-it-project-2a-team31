@@ -13,6 +13,7 @@ class TrajetReponseModel(BaseModel):
     id_trajet: int
     heure_depart: datetime
     heure_arrivee: datetime
+    temps_trajet: int | None = None  # en minutes
     tarif_base: float
 
 

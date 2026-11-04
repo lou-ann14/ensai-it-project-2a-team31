@@ -11,7 +11,7 @@ from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.schema.gare_schema import GareReponseModel
-from src.schema.train_schema import TrainBaseModel
+from src.schema.train_schema import TrainReponseModel
 from src.schema.utilisateur_schema import (
     CompteCreationModel,
     ReservationCreationModel,
@@ -170,19 +170,16 @@ def creer_compte(compte: CompteCreationModel):
     return UtilisateurDAO().creer(nouvel_utilisateur)
 
 
-@router.get("/trains/{num_train}", response_model=TrainBaseModel, tags=["Utilisateur"])
+@router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
 def trouver_train(num_train: int, train_service=Depends(get_train_service)):
     """Trouve un train à l'aide de son numéro
     Param:
         num_train (int)
     Returns:
-        TrainBaseModel : le train trouvé
+        TrainReponseModel : le train trouvé
     Raises:
         HTTPException: erreur 404 si le train n'est pas trouvé
     """
     logger.info("Recherche d'un train par un utilisateur")
 
-    train = train_service.trouver_par_num(num_train)
-    if not train:
-        raise HTTPException(status_code=404, detail=f"Train (numéro={num_train}) non trouvé.")
-    return train
+    return train_service.trouver_train_par_num(num_train)

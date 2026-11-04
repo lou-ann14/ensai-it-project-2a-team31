@@ -24,7 +24,6 @@ class TrajetCreationModel(BaseModel):
     id_ligne: int
     id_train: int
     heure_depart: datetime
-    heure_arrivee: datetime
     tarif_base: float
 
 
@@ -33,3 +32,5 @@ class TrajetCreeModel(BaseModel):
 
     message: str
     id_trajet: int
+    heure_arrivee: datetime
+    temps_trajet: int  # en minutes

@@ -6,7 +6,7 @@ from src.utils.log_utils import log
 class TrainDAO:
 
     @log
-    def creer(self, train: Train) -> bool:
+    def creer(self, train: Train) -> Train:
         """
         Enregistre un nouveau train dans la base de données.
 
@@ -17,27 +17,24 @@ class TrainDAO:
 
         Return:
         ------
-        Bool
-            Réussite ou échec de la création de l'objet train dans la table trains
+        Train
+            le train créé, avec son id_train renseigné
         """
-        type_train = train.type_train
-        places_initiales = str(train.places_initiales)
-        num_train = train.num_train
-
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                    "INSERT INTO trains(type_train, places_restantes, num_train)   "
-                    "VALUES (%(type_train)s, %(places_restantes)s, %(num_train)s)      "
-                    "RETURNING id_train                                    ",
+                    "INSERT INTO trains(type_train, places_premieres, places_secondes, num_train)   "
+                    "VALUES (%(type_train)s, %(places_premieres)s, %(places_secondes)s, %(num_train)s) "
+                    "RETURNING id_train                                                             ",
                     {
-                        "type_train": type_train,
-                        "places_restantes": places_initiales,
-                        "num_train": num_train
+                        "type_train": train.type_train,
+                        "places_premieres": train.places_initiales[0],
+                        "places_secondes": train.places_initiales[1],
+                        "num_train": train.num_train,
                     },
                 )
-            id_train = cursor.fetchone()["id_train"]
+            train.id_train = cursor.fetchone()["id_train"]
 
-        return id_train is not None
+        return train
 
     @log
     def modifier_capacite(self, num_train: int, capacite: list[int, int]) -> bool:
@@ -48,29 +45,29 @@ class TrainDAO:
         ------
         num_train: int
             le numéro du train
-        capacite: int
-            la nouvelle capacité
+        capacite: list[int, int]
+            la nouvelle capacité [première classe, seconde classe]
 
         Return:
         ------
         Bool
             Réussite ou échec de la modification
         """
-        capa = str(capacite)
-
         with DBConnexion().connexion as connection, connection.cursor() as cursor:
             cursor.execute(
-                "UPDATE trains"
-                "SET places_restantes = %(places_restantes)s"
-                "WHERE num_train = %(num_train)s",
+                "UPDATE trains                               "
+                "   SET places_premieres = %(places_premieres)s, "
+                "       places_secondes  = %(places_secondes)s   "
+                " WHERE num_train = %(num_train)s            ",
                 {
-                    "places_restantes": capa,
-                    "num_train": num_train
+                    "places_premieres": capacite[0],
+                    "places_secondes": capacite[1],
+                    "num_train": num_train,
                 }
             )
-            res = cursor.fetchone()["places_restantes"]
+            nb_lignes_modifiees = cursor.rowcount
 
-        return res == capa
+        return nb_lignes_modifiees > 0
 
     @log
     def trouver_train_par_num(self, num_train: int) -> Train:
@@ -103,8 +100,9 @@ class TrainDAO:
 
         train = Train(
                 type_train=train_bdd["type_train"],
-                places_initiales=train_bdd["places_restantes"],
-                num_train=train_bdd["num_train"]
+                places_initiales=[train_bdd["places_premieres"], train_bdd["places_secondes"]],
+                num_train=train_bdd["num_train"],
+                id_train=train_bdd["id_train"],
             )
 
         return train
@@ -138,6 +136,4 @@ class TrainDAO:
         if id_bdd is None:
             return None
 
-        id_train = id_bdd
-
-        return id_train
+        return id_bdd["id_train"]

@@ -28,7 +28,7 @@ CREATE TABLE trains(
     type_train VARCHAR(256),
     places_premieres INTEGER,
     places_secondes INTEGER,
-    num_train INTEGER
+    num_train INTEGER UNIQUE
 );
 
 CREATE TABLE trajets(
@@ -49,6 +49,7 @@ CREATE TABLE reservations(
     place VARCHAR(10),
     classe INTEGER,
     prix FLOAT,
-    tarif FLOAT
+    tarif FLOAT,
+    UNIQUE (id_trajet, classe, place)
 );
 

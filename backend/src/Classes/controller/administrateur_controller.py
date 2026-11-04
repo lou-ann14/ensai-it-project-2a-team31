@@ -13,7 +13,7 @@ from src.schema.administrateur_schema import (
     UtilisateurReponseModel,
 )
 from src.schema.gare_schema import GareReponseModel
-from src.schema.train_schema import TrainBaseModel
+from src.schema.train_schema import TrainBaseModel, TrainReponseModel
 from src.utils.log_utils import get_logger
 
 router = APIRouter()
@@ -158,7 +158,7 @@ def importer_gares(q: str, gare_service=Depends(get_gare_service)):
 
 @router.post(
     "/trains",
-    response_model=TrainBaseModel,
+    response_model=TrainReponseModel,
     status_code=status.HTTP_201_CREATED,
     tags=["Administrateur"],
 )
@@ -167,27 +167,26 @@ def creer_train(train: TrainBaseModel, train_service=Depends(get_train_service))
     Param:
         train: le type, les places initiales [1re classe, 2de classe] et le numéro du train
     Returns:
-        TrainBaseModel : le train créé
+        TrainReponseModel : le train créé, avec son id_train
     Raises:
-        HTTPException: erreur 500 si la création du train rencontre un problème
+        HTTPException: erreur 400 si la capacité est incorrecte ou si le numéro existe déjà
     """
     logger.info("Création d'un train")
 
-    nouveau_train = train_service.creer(train.type_train, train.places_initiales, train.num_train)
-    if not nouveau_train:
-        raise HTTPException(status_code=500, detail="Erreur pendant la création du train.")
+    try:
+        return train_service.creer(train.type_train, train.places_initiales, train.num_train)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    return nouveau_train
 
-
-@router.put("/trains/{num_train}", response_model=TrainBaseModel, tags=["Administrateur"])
+@router.put("/trains/{num_train}", response_model=TrainReponseModel, tags=["Administrateur"])
 def modifier_capacite(num_train: int, t: TrainBaseModel, train_service=Depends(get_train_service)):
     """Modifie la capacité d'un train
     Param:
         num_train (int) : le numéro du train à modifier
         t: le train avec ses nouvelles places [1re classe, 2de classe]
     Returns:
-        TrainBaseModel : le train modifié
+        TrainReponseModel : le train modifié
     Raises:
         HTTPException: erreur 400 si la capacité est incorrecte
         HTTPException: erreur 404 si le train n'existe pas
@@ -195,9 +194,7 @@ def modifier_capacite(num_train: int, t: TrainBaseModel, train_service=Depends(g
     """
     logger.info("Modification de la capacité d'un train")
 
-    train = train_service.trouver_par_num(num_train)
-    if not train:
-        raise HTTPException(status_code=404, detail=f"Train (numéro={num_train}) non trouvé.")
+    train = train_service.trouver_train_par_num(num_train)
 
     try:
         modifie = train_service.modifier_capacite(num_train, t.places_initiales)

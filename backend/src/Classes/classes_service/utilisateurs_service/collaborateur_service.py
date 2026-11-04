@@ -51,11 +51,11 @@ class CollaborateurService:
         id_ligne: int,
         id_train: int,
         heure_depart: datetime,
-        heure_arrivee: datetime,
         tarif_base: float,
     ) -> Trajet:
         """
         Méthode servant à créer un trajet sur une ligne existante.
+        L'heure d'arrivée et le temps de trajet sont calculés grâce à l'API SNCF.
 
         Param:
         ------
@@ -65,8 +65,6 @@ class CollaborateurService:
             l'id du train utilisé
         heure_depart: datetime
             la date et l'heure de départ
-        heure_arrivee: datetime
-            la date et l'heure d'arrivée
         tarif_base: float
             le prix de base du trajet
 
@@ -78,7 +76,10 @@ class CollaborateurService:
         Raises:
         ------
         ValueError
-            si une donnée est invalide, si la ligne ou le train n'existe pas
-            ou si un trajet existe déjà sur cette ligne à cette heure de départ
+            si une donnée est invalide, si la ligne ou le train n'existe pas,
+            si un trajet existe déjà sur cette ligne à cette heure de départ
+            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+        requests.RequestException
+            si l'API SNCF est indisponible
         """
-        return TrajetService().creer(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base)
+        return TrajetService().creer(id_ligne, id_train, heure_depart, tarif_base)
