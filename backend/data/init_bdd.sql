@@ -13,7 +13,6 @@ CREATE TABLE utilisateurs(
     nom_utilisateur VARCHAR(256),
     mdp VARCHAR(256),
     grade VARCHAR(256),
-    date_inscription DATE,
     token_acces VARCHAR(256)
 );
 
@@ -37,7 +36,8 @@ CREATE TABLE trajets(
     id_train INT REFERENCES trains(id_train),
     heure_depart TIMESTAMP,
     heure_arrivee TIMESTAMP,
-    temps_trajet INT
+    temps_trajet INT,
+    tarif_base INT
 );
 
 CREATE TABLE reservations(
