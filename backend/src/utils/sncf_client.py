@@ -43,6 +43,8 @@ class SncfClient:
             })
         return gares
 
+
+
     @staticmethod
     def _trouver_ville(stop_area: dict) -> str | None:
         """Renvoie le nom de la commune (niveau administratif 8) d'une gare, ou None si absente"""

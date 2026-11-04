@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
-
 from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_objets.utilisateurs.client import Client
 from src.Classes.classes_service.trajet_service import TrajetService
 from src.utils.log_utils import log
 
@@ -15,7 +16,7 @@ class ReservationService:
     """Classe qui gère les opérations métier sur les réservations"""
 
     @log
-    def creer(self, id_client: int, id_trajet: int, place: str, classe: int) -> Reservation:
+    def creer(self, client: Client, trajet: Trajet, place: str, classe: int) -> Reservation:
         """
         Méthode servant à créer une réservation.
 
@@ -42,7 +43,7 @@ class ReservationService:
             si le client n'existe pas, ou si la place est déjà réservée pour ce trajet
             dans cette classe
         """
-        if id_client is None:
+        if client is None:
             raise ValueError("Le client est obligatoire.")
         if classe not in CLASSES_VALIDES:
             raise ValueError("La classe doit être 1 (première) ou 2 (seconde).")
@@ -50,9 +51,9 @@ class ReservationService:
         if not place:
             raise ValueError("Le numéro de place est obligatoire.")
 
-        trajet = TrajetService().trouver_par_id(id_trajet)
+        trajet = TrajetService().trouver_par_id(trajet.id_trajet)
         if trajet is None:
-            raise ValueError(f"Le trajet #{id_trajet} n'existe pas.")
+            raise ValueError(f"Le trajet #{trajet.id_trajet} n'existe pas.")
         if trajet.heure_depart <= datetime.now():
             raise ValueError("Ce trajet est déjà parti : il n'est plus réservable.")
 
@@ -64,12 +65,12 @@ class ReservationService:
             prix = prix * COEFFICIENT_PREMIERE_CLASSE
 
         reservation = Reservation(
-            id_reservation=None,
-            id_client=id_client,
-            id_trajet=id_trajet,
+            client=client,
+            trajet=trajet,
             place=place,
             classe=classe,
             prix=round(prix, 2),
+            id_reservation=None
         )
         # La base garantit qu'une place n'est réservée qu'une fois par trajet et par classe
         # (contrainte UNIQUE sur id_trajet, classe, place) et que le client existe (clé étrangère)
@@ -78,7 +79,7 @@ class ReservationService:
         except UniqueViolation:
             raise ValueError(f"La place {place} est déjà réservée pour ce trajet dans cette classe.")
         except ForeignKeyViolation:
-            raise ValueError(f"Le client #{id_client} n'existe pas.")
+            raise ValueError(f"Le client #{client.id} n'existe pas.")
 
     @log
     def annuler(self, id_reservation: int) -> bool:
@@ -134,4 +135,3 @@ class ReservationService:
         if id_client is None:
             raise ValueError("Le client est obligatoire.")
         return ReservationDAO().trouver_par_client(id_client)
-        
