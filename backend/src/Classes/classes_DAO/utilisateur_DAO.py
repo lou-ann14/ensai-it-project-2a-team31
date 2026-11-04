@@ -4,8 +4,11 @@ from src.utils.log_utils import get_logger, log
 
 logger = get_logger(__name__)
 
+
 class UtilisateurDAO:
-    """Classe qui interagit avec la base de données pour les objets de type Utilisateur"""
+    """
+    Classe qui interagit avec la base de données pour les objets de type Utilisateur
+    """
 
     @log
     def creer(self, utilisateur: Utilisateur) -> Utilisateur:
@@ -21,7 +24,13 @@ class UtilisateurDAO:
         Return:
         ------
         Utilisateur
-            l'objet Utilisateur créé, avec son id renseigné
+            le même utilisateur, avec son id renseigné
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -46,17 +55,23 @@ class UtilisateurDAO:
     def modifier(self, utilisateur: Utilisateur) -> bool:
         """
         Met à jour les informations d'un utilisateur existant
-        (nom d'utilisateur, mot de passe et rôle).
+        (nom d'utilisateur, mot de passe, grade et token d'accès).
 
         Param:
         ------
         utilisateur: Utilisateur
-            l'objet contenant les nouvelles données (identifié par son id)
+            l'utilisateur contenant les nouvelles données (identifié par son id)
 
         Return:
         ------
         bool
-            True si la modification a réussi, False sinon
+            True si la modification a réussi, False si l'utilisateur n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -94,8 +109,14 @@ class UtilisateurDAO:
 
         Return:
         ------
-        Utilisateur
-            l'objet Utilisateur trouvé, ou None s'il n'existe pas
+        Utilisateur | None
+            l'utilisateur trouvé, ou None s'il n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -132,8 +153,14 @@ class UtilisateurDAO:
 
         Return:
         ------
-        Utilisateur
-            l'objet Utilisateur trouvé, ou None s'il n'existe pas
+        Utilisateur | None
+            l'utilisateur trouvé, ou None s'il n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
@@ -160,11 +187,24 @@ class UtilisateurDAO:
     
     @log
     def trouver_par_token(self, token: str) -> Utilisateur | None:
-        """Trouve un utilisateur à partir de son token.
+        """
+        Récupère un utilisateur à partir de son token d'accès.
+
         Param:
-            token (str): le token à partir duquel faire la recherche
-        Returns:
-            Utilisateur : l'utilisateur trouvé, et None sinon.
+        ------
+        token: str
+            le token d'accès de l'utilisateur
+
+        Return:
+        ------
+        Utilisateur | None
+            l'utilisateur trouvé, ou None si le token est vide ou inconnu
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         if not token:
             return None
@@ -194,12 +234,26 @@ class UtilisateurDAO:
 
     @log
     def login(self, nom: str, mdp: str) -> Utilisateur | None:
-        """Permet de se login avec son nom et un mot de passe.
+        """
+        Vérifie un couple nom d'utilisateur / mot de passe.
+
         Param:
-            nom (str): le nom d'utilisateur.
-            mdp (str): le mot de passe de l'utilisateur.
-        Returns:
-            L'utilisateur connecté, None sinon.
+        ------
+        nom: str
+            le nom d'utilisateur
+        mdp: str
+            le mot de passe de l'utilisateur
+
+        Return:
+        ------
+        Utilisateur | None
+            l'utilisateur connecté, ou None si le nom ou le mot de passe est incorrect
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
         """
         res = None
         try:
