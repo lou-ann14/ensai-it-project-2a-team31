@@ -5,7 +5,6 @@ from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_objets.utilisateurs.client import Client
-from src.Classes.classes_service.trajet_service import TrajetService
 from src.utils.log_utils import log
 
 CLASSES_VALIDES = (1, 2)  # 1 = première classe, 2 = seconde classe
@@ -104,8 +103,7 @@ class ReservationService:
         if reservation is None:
             return False
 
-        trajet = TrajetService().trouver_par_id(reservation.id_trajet)
-        if trajet is not None and trajet.heure_depart <= datetime.now():
+        if reservation.trajet.heure_depart <= datetime.now():
             raise ValueError("Ce trajet est déjà parti : la réservation ne peut plus être annulée.")
 
         return ReservationDAO().annuler(id_reservation)
