@@ -1,4 +1,18 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
+
+
+class TrajetReponseModel(BaseModel):
+    """Trajet renvoyé par l'API."""
+
+    # Permet de construire le modèle directement depuis un objet Trajet
+    model_config = ConfigDict(from_attributes=True)
+
+    id_trajet: int
+    heure_depart: datetime
+    heure_arrivee: datetime
+    tarif_base: float
 
 
 class CompteCreationModel(BaseModel):

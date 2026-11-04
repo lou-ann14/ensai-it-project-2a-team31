@@ -17,4 +17,5 @@ class Trajet:
         self.tarif_base = tarif_base
 
     def __str__(self):
-        return f"Le trajet #{self.id_trajet} du train #{self.train.id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
+        id_train = self.train.id_train if self.train else None
+        return f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
