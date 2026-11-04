@@ -17,6 +17,7 @@ class Train:
         self.type_train = type_train
         self.places_initiales = places_initiales
         self.num_train = num_train
+        self.id_train = id_train
 
     def __str__(self):
         return f"Le train numéro {self.num_train} dispose de {self.places_initiales[0]} places en première classe et {self.places_initiales[1]} en seconde classe, c'est un train {self.type_train}"

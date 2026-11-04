@@ -8,8 +8,8 @@ def hash_password(mdp: str, salt: str = "") -> str:
     """Hash un mot de passe avec l'algorithme SHA-256.
     Param:
         mdp (str): Le mot de passe à hasher
-        salt (str, optional): A string added to the password before hashing
-            to protect against rainbow table attacks.
+        salt (str, optional): Un string ajouté au mot de passe avant de hasher
+            pour se protéger contre les attaques rainbow table.
     Returns:
         str: hash string résultant du hashage
     """
@@ -35,7 +35,7 @@ def verif_niv_hab(niv_hab: str, x_auth_token=Header(None)) -> UtilisateurDAO:
     if not x_auth_token:
         raise HTTPException(status_code=401, detail="Token manquant.")
 
-    utilisateur = UtilisateurDAO().find_by_token(x_auth_token)
+    utilisateur = UtilisateurDAO().trouver_par_token(x_auth_token)
     if not utilisateur:
         raise HTTPException(status_code=401, detail="Token invalide.")
     if utilisateur.grade != niv_hab:
