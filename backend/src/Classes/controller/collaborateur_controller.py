@@ -14,6 +14,8 @@ from src.schema.collaborateur_schema import (
     TrajetModificationModel,
     TrajetModifieModel,
 )
+from src.schema.gare_schema import GareReponseModel
+from src.schema.train_schema import TrainBaseModel, TrainReponseModel
 from src.utils.log_utils import get_logger
 
 router = APIRouter()
@@ -217,3 +219,78 @@ def supprimer_trajet(id_trajet: int, collaborateur_service=Depends(get_collabora
         raise HTTPException(status_code=404, detail=f"Le trajet #{id_trajet} n'existe pas.")
 
     return {"message": "Suppression du trajet réussie"}
+
+
+@router.post("/gares/importer", response_model=list[GareReponseModel], tags=["Collaborateur"])
+def importer_gares(q: str, collaborateur_service=Depends(get_collaborateur_service)):
+    """Importe dans notre base les gares trouvées sur l'API SNCF
+    Param:
+        q (str) : texte à rechercher (au moins 2 caractères)
+    Returns:
+        list[GareReponseModel] : les gares importées
+    Raises:
+        HTTPException: erreur 400 si le texte est trop court
+        HTTPException: erreur 502 si l'API SNCF est indisponible
+    """
+    logger.info("Import de gares depuis l'API SNCF")
+
+    try:
+        return collaborateur_service.importer_gares(q)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except requests.RequestException:
+        logger.exception("Erreur lors de l'appel à l'API SNCF")
+        raise HTTPException(status_code=502, detail="L'API SNCF est indisponible ou a refusé la requête.")
+
+
+@router.post(
+    "/trains",
+    response_model=TrainReponseModel,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Collaborateur"],
+)
+def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service)):
+    """Permet à un collaborateur de créer un train
+    Param:
+        train: le type, les places en 1re et en 2de classe et le numéro du train
+    Returns:
+        TrainReponseModel : le train créé, avec son id_train
+    Raises:
+        HTTPException: erreur 400 si la capacité est incorrecte ou si le numéro existe déjà
+    """
+    logger.info("Création d'un train")
+
+    try:
+        return collaborateur_service.creer_train(
+            train.type_train,
+            train.places_premieres,
+            train.places_secondes,
+            train.num_train,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/trains/{num_train}", response_model=TrainReponseModel, tags=["Collaborateur"])
+def modifier_capacite(num_train: int, t: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service)):
+    """Permet à un collaborateur de modifier la capacité d'un train
+    Param:
+        num_train (int) : le numéro du train à modifier
+        t: le train avec ses nouvelles places en 1re et en 2de classe
+    Returns:
+        TrainReponseModel : le train modifié
+    Raises:
+        HTTPException: erreur 400 si la capacité est incorrecte
+        HTTPException: erreur 404 si le train n'existe pas
+        HTTPException: erreur 500 si la modification ne s'exécute pas
+    """
+    logger.info("Modification de la capacité d'un train")
+
+    try:
+        train = collaborateur_service.modifier_capacite(num_train, t.places_premieres, t.places_secondes)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if train is None:
+        raise HTTPException(status_code=500, detail="Erreur pendant la modification du train.")
+
+    return train
