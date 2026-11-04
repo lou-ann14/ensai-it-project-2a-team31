@@ -20,7 +20,6 @@ def initialize_logs(name: str):
 
     with open(config_file, encoding="utf-8") as stream:
         config = yaml.safe_load(stream)
-        config["handlers"]["file"]["filename"] = str(logs_dir / "backend.log")
         logging.config.dictConfig(config)
 
         logging.info("-" * 50)
