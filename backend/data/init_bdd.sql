@@ -4,8 +4,7 @@ CREATE TABLE gares(
     id_gare SERIAL PRIMARY KEY,
     id_sncf VARCHAR(64) UNIQUE,
     nom VARCHAR(256),
-    ville VARCHAR(256),
-    id_sncf VARCHAR(64) UNIQUE
+    ville VARCHAR(256)
 );
 
 CREATE TABLE utilisateurs(
@@ -37,7 +36,7 @@ CREATE TABLE trajets(
     heure_depart TIMESTAMP,
     heure_arrivee TIMESTAMP,
     temps_trajet INT,
-    tarif_base INT
+    tarif_base FLOAT
 );
 
 CREATE TABLE reservations(

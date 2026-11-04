@@ -22,9 +22,10 @@ class TrajetCreationModel(BaseModel):
     """Données envoyées par un collaborateur pour créer un trajet."""
 
     id_ligne: int
+    id_train: int
     heure_depart: datetime
     heure_arrivee: datetime
-    temps_trajet: int  # en minutes
+    tarif_base: float
 
 
 class TrajetCreeModel(BaseModel):

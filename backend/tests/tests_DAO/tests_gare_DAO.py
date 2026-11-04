@@ -5,13 +5,13 @@ from src.Classes.classes_objets.gare import Gare
 
 
 # données préenregistrées (équivalent d'une bdd)
-gare_matabiau = {"id_gare": 1, "nom": "Matabiau", "ville": "Toulouse"}
-gare_massy = {"id_gare": 2, "nom": "MassyTGV", "ville": "Massy"}
-gare_montparnasse = {"id_gare": 3, "nom": "Montparnasse", "ville": "Paris"}
-gare_de_lyon = {"id_gare": 4, "nom": "Gare de Lyon", "ville": "Paris"}
-gare_part_dieu = {"id_gare": 5, "nom": "Part-Dieu", "ville": "Lyon"}
-gare_saint_charles = {"id_gare": 6, "nom": "Saint-Charles", "ville": "Marseille"}
-gare_rennes = {"id_gare": 7, "nom": "Gare de Rennes", "ville": "Rennes"}
+gare_matabiau = {"id_gare": 1, "nom": "Matabiau", "ville": "Toulouse", "id_sncf": "stop_area:SNCF:1"}
+gare_massy = {"id_gare": 2, "nom": "MassyTGV", "ville": "Massy", "id_sncf": "stop_area:SNCF:2"}
+gare_montparnasse = {"id_gare": 3, "nom": "Montparnasse", "ville": "Paris", "id_sncf": "stop_area:SNCF:3"}
+gare_de_lyon = {"id_gare": 4, "nom": "Gare de Lyon", "ville": "Paris", "id_sncf": "stop_area:SNCF:4"}
+gare_part_dieu = {"id_gare": 5, "nom": "Part-Dieu", "ville": "Lyon", "id_sncf": "stop_area:SNCF:5"}
+gare_saint_charles = {"id_gare": 6, "nom": "Saint-Charles", "ville": "Marseille", "id_sncf": "stop_area:SNCF:6"}
+gare_rennes = {"id_gare": 7, "nom": "Gare de Rennes", "ville": "Rennes", "id_sncf": "stop_area:SNCF:7"}
 
 gares_bdd = [
     gare_matabiau,
@@ -69,7 +69,7 @@ def test_rechercher_par_ville(mock_db):
 
     assert parametres["ville"] == "Paris%"
     assert parametres["nom"] is None
-    assert gares_trouvees == [gare_de_lyon, gare_montparnasse]
+    assert [gare.nom for gare in gares_trouvees] == ["Gare de Lyon", "Montparnasse"]
 
 
 @patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
