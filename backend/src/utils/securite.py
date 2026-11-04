@@ -8,8 +8,8 @@ def hash_password(mdp: str, salt: str = "") -> str:
     """Hash un mot de passe avec l'algorithme SHA-256.
     Param:
         mdp (str): Le mot de passe à hasher
-        salt (str, optional): A string added to the password before hashing
-            to protect against rainbow table attacks.
+        salt (str, optional): Un string ajouté au mot de passe avant de hasher
+            pour se protéger contre les attaques rainbow table.
     Returns:
         str: hash string résultant du hashage
     """
