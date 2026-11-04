@@ -9,7 +9,9 @@ from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
-from src.Classes.classes_service.utilisateurs_service.client_service import ClientService
+from src.Classes.classes_service.utilisateurs_service.client_service import (
+    ClientService,
+)
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.schema.collaborateur_schema import MessageModel
 from src.schema.gare_schema import GareReponseModel
@@ -21,6 +23,7 @@ from src.schema.utilisateur_schema import (
     TrajetReponseModel,
 )
 from src.utils.log_utils import get_logger
+from src.utils.securite import verif_token
 
 router = APIRouter()
 
@@ -52,7 +55,7 @@ def get_client_service():
     return ClientService()
 
 
-def trouver_client(id_client: int) -> Client:
+def trouver_client(id_client: int, utilisateur=Depends(verif_token)) -> Client:
     """Récupère le client à partir de son id
     Raises:
         HTTPException: erreur 400 si le compte n'est pas un compte client
@@ -72,6 +75,7 @@ def rechercher_trajets(
     id_gare_arrivee: int,
     date_voyage: date,
     trajet_service=Depends(get_trajet_service),
+    utilisateur=Depends(verif_token)
 ):
     """Recherche les trajets entre deux gares pour un jour donné
     Param:
@@ -100,6 +104,7 @@ def rechercher_gares(
     nom: str | None = None,
     ville: str | None = None,
     gare_service=Depends(get_gare_service),
+    utilisateur=Depends(verif_token)
 ):
     """Recherche des gares par nom et/ou par ville (autocomplétion)
     Param:
@@ -122,6 +127,7 @@ def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
+    utilisateur=Depends(verif_token)
 ):
     """Réserve une place sur un trajet
     Param:
@@ -154,7 +160,7 @@ def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service)):
+def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
     """Affiche toutes les réservations d'un client (passées et à venir)
     Param:
         id_client (int) : l'id du client
@@ -170,7 +176,7 @@ def voir_historique_reservations(id_client: int, client_service=Depends(get_clie
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service)):
+def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
     """Annule une réservation d'un client
     Param:
         id_reservation (int) : l'id de la réservation à annuler
@@ -202,7 +208,7 @@ def annuler_reservation(id_reservation: int, id_client: int, client_service=Depe
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def creer_compte(compte: CompteCreationModel):
+def creer_compte(compte: CompteCreationModel, utilisateur=Depends(verif_token)):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
@@ -230,7 +236,7 @@ def creer_compte(compte: CompteCreationModel):
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
-def trouver_train(num_train: int, train_service=Depends(get_train_service)):
+def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
     """Trouve un train à l'aide de son numéro
     Param:
         num_train (int)
