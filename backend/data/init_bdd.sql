@@ -12,6 +12,7 @@ CREATE TABLE utilisateurs(
     nom_utilisateur VARCHAR(256),
     mdp VARCHAR(256),
     grade VARCHAR(256),
+    date_inscription DATE,
     token_acces VARCHAR(256)
 );
 

@@ -22,10 +22,10 @@ class ReservationService:
 
         Param:
         ------
-        id_client: int
-            l'id du client
-        id_trajet: int
-            l'id du trajet réservé
+        client: Client
+            le client qui réserve
+        trajet: Trajet
+            le trajet réservé
         place: str
             le numéro de place de la réservation
         classe: int
@@ -39,8 +39,8 @@ class ReservationService:
         Raises:
         ------
         ValueError
-            si une donnée est invalide, si le trajet n'existe pas ou est déjà parti,
-            si le client n'existe pas, ou si la place est déjà réservée pour ce trajet
+            si une donnée est invalide, si le client ou le trajet est manquant,
+            si le trajet est déjà parti, si le client n'existe pas en base, ou si la place est déjà réservée pour ce trajet
             dans cette classe
         """
         if client is None:
@@ -51,9 +51,8 @@ class ReservationService:
         if not place:
             raise ValueError("Le numéro de place est obligatoire.")
 
-        trajet = TrajetService().trouver_par_id(trajet.id_trajet)
         if trajet is None:
-            raise ValueError(f"Le trajet #{trajet.id_trajet} n'existe pas.")
+            raise ValueError("Le trajet est obligatoire.")
         if trajet.heure_depart <= datetime.now():
             raise ValueError("Ce trajet est déjà parti : il n'est plus réservable.")
 
