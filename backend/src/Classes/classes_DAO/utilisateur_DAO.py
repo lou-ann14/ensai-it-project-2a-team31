@@ -7,6 +7,7 @@ logger = get_logger(__name__)
 class UtilisateurDAO:
     """Classe qui interagit avec la base de données pour les objets de type Utilisateur"""
 
+    @log
     def creer(self, utilisateur: Utilisateur) -> Utilisateur:
         """
         Enregistre un nouvel utilisateur dans la base de données.
@@ -37,6 +38,7 @@ class UtilisateurDAO:
 
         return utilisateur
 
+    @log
     def modifier(self, utilisateur: Utilisateur) -> bool:
         """
         Met à jour les informations d'un utilisateur existant
@@ -57,19 +59,22 @@ class UtilisateurDAO:
                 "UPDATE utilisateurs                               "
                 "   SET nom_utilisateur = %(nom_utilisateur)s,     "
                 "       mdp             = %(mdp)s,                 "
-                "       grade            = %(grade)s                 "
+                "       grade           = %(grade)s               "
+                "       token_acces     = %(token_acces)s"
                 " WHERE id = %(id)s                                ",
                 {
                     "nom_utilisateur": utilisateur.nom_utilisateur,
                     "mdp": utilisateur.mdp,
                     "grade": utilisateur.grade,
                     "id": utilisateur.id,
+                    "token_acces": utilisateur.token
                 },
             )
             nb_lignes_modifiees = cursor.rowcount
 
         return nb_lignes_modifiees > 0
 
+    @log
     def trouver_par_nom_utilisateur(self, nom_utilisateur: str) -> Utilisateur | None:
         """
         Récupère un utilisateur par son nom d'utilisateur.
@@ -103,6 +108,7 @@ class UtilisateurDAO:
             )
         return utilisateur
 
+    @log
     def trouver_par_id(self, id: int) -> Utilisateur | None:
         """
         Récupère un utilisateur par son identifiant.
@@ -137,7 +143,7 @@ class UtilisateurDAO:
         return utilisateur
     
     @log
-    def trouver_par_token(self, token: str) -> Utilisateur:
+    def trouver_par_token(self, token: str) -> Utilisateur | None:
         """Trouve un utilisateur à partir de son token.
         Param:
             token (str): le token à partir duquel faire la recherche
@@ -167,5 +173,40 @@ class UtilisateurDAO:
                 mdp=res["mdp"],
                 grade=res["grade"],
                 token_acces=res["token_acces"]
+            )
+        return utilisateur
+
+    @log
+    def login(self, nom: str, mdp: str) -> Utilisateur | None:
+        """Permet de se login avec son nom et un mot de passe.
+        Param:
+            nom (str): le nom d'utilisateur.
+            mdp (str): le mot de passe de l'utilisateur.
+        Returns:
+            L'utilisateur connecté, None sinon.
+        """
+        res = None
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT * FROM utilisateurs"
+                    "WHERE nom_utilisateur = %(nom_utilisateur)s "
+                    "AND mdp = %(mdp)s;",
+                    {"nom_utilisateur": nom,
+                    "mdp": mdp
+                    },
+                )
+                res = cursor.fetchone()
+        except Exception as e:
+            logger.error(e)
+            raise
+        utilisateur = None
+        if res:
+            utilisateur = Utilisateur(
+                nom_utilisateur=res["nom_utilisateur"],
+                mdp=res["mdp"],
+                grade=res["grade"],
+                token_acces=res["token_acces"],
+                id=res["id"]
             )
         return utilisateur

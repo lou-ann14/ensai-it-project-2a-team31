@@ -1,25 +1,34 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
 
 from psycopg2.extras import DictCursor
+from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
+from src.utils.log_utils import log
+from src.utils.securite import hash_password
 
 
 class UtilisateurService:
-    def __init__(self, conn):
-        self.conn = conn
 
-    def creer_compte(self, nom_utilisateur: str, mdp: str, grade: str) -> int | None:
-        query = """
-            INSERT INTO utilisateurs (nom_utilisateur, mdp, grade, date_inscription)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id;
+    @log
+    def creer_compte(self, nom : str, mdp: str) -> Utilisateur | None:
+        """Créer un compte utilisateur
+        Param:
+            nom (str): nom d'utilisateur
+            mdp (str): mot de passe
+        Returns:
+            Utilisateur créer ou None sinon.
         """
-        with self.conn.cursor() as cur:
-            cur.execute(query, (nom_utilisateur, mdp, grade, date.today()))
-            new_id = cur.fetchone()[0]
-            self.conn.commit()
-            return new_id
+        utilisateur = Utilisateur(
+            nom_utilisateur=nom,
+            mdp=hash_password(mdp, nom),
+            grade="CLIENT"
+        )
+        return utilisateur if UtilisateurDAO().creer(utilisateur) else None
 
+
+
+    @log
     def recherche_trajet(self, id_gare_depart: int, id_gare_arrivee: int, date_trajet: datetime) -> list[dict[str, Any]]:
         query = """
             SELECT t.id_trajet, t.heure_depart, t.heure_arrivee, t.temps_trajet
@@ -32,7 +41,8 @@ class UtilisateurService:
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute(query, (id_gare_depart, id_gare_arrivee, date_trajet))
             return [dict(row) for row in cur.fetchall()]
-
+            
+    @log
     def recherche_gare(self, nom: str | None = None, ville: str | None = None) -> list[dict[str, Any]]:
         query = "SELECT id_gare, nom, ville FROM gares WHERE 1=1"
         params = []
@@ -47,6 +57,7 @@ class UtilisateurService:
             cur.execute(query, tuple(params))
             return [dict(row) for row in cur.fetchall()]
 
+    @log
     def changer_mdp(self, id_utilisateur: int, ancien_mdp: str, nouveau_mdp: str) -> bool:
         check_query = "SELECT id FROM utilisateurs WHERE id = %s AND mdp = %s;"
         update_query = "UPDATE utilisateurs SET mdp = %s WHERE id = %s;"
@@ -58,6 +69,7 @@ class UtilisateurService:
                 return True
             return False
 
+    @log
     def _rechercher(self, nom_utilisateur: str | None = None, id_utilisateur: int | None = None) -> dict[str, Any] | None:
         query = "SELECT id, nom_utilisateur, grade, date_inscription FROM utilisateurs WHERE "
         if id_utilisateur:
