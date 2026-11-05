@@ -10,8 +10,8 @@ from src.Classes.classes_service.utilisateurs_service.collaborateur_service impo
 # Les services appelés par CollaborateurService sont simulés : aucun appel réel n'est fait.
 
 DEPART = datetime(2027, 6, 1, 8, 0)
-RENNES = Gare("Rennes", "Rennes", 87471003, id_gare=1)
-NANTES = Gare("Nantes", "Nantes", 87481002, id_gare=2)
+RENNES = Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", id_gare=1)
+NANTES = Gare("Nantes", "Nantes", "stop_area:SNCF:87481002", id_gare=2)
 SERVICE = "src.Classes.classes_service.utilisateurs_service.collaborateur_service"
 
 
@@ -58,6 +58,18 @@ def test_service_modifier_trajet_transmet_les_objets():
         assert trajet.train.id_train == 5
         assert trajet.id_trajet == 1
         trajet_service.return_value.modifier.assert_called_once_with(1, trajet)
+
+
+def test_modifier_trajet_garde_l_id_du_train():
+    with patch(f"{SERVICE}.TrajetService") as trajet_service, patch(f"{SERVICE}.LigneService") as ligne_service:
+        trajet_service.return_value.modifier.return_value = True
+        ligne_service.return_value.trouver_par_id.return_value = Ligne(RENNES, NANTES, id_ligne=1)
+
+        trajet = CollaborateurService().modifier_trajet(9, 1, 3, DEPART, 55.0)
+
+    assert trajet.train.id_train == 3
+    assert trajet.id_trajet == 9
+    assert trajet_service.return_value.modifier.call_args.args[0] == 9
 
 
 # --------------------------------------------------------------- gares et trains

@@ -9,13 +9,13 @@ from src.Classes.classes_objets.ligne import Ligne
 # données préenregistrées (équivalent d'une bdd)
 
 # gares : objets Gare, car rechercher prend des Gare en paramètres
-gare_matabiau = Gare(1, "Matabiau", "Toulouse")
-gare_massy = Gare(2, "MassyTGV", "Massy")
-gare_montparnasse = Gare(3, "Montparnasse", "Paris")
-gare_de_lyon = Gare(4, "Gare de Lyon", "Paris")
-gare_part_dieu = Gare(5, "Part-Dieu", "Lyon")
-gare_saint_charles = Gare(6, "Saint-Charles", "Marseille")
-gare_rennes = Gare(7, "Gare de Rennes", "Rennes")
+gare_matabiau = Gare("Matabiau", "Toulouse", id_gare=1)
+gare_massy = Gare("MassyTGV", "Massy", id_gare=2)
+gare_montparnasse = Gare("Montparnasse", "Paris", id_gare=3)
+gare_de_lyon = Gare("Gare de Lyon", "Paris", id_gare=4)
+gare_part_dieu = Gare("Part-Dieu", "Lyon", id_gare=5)
+gare_saint_charles = Gare("Saint-Charles", "Marseille", id_gare=6)
+gare_rennes = Gare("Gare de Rennes", "Rennes", id_gare=7)
 
 # lignes : dicts, car c'est ce que renvoie le curseur
 ligne_toulouse_paris = {"id_ligne": 1, "id_gare_depart": 1, "id_gare_arrivee": 3}
@@ -52,7 +52,7 @@ def test_creer_gare_inexistante(mock_db):
     """La BDD refuse une gare inexistante : l'erreur remonte"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.execute.side_effect = ForeignKeyViolation  # execute lève l'erreur au lieu de s'exécuter
-    gare_inexistante = Gare(99, "Inconnue", "Nulle part")
+    gare_inexistante = Gare("Inconnue", "Nulle part", id_gare=99)
 
     with pytest.raises(ForeignKeyViolation):
         LigneDAO().creer(gare_matabiau, gare_inexistante)
