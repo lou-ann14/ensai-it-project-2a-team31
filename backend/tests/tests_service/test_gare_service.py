@@ -4,7 +4,7 @@ import pytest
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_service.gare_service import GareService
 
-gares = [Gare(1, "Paris Nord", "Paris"), Gare(2, "Paris Est", "Paris")]
+gares = [Gare("Paris Nord", "Paris", id_gare=1), Gare("Paris Est", "Paris", id_gare=2)]
 
 
 @pytest.mark.parametrize(

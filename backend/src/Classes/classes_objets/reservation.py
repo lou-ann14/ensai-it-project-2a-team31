@@ -21,6 +21,8 @@ class Reservation:
         id de la réservation dans la BDD
     """
     def __init__(self, client: Client, trajet: Trajet, place: str, classe: int, prix: float, id_reservation: int | None = None):
+        if id_reservation is not None and not isinstance(id_reservation, int):
+            raise TypeError("L'identifiant de la réservation doit être un entier.")
         if not isinstance(client, Client):
             raise TypeError("Le client doit être de type Client.")
         if not isinstance(trajet, Trajet):
