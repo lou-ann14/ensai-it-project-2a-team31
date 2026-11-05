@@ -48,7 +48,6 @@ def test_verifier_donnees_ok():
         ligne_test.id_ligne,
         train_test.id_train,
         heure_depart,
-        heure_arrivee,
         tarif_base
         )
 
@@ -63,7 +62,6 @@ def test_verifier_donnees_ligne_manquante():
             None,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             tarif_base
             )
 
@@ -75,7 +73,6 @@ def test_verifier_donnees_train_manquant():
             ligne_test.id_ligne,
             None,
             heure_depart,
-            heure_arrivee,
             tarif_base
             )
 
@@ -87,19 +84,6 @@ def test_verifier_donnees_heures_pas_datetime():
             ligne_test.id_ligne,
             train_test.id_train,
             "10h",
-            "11h",
-            tarif_base
-            )
-
-
-def test_verifier_donnees_arrivee_avant_depart():
-    """L'arrivée est avant le départ : ValueError"""
-    with pytest.raises(ValueError):
-        TrajetService()._verifier_donnees(
-            ligne_test.id_ligne,
-            train_test.id_train,
-            heure_arrivee,
-            heure_depart,
             tarif_base
             )
 
@@ -111,7 +95,6 @@ def test_verifier_donnees_tarif_negatif():
             ligne_test.id_ligne,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             -5.0
             )
 
@@ -123,7 +106,6 @@ def test_verifier_donnees_tarif_manquant():
             ligne_test.id_ligne,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             None
             )
 
@@ -133,64 +115,51 @@ def test_verifier_donnees_tarif_manquant():
 
 
 def test_creer_ok():
-    """Crée un trajet avec succès"""
+    """Crée un trajet avec succès : le service renvoie ce que renvoie le DAO"""
     # GIVEN
     service = TrajetService()
-    service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
-    service.trajet_dao.creer = MagicMock(return_value=trajet_test)
+    service._calculer_duree = MagicMock(return_value=3600)  # 1 h d'après l'API SNCF
+    service.trajet_dao.creer = MagicMock(side_effect=lambda trajet: trajet)
 
     # WHEN
-    trajet = service.creer(
-        ligne_test,
-        train_test,
-        heure_depart,
-        heure_arrivee,
-        tarif_base
-        )
+    trajet = service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
 
     # THEN
-    assert trajet.id_ligne == ligne_test.id_ligne
+    assert trajet.ligne is ligne_test
+    assert trajet.train.id_train == train_test.id_train
+    assert trajet.heure_arrivee == heure_arrivee
+    assert trajet.temps_trajet == 60
 
 
 def test_creer_fail():
     """Ne parvient pas à créer de trajet car TrajetDAO().creer retourne None"""
     # GIVEN
     service = TrajetService()
-    service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
+    service._calculer_duree = MagicMock(return_value=3600)
     service.trajet_dao.creer = MagicMock(return_value=None)
 
     # WHEN
-    trajet = service.creer(
-        ligne_test,
-        train_test,
-        heure_depart,
-        heure_arrivee,
-        tarif_base
-        )
+    trajet = service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
 
     # THEN
     assert trajet is None
 
 
 def test_creer_donnees_invalides():
-    """Les données sont invalides : l'erreur est propagée"""
+    """Les données sont invalides : l'erreur est propagée et rien n'est créé"""
     # GIVEN
     service = TrajetService()
     service._verifier_donnees = MagicMock(side_effect=ValueError)
+    service.trajet_dao.creer = MagicMock()
 
     # WHEN / THEN
     with pytest.raises(ValueError):
-        service.creer(
-            ligne_test,
-            train_test,
-            heure_depart,
-            heure_arrivee,
-            tarif_base
-            )
+        service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
+    service.trajet_dao.creer.assert_not_called()
 
 # TODO test creer: ligne inexistante, trajet déjà existant, train inexistant
 
