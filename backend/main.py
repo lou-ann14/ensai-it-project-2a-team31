@@ -4,13 +4,12 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from src.Classes.controller import (
     administrateur_controller,
     collaborateur_controller,
+    login_controller,
     utilisateur_controller,
 )
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
-
-
 
 logger = get_logger(__name__)
 
@@ -42,6 +41,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 app.include_router(administrateur_controller.router, prefix="/admin", tags=["Administrateur"])
 app.include_router(collaborateur_controller.router, prefix="/collaborateur", tags=["Collaborateur"])
 app.include_router(utilisateur_controller.router, prefix="/utilisateur", tags=["Utilisateur"])
+app.include_router(login_controller.router, prefix="/", tags=["Login"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
