@@ -197,3 +197,21 @@ def test_a_des_trajets_ok(mock_db):
     cursor.fetchone.return_value = {"existe": True}
 
     assert LigneDAO().a_des_trajets(1) is True
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_modifier_inexistante(mock_db):
+    """La ligne 99 n'existe pas : 0 ligne modifiée, le DAO renvoie False"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 0
+
+    assert LigneDAO().modifier(Ligne(gare_matabiau, gare_montparnasse, id_ligne=99)) is False
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_a_des_trajets_aucun(mock_db):
+    """Aucun trajet sur la ligne 4 : False"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"existe": False}
+
+    assert LigneDAO().a_des_trajets(4) is False
