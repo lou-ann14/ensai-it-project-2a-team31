@@ -116,3 +116,22 @@ class TestsTrainDAO:
         curseur.fetchone.return_value = None
 
         assert TrainDAO().trouver_id_par_num(9999) is None
+
+    # Tests supprimer
+
+    def test_supprimer_ok(self, curseur):
+        """Un train est supprimé : True"""
+        curseur.rowcount = 1  # la BDD a supprimé 1 train
+
+        resultat = TrainDAO().supprimer(train_bdd["id_train"])
+
+        assert resultat is True
+        requete, parametres = curseur.execute.call_args.args
+        assert "DELETE FROM trains" in requete
+        assert parametres == {"id_train": 1}
+
+    def test_supprimer_train_inexistant(self, curseur):
+        """Aucun train supprimé (id inconnu) : False"""
+        curseur.rowcount = 0  # aucun train supprimé
+
+        assert TrainDAO().supprimer(9999) is False
