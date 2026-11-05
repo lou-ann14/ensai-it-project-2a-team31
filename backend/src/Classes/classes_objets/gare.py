@@ -1,21 +1,27 @@
 class Gare:
-    """Classe Gare : gère les différentes caractéristiques des trains (id, nom, ville)
+    """Classe Gare : gère les différentes caractéristiques des gares
 
     Params
     ------
     nom: str
         Nom de la gare
     ville: str
-        Nom de la ville où se trouve la gare"""
-    def __init__(self, nom: str, ville: str, id_sncf: int, id_gare: int | None = None):
+        Nom de la ville où se trouve la gare
+    id_sncf: str | None = None
+        Identifiant de la gare à la SNCF, par exemple "stop_area:SNCF:87471003"
+    id_gare: int | None = None
+        Identifiant de la gare (None tant qu'elle n'est pas enregistrée en base)
+    """
+
+    def __init__(self, nom: str, ville: str, id_sncf: str | None = None, id_gare: int | None = None):
         if not isinstance(nom, str):
-            raise TypeError("Le nom du client doit être une chaîne de caractères.")
+            raise TypeError("Le nom doit être une chaîne de caractères.")
         if not isinstance(ville, str):
             raise TypeError("La ville doit être une chaîne de caractères.")
-        if not isinstance(id_sncf, int):
-            raise TypeError("L'id sncf doit être un entier.")
-        if not isinstance(id_gare, int):
-            raise TypeError("L'id gare doit être un entier.")
+        if id_sncf is not None and not isinstance(id_sncf, str):
+            raise TypeError("L'identifiant SNCF doit être une chaîne de caractères.")
+        if id_gare is not None and not isinstance(id_gare, int):
+            raise TypeError("L'identifiant de la gare doit être un entier.")
 
         self.id_gare = id_gare
         self.nom = nom

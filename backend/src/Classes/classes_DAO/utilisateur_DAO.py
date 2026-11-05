@@ -98,6 +98,44 @@ class UtilisateurDAO:
         return nb_lignes_modifiees > 0
 
     @log
+    def modifier_mdp(self, id: int, mdp: str) -> bool:
+        """
+        Met à jour uniquement le mot de passe d'un utilisateur.
+
+        Param:
+        ------
+        id: int
+            l'identifiant de l'utilisateur
+        mdp: str
+            le nouveau mot de passe, déjà haché
+
+        Return:
+        ------
+        bool
+            True si la modification a réussi, False si l'utilisateur n'existe pas
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE utilisateurs      "
+                    "   SET mdp = %(mdp)s     "
+                    " WHERE id = %(id)s       ",
+                    {"mdp": mdp, "id": id},
+                )
+                nb_lignes_modifiees = cursor.rowcount
+        except Exception as e:
+            logger.error(f"Erreur base de données dans UtilisateurDAO.modifier_mdp : {e}")
+            raise
+
+        return nb_lignes_modifiees > 0
+
+    @log
     def trouver_par_nom_utilisateur(self, nom_utilisateur: str) -> Utilisateur | None:
         """
         Récupère un utilisateur par son nom d'utilisateur.
@@ -121,7 +159,7 @@ class UtilisateurDAO:
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, grade             "
+                    "SELECT id, nom_utilisateur, mdp, grade, token_acces "
                     "  FROM utilisateurs                               "
                     " WHERE nom_utilisateur = %(nom_utilisateur)s      ",
                     {"nom_utilisateur": nom_utilisateur},
@@ -138,6 +176,7 @@ class UtilisateurDAO:
                 mdp=utilisateur_bdd["mdp"],
                 nom_utilisateur=utilisateur_bdd["nom_utilisateur"],
                 grade=utilisateur_bdd["grade"],
+                token_acces=utilisateur_bdd["token_acces"],
             )
         return utilisateur
 
@@ -165,7 +204,7 @@ class UtilisateurDAO:
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, nom_utilisateur, mdp, grade             "
+                    "SELECT id, nom_utilisateur, mdp, grade, token_acces "
                     "  FROM utilisateurs                               "
                     " WHERE id = %(id)s                                ",
                     {"id": id},
@@ -182,6 +221,7 @@ class UtilisateurDAO:
                 mdp=utilisateur_bdd["mdp"],
                 nom_utilisateur=utilisateur_bdd["nom_utilisateur"],
                 grade=utilisateur_bdd["grade"],
+                token_acces=utilisateur_bdd["token_acces"],
             )
         return utilisateur
     
@@ -213,13 +253,13 @@ class UtilisateurDAO:
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM utilisateurs"
+                    "SELECT * FROM utilisateurs "
                     "WHERE token_acces = %(token)s;",
                     {"token":token},
                 )
                 res = cursor.fetchone()
         except Exception as e:
-            logger.error(f"Error finding player by token: {e}")
+            logger.error(f"Erreur base de données dans UtilisateurDAO.trouver_par_token : {e}")
             raise
 
         utilisateur = None
@@ -228,7 +268,8 @@ class UtilisateurDAO:
                 nom_utilisateur=res["nom_utilisateur"],
                 mdp=res["mdp"],
                 grade=res["grade"],
-                token_acces=res["token_acces"]
+                token_acces=res["token_acces"],
+                id=res["id"],
             )
         return utilisateur
 
@@ -259,7 +300,7 @@ class UtilisateurDAO:
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM utilisateurs"
+                    "SELECT * FROM utilisateurs "
                     "WHERE nom_utilisateur = %(nom_utilisateur)s "
                     "AND mdp = %(mdp)s;",
                     {"nom_utilisateur": nom,

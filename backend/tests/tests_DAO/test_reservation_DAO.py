@@ -4,6 +4,7 @@ import pytest
 from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
+from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_objets.utilisateurs.client import Client
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
@@ -72,8 +73,9 @@ utilisateur_fan2train = Utilisateur(
     mdp="jaimelestrains", nom_utilisateur="fan2train", grade="CLIENT", id=id_client_fan2train
 )
 # trajet : MagicMock, pas besoin d'un vrai Trajet (avec Ligne, Train et Gares) pour ces tests
-trajet_toulouse_paris = MagicMock(id_trajet=id_trajet_toulouse_paris)
-trajet_paris_rennes = MagicMock(id_trajet=id_trajet_paris_rennes)
+# spec=Trajet : Reservation vérifie que le trajet est de type Trajet, et le faux trajet passe ce contrôle
+trajet_toulouse_paris = MagicMock(spec=Trajet, id_trajet=id_trajet_toulouse_paris)
+trajet_paris_rennes = MagicMock(spec=Trajet, id_trajet=id_trajet_paris_rennes)
 
 
 def creer_nouvelle_reservation():
@@ -83,7 +85,7 @@ def creer_nouvelle_reservation():
     chaque test a donc besoin de sa propre réservation.
     """
     client = Client(id=id_client_sans_reservation, mdp="hainedestrains", nom_utilisateur="vraifan2train")
-    trajet = MagicMock(id_trajet=id_trajet_paris_lyon) #Le trajet est un MagicMock / creer n'utilise que trajet.id_trajet
+    trajet = MagicMock(spec=Trajet, id_trajet=id_trajet_paris_lyon) #Le trajet est un MagicMock / creer n'utilise que trajet.id_trajet
     return Reservation(
         id_reservation=None,
         client=client,

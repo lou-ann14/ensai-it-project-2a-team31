@@ -27,15 +27,25 @@ class UtilisateurService:
 
     @log
     def changer_mdp(self, id_utilisateur: int, ancien_mdp: str, nouveau_mdp: str) -> bool:
-        check_query = "SELECT id FROM utilisateurs WHERE id = %s AND mdp = %s;"
-        update_query = "UPDATE utilisateurs SET mdp = %s WHERE id = %s;"
-        with self.conn.cursor() as cur:
-            cur.execute(check_query, (id_utilisateur, ancien_mdp))
-            if cur.fetchone():
-                cur.execute(update_query, (nouveau_mdp, id_utilisateur))
-                self.conn.commit()
-                return True
+        """Change le mot de passe d'un utilisateur après avoir vérifié l'ancien
+        Param:
+            id_utilisateur (int): l'id de l'utilisateur.
+            ancien_mdp (str): le mot de passe actuel, en clair.
+            nouveau_mdp (str): le nouveau mot de passe, en clair.
+        Returns:
+            True si le mot de passe a été changé, False si l'utilisateur n'existe pas
+            ou si l'ancien mot de passe est incorrect.
+        """
+        utilisateur = UtilisateurDAO().trouver_par_id(id_utilisateur)
+        if utilisateur is None:
             return False
+
+        # Le sel est le nom d'utilisateur, comme dans creer_compte et login
+        nom = utilisateur.nom_utilisateur
+        if utilisateur.mdp != hash_password(ancien_mdp, nom):
+            return False
+
+        return UtilisateurDAO().modifier_mdp(id_utilisateur, hash_password(nouveau_mdp, nom))
 
     @log
     def rechercher(self, nom: str | None = None, id_utilisateur: int | None = None) -> Utilisateur | None:

@@ -7,7 +7,7 @@ from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 # La base de données est simulée : DBConnexion est remplacé par un MagicMock,
 # on contrôle donc ce que renvoie le curseur et on vérifie les paramètres reçus.
 
-utilisateur_bdd = {"id": 1, "nom_utilisateur": "jaimelestrains", "mdp": "1234", "grade": "CLIENT"}
+utilisateur_bdd = {"id": 1, "nom_utilisateur": "jaimelestrains", "mdp": "1234", "grade": "CLIENT", "token_acces": "jeton"}
 
 
 @pytest.fixture
@@ -138,3 +138,76 @@ class TestUtilisateurDAO:
 
         # THEN
         assert resultat is None
+
+    # ------------------------------------------------------------------
+    # Tests modifier_mdp
+    # ------------------------------------------------------------------
+    def test_modifier_mdp_ok(self, curseur):
+        """Seul le mot de passe est mis à jour (le token d'accès n'est pas touché)"""
+        curseur.rowcount = 1
+
+        assert UtilisateurDAO().modifier_mdp(1, "nouveau_hash") is True
+
+        requete, parametres = curseur.execute.call_args.args
+        assert "UPDATE utilisateurs" in requete
+        assert "token_acces" not in requete
+        assert parametres == {"mdp": "nouveau_hash", "id": 1}
+
+    def test_modifier_mdp_utilisateur_inexistant(self, curseur):
+        curseur.rowcount = 0
+
+        assert UtilisateurDAO().modifier_mdp(99, "nouveau_hash") is False
+
+    # ------------------------------------------------------------------
+    # Tests du token d'accès
+    # ------------------------------------------------------------------
+    def test_trouver_par_id_lit_le_token(self, curseur):
+        """Sans le token, modifier() l'effacerait en base"""
+        curseur.fetchone.return_value = utilisateur_bdd
+
+        assert UtilisateurDAO().trouver_par_id(1).token == "jeton"
+        assert "token_acces" in curseur.execute.call_args.args[0]
+
+    def test_trouver_par_nom_utilisateur_lit_le_token(self, curseur):
+        curseur.fetchone.return_value = utilisateur_bdd
+
+        assert UtilisateurDAO().trouver_par_nom_utilisateur("jaimelestrains").token == "jeton"
+        assert "token_acces" in curseur.execute.call_args.args[0]
+
+    def test_trouver_par_token_ok(self, curseur):
+        curseur.fetchone.return_value = utilisateur_bdd
+
+        resultat = UtilisateurDAO().trouver_par_token("jeton")
+
+        assert resultat.id == 1
+        assert resultat.token == "jeton"
+        requete, parametres = curseur.execute.call_args.args
+        assert "FROM utilisateurs WHERE" in requete
+        assert parametres == {"token": "jeton"}
+
+    def test_trouver_par_token_inconnu(self, curseur):
+        curseur.fetchone.return_value = None
+
+        assert UtilisateurDAO().trouver_par_token("inconnu") is None
+
+    def test_trouver_par_token_vide(self, curseur):
+        assert UtilisateurDAO().trouver_par_token(None) is None
+        curseur.execute.assert_not_called()
+
+    # ------------------------------------------------------------------
+    # Tests login
+    # ------------------------------------------------------------------
+    def test_login_ok(self, curseur):
+        curseur.fetchone.return_value = utilisateur_bdd
+
+        resultat = UtilisateurDAO().login("jaimelestrains", "1234")
+
+        assert resultat.id == 1
+        requete, parametres = curseur.execute.call_args.args
+        assert "FROM utilisateurs WHERE" in requete
+        assert parametres == {"nom_utilisateur": "jaimelestrains", "mdp": "1234"}
+
+    def test_login_incorrect(self, curseur):
+        curseur.fetchone.return_value = None
+
+        assert UtilisateurDAO().login("jaimelestrains", "faux") is None

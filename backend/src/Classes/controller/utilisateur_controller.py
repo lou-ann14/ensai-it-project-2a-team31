@@ -69,32 +69,66 @@ def trouver_client(id_client: int, utilisateur=Depends(verif_token)) -> Client:
     return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
 
 
+def trouver_gare(nom: str, gare_service: GareService) -> Gare:
+    """Retrouve une gare à partir de son nom (insensible à la casse)
+    Le nom exact est prioritaire : « Rennes » désigne Rennes, et non Rennes Beaulieu Chimie.
+    Sinon, un début de nom suffit s'il ne correspond qu'à une seule gare.
+    Param:
+        nom (str) : le nom de la gare, ou son début
+        gare_service (GareService)
+    Returns:
+        Gare : la gare trouvée
+    Raises:
+        HTTPException: erreur 400 si le nom est vide ou correspond à plusieurs gares
+        HTTPException: erreur 404 si aucune gare ne correspond
+    """
+    nom = nom.strip()
+    if not nom:
+        raise HTTPException(status_code=400, detail="Le nom de la gare est obligatoire.")
+
+    gares = gare_service.rechercher(nom, None)
+    exactes = [gare for gare in gares if gare.nom.casefold() == nom.casefold()]
+    candidates = exactes or gares
+
+    if not candidates:
+        raise HTTPException(status_code=404, detail=f"Aucune gare ne correspond à « {nom} ».")
+    if len(candidates) > 1:
+        exemples = ", ".join(f"{gare.nom} ({gare.ville})" for gare in candidates[:5])
+        raise HTTPException(
+            status_code=400,
+            detail=f"Plusieurs gares correspondent à « {nom} », précisez le nom : {exemples}.",
+        )
+    return candidates[0]
+
+
 @router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
 def rechercher_trajets(
-    id_gare_depart: int,
-    id_gare_arrivee: int,
+    gare_depart: str,
+    gare_arrivee: str,
     date_voyage: date,
     trajet_service=Depends(get_trajet_service),
+    gare_service=Depends(get_gare_service),
     utilisateur=Depends(verif_token)
 ):
     """Recherche les trajets entre deux gares pour un jour donné
     Param:
-        id_gare_depart (int) : l'id de la gare de départ
-        id_gare_arrivee (int) : l'id de la gare d'arrivée
+        gare_depart (str) : le nom de la gare de départ
+        gare_arrivee (str) : le nom de la gare d'arrivée
         date_voyage (date) : le jour du voyage (format AAAA-MM-JJ)
     Returns:
         list[TrajetReponseModel] : les trajets triés par heure de départ (liste vide si aucun)
     Raises:
-        HTTPException: erreur 400 si les deux gares sont identiques
+        HTTPException: erreur 400 si les deux gares sont identiques ou si un nom est vide
+                       ou correspond à plusieurs gares
+        HTTPException: erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Recherche de trajets par un utilisateur")
 
-    # La recherche n'utilise que l'id des gares
-    gare_depart = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_depart)
-    gare_arrivee = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_arrivee)
+    depart = trouver_gare(gare_depart, gare_service)
+    arrivee = trouver_gare(gare_arrivee, gare_service)
 
     try:
-        return trajet_service.rechercher(gare_depart, gare_arrivee, date_voyage)
+        return trajet_service.rechercher(depart, arrivee, date_voyage)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
