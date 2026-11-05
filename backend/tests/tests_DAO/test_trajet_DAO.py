@@ -285,3 +285,22 @@ def test_trouver_par_id_introuvable(mock_db):
     cursor.fetchone.return_value = None  # fetchone renvoie None quand la requête ne trouve rien
 
     assert TrajetDAO().trouver_par_id(99) is None
+
+
+# Tests temps_trajet (anciennement dans test_trajet_temps.py)
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_creer_enregistre_temps_trajet(mock_db):
+    """Le DAO envoie bien le temps de trajet à la base"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"id_trajet": 1}
+    trajet = Trajet(
+        datetime(2027, 6, 1, 8, 0), datetime(2027, 6, 1, 9, 21), ligne_toulouse_paris, train_tgv, 40.0, temps_trajet=81
+    )
+
+    TrajetDAO().creer(trajet)
+
+    requete, parametres = cursor.execute.call_args.args
+    assert "temps_trajet" in requete
+    assert parametres["temps_trajet"] == 81
