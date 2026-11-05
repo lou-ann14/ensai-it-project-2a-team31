@@ -3,10 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_service.utilisateurs_service.collaborateur_service import (
     CollaborateurService,
 )
+from src.Classes.controller.utilisateur_controller import get_gare_service, trouver_gare
 from src.schema.collaborateur_schema import (
-    LigneCreationModel,
     LigneCreeeModel,
-    LigneModificationModel,
     LigneModifieeModel,
     MessageModel,
     TrajetCreationModel,
@@ -35,24 +34,38 @@ def get_collaborateur_service():
     status_code=status.HTTP_201_CREATED,
     tags=["Collaborateur"],
 )
-def creer_ligne(ligne: LigneCreationModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def creer_ligne(
+    gare_depart: str,
+    gare_arrivee: str,
+    id_collaborateur: int,
+    collaborateur_service=Depends(get_collaborateur_service),
+    gare_service=Depends(get_gare_service),
+    collab=Depends(verif_token),
+):
     """Permet à un collaborateur de créer une ligne
     Param:
-        ligne: la gare de départ, la gare d'arrivée et l'id du collaborateur
+        gare_depart (str) : le nom de la gare de départ
+        gare_arrivee (str) : le nom de la gare d'arrivée
+        id_collaborateur (int) : l'id du collaborateur
     Returns:
         LigneCreeeModel : un message de confirmation et l'id de la ligne créée
     Raises:
-        HTTPException: erreur 400 si une gare ou le collaborateur n'existe pas, si les deux gares
-                       sont identiques ou si la ligne existe déjà
+        HTTPException: erreur 400 si le collaborateur n'existe pas, si les deux gares sont identiques,
+                       si la ligne existe déjà, ou si un nom de gare est vide ou correspond à plusieurs gares
+        HTTPException: erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Création d'une ligne")
     if collab.grade != "COLLABORATEUR":
         raise HTTPException(status_code=401, detail="Vous n'avez pas le niveau d'habilitation requis.")
+
+    depart = trouver_gare(gare_depart, gare_service)
+    arrivee = trouver_gare(gare_arrivee, gare_service)
+
     try:
         nouvelle_ligne = collaborateur_service.creer_ligne(
-            ligne.gare_depart_id,
-            ligne.gare_arrivee_id,
-            ligne.id_collaborateur,
+            depart.id_gare,
+            arrivee.id_gare,
+            id_collaborateur,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -106,26 +119,34 @@ def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_
 @router.put("/lignes/{id_ligne}", response_model=LigneModifieeModel, tags=["Collaborateur"])
 def modifier_ligne(
     id_ligne: int,
-    ligne: LigneModificationModel,
+    gare_depart: str,
+    gare_arrivee: str,
     collaborateur_service=Depends(get_collaborateur_service),
+    gare_service=Depends(get_gare_service),
     collab=Depends(verif_token)
 ):
     """Permet à un collaborateur de modifier les gares d'une ligne
     Param:
         id_ligne (int) : l'id de la ligne à modifier
-        ligne: la nouvelle gare de départ et la nouvelle gare d'arrivée
+        gare_depart (str) : le nom de la nouvelle gare de départ
+        gare_arrivee (str) : le nom de la nouvelle gare d'arrivée
     Returns:
         LigneModifieeModel : un message de confirmation et l'id de la ligne
     Raises:
-        HTTPException: erreur 400 si une gare n'existe pas, si les deux gares sont identiques,
-                       si une autre ligne relie déjà ces gares ou si la ligne a des trajets
-        HTTPException: erreur 404 si la ligne n'existe pas
+        HTTPException: erreur 400 si les deux gares sont identiques, si une autre ligne relie déjà
+                       ces gares, si la ligne a des trajets, ou si un nom de gare est vide
+                       ou correspond à plusieurs gares
+        HTTPException: erreur 404 si la ligne n'existe pas ou si aucune gare ne correspond à un nom
     """
     logger.info("Modification d'une ligne")
     if collab.grade != "COLLABORATEUR":
         raise HTTPException(status_code=401, detail="Vous n'avez pas le niveau d'habilitation requis.")
+
+    depart = trouver_gare(gare_depart, gare_service)
+    arrivee = trouver_gare(gare_arrivee, gare_service)
+
     try:
-        ligne_modifiee = collaborateur_service.modifier_ligne(id_ligne, ligne.gare_depart_id, ligne.gare_arrivee_id)
+        ligne_modifiee = collaborateur_service.modifier_ligne(id_ligne, depart.id_gare, arrivee.id_gare)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if ligne_modifiee is None:

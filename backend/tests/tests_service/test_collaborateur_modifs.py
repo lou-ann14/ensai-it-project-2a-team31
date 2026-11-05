@@ -11,7 +11,7 @@ from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_service.ligne_service import LigneService
 from src.Classes.classes_service.utilisateurs_service.collaborateur_service import CollaborateurService
 from src.Classes.controller import collaborateur_controller as controller
-from src.schema.collaborateur_schema import LigneModificationModel, TrajetModificationModel
+from src.schema.collaborateur_schema import TrajetModificationModel
 
 # La base et l'API SNCF sont simulées : aucun appel réel n'est fait.
 
@@ -19,6 +19,16 @@ DEPART = datetime(2027, 6, 1, 8, 0)
 RENNES = Gare("Rennes", "Rennes", "a", id_gare=1)
 NANTES = Gare("Nantes", "Nantes", "b", id_gare=2)
 SERVICE = "src.Classes.classes_service.utilisateurs_service.collaborateur_service"
+COLLAB = MagicMock(grade="COLLABORATEUR")  # remplace l'utilisateur fourni par verif_token
+CLIENT = MagicMock(grade="CLIENT")
+TRAJET = TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40)
+
+
+def service_gares():
+    """Simule GareService.rechercher : les routes de lignes reçoivent des noms de gares."""
+    service = MagicMock()
+    service.rechercher.side_effect = lambda nom, ville: {"Rennes": [RENNES], "Nantes": [NANTES]}.get(nom, [])
+    return service
 
 
 # ------------------------------------------------------------------ LigneDAO
@@ -150,14 +160,10 @@ def test_service_modifier_trajet_transmet_les_objets():
 @pytest.mark.parametrize(
     "appel, methode, resultat",
     [
-        (lambda s: controller.modifier_ligne(9, LigneModificationModel(gare_depart_id=1, gare_arrivee_id=2), s), "modifier_ligne", None),
-        (lambda s: controller.supprimer_ligne(9, s), "supprimer_ligne", False),
-        (
-            lambda s: controller.modifier_trajet(9, TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40), s),
-            "modifier_trajet",
-            None,
-        ),
-        (lambda s: controller.supprimer_trajet(9, s), "supprimer_trajet", False),
+        (lambda s: controller.modifier_ligne(9, "Rennes", "Nantes", s, service_gares(), COLLAB), "modifier_ligne", None),
+        (lambda s: controller.supprimer_ligne(9, s, COLLAB), "supprimer_ligne", False),
+        (lambda s: controller.modifier_trajet(9, TRAJET, s, COLLAB), "modifier_trajet", None),
+        (lambda s: controller.supprimer_trajet(9, s, COLLAB), "supprimer_trajet", False),
     ],
 )
 def test_route_introuvable_renvoie_404(appel, methode, resultat):
@@ -172,14 +178,38 @@ def test_route_supprimer_refus_renvoie_400():
     service = MagicMock()
     service.supprimer_trajet.side_effect = ValueError("Impossible de supprimer un trajet qui a des réservations.")
     with pytest.raises(HTTPException) as erreur:
-        controller.supprimer_trajet(1, service)
+        controller.supprimer_trajet(1, service, COLLAB)
     assert erreur.value.status_code == 400
 
 
 def test_route_modifier_trajet_api_indisponible_renvoie_502():
     service = MagicMock()
     service.modifier_trajet.side_effect = requests.ConnectionError()
-    donnees = TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40)
     with pytest.raises(HTTPException) as erreur:
-        controller.modifier_trajet(1, donnees, service)
+        controller.modifier_trajet(1, TRAJET, service, COLLAB)
     assert erreur.value.status_code == 502
+
+
+def test_route_modifier_ligne_transmet_les_id_des_gares():
+    service = MagicMock()
+
+    controller.modifier_ligne(9, "Rennes", "Nantes", service, service_gares(), COLLAB)
+
+    service.modifier_ligne.assert_called_once_with(9, 1, 2)
+
+
+@pytest.mark.parametrize(
+    "appel",
+    [
+        lambda s: controller.modifier_ligne(9, "Rennes", "Nantes", s, service_gares(), CLIENT),
+        lambda s: controller.supprimer_ligne(9, s, CLIENT),
+        lambda s: controller.modifier_trajet(9, TRAJET, s, CLIENT),
+        lambda s: controller.supprimer_trajet(9, s, CLIENT),
+    ],
+)
+def test_route_refusee_sans_le_grade_collaborateur(appel):
+    service = MagicMock()
+    with pytest.raises(HTTPException) as erreur:
+        appel(service)
+    assert erreur.value.status_code == 401
+    assert service.mock_calls == []
