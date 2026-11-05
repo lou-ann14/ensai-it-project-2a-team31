@@ -5,7 +5,8 @@ import pytest
 import requests
 from fastapi import HTTPException
 from src.Classes.controller import administrateur_controller, collaborateur_controller
-from src.schema.collaborateur_schema import LigneModificationModel, TrajetCreationModel, TrajetModificationModel
+from src.Classes.classes_objets.gare import Gare
+from src.schema.collaborateur_schema import TrajetCreationModel, TrajetModificationModel
 from src.schema.train_schema import TrainBaseModel
 
 # Tests des routes du collaborateur : le service est remplacé par un MagicMock,
@@ -15,6 +16,16 @@ DEPART = datetime(2027, 6, 1, 8, 0)
 TRAIN = TrainBaseModel(type_train="TGV", places_premieres=120, places_secondes=280, num_train=8541)
 COLLAB = MagicMock(grade="COLLABORATEUR")  # remplace l'utilisateur fourni par verif_token
 CLIENT = MagicMock(grade="CLIENT")
+RENNES = Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", id_gare=1)
+NANTES = Gare("Nantes", "Nantes", "stop_area:SNCF:87481002", id_gare=2)
+TRAJET = TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40)
+
+
+def service_gares():
+    """Simule GareService.rechercher : les routes de lignes reçoivent des noms de gares."""
+    service = MagicMock()
+    service.rechercher.side_effect = lambda nom, ville: {"Rennes": [RENNES], "Nantes": [NANTES]}.get(nom, [])
+    return service
 
 
 # --------------------------------------------------------------- routes existantes
@@ -39,14 +50,10 @@ def test_routes_retirees_de_l_administrateur():
 @pytest.mark.parametrize(
     "appel, methode, resultat",
     [
-        (lambda s: collaborateur_controller.modifier_ligne(9, LigneModificationModel(gare_depart_id=1, gare_arrivee_id=2), s), "modifier_ligne", None),
-        (lambda s: collaborateur_controller.supprimer_ligne(9, s), "supprimer_ligne", False),
-        (
-            lambda s: collaborateur_controller.modifier_trajet(9, TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40), s),
-            "modifier_trajet",
-            None,
-        ),
-        (lambda s: collaborateur_controller.supprimer_trajet(9, s), "supprimer_trajet", False),
+        (lambda s: collaborateur_controller.modifier_ligne(9, "Rennes", "Nantes", s, service_gares(), COLLAB), "modifier_ligne", None),
+        (lambda s: collaborateur_controller.supprimer_ligne(9, s, COLLAB), "supprimer_ligne", False),
+        (lambda s: collaborateur_controller.modifier_trajet(9, TRAJET, s, COLLAB), "modifier_trajet", None),
+        (lambda s: collaborateur_controller.supprimer_trajet(9, s, COLLAB), "supprimer_trajet", False),
     ],
 )
 def test_route_introuvable_renvoie_404(appel, methode, resultat):
@@ -61,17 +68,41 @@ def test_route_supprimer_refus_renvoie_400():
     service = MagicMock()
     service.supprimer_trajet.side_effect = ValueError("Impossible de supprimer un trajet qui a des réservations.")
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.supprimer_trajet(1, service)
+        collaborateur_controller.supprimer_trajet(1, service, COLLAB)
     assert erreur.value.status_code == 400
 
 
 def test_route_modifier_trajet_api_indisponible_renvoie_502():
     service = MagicMock()
     service.modifier_trajet.side_effect = requests.ConnectionError()
-    donnees = TrajetModificationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40)
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.modifier_trajet(1, donnees, service)
+        collaborateur_controller.modifier_trajet(1, TRAJET, service, COLLAB)
     assert erreur.value.status_code == 502
+
+
+def test_route_modifier_ligne_transmet_les_id_des_gares():
+    service = MagicMock()
+
+    collaborateur_controller.modifier_ligne(9, "Rennes", "Nantes", service, service_gares(), COLLAB)
+
+    service.modifier_ligne.assert_called_once_with(9, 1, 2)
+
+
+@pytest.mark.parametrize(
+    "appel",
+    [
+        lambda s: collaborateur_controller.modifier_ligne(9, "Rennes", "Nantes", s, service_gares(), CLIENT),
+        lambda s: collaborateur_controller.supprimer_ligne(9, s, CLIENT),
+        lambda s: collaborateur_controller.modifier_trajet(9, TRAJET, s, CLIENT),
+        lambda s: collaborateur_controller.supprimer_trajet(9, s, CLIENT),
+    ],
+)
+def test_route_refusee_sans_le_grade_collaborateur(appel):
+    service = MagicMock()
+    with pytest.raises(HTTPException) as erreur:
+        appel(service)
+    assert erreur.value.status_code == 401
+    assert service.mock_calls == []
 
 
 def test_route_creer_trajet_api_indisponible_renvoie_502():

@@ -14,8 +14,8 @@ from src.Classes.classes_service.reservations_service import ReservationService
 # données préenregistrées
 client_fan2train = Client("jaimelestrains", "fan2train", id=1)
 
-gare_matabiau = Gare("Matabiau", "Toulouse", 87611004, 1)
-gare_montparnasse = Gare("Montparnasse", "Paris", 87391003, 3)
+gare_matabiau = Gare("Matabiau", "Toulouse", "stop_area:SNCF:87611004", 1)
+gare_montparnasse = Gare("Montparnasse", "Paris", "stop_area:SNCF:87391003", 3)
 ligne_toulouse_paris = Ligne(gare_matabiau, gare_montparnasse, id_ligne=1)
 train_tgv = Train("TGV", 100, 300, 8541, id_train=1)
 

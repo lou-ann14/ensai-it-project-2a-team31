@@ -41,7 +41,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 app.include_router(administrateur_controller.router, prefix="/admin", tags=["Administrateur"])
 app.include_router(collaborateur_controller.router, prefix="/collaborateur", tags=["Collaborateur"])
 app.include_router(utilisateur_controller.router, prefix="/utilisateur", tags=["Utilisateur"])
-app.include_router(login_controller.router, prefix="/", tags=["Login"])
+app.include_router(login_controller.router, prefix="/login", tags=["Login"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():

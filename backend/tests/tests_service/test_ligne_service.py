@@ -7,9 +7,9 @@ from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_service.ligne_service import LigneService
 
 # données préenregistrées
-gare_matabiau = Gare("Matabiau", "Toulouse", 87611004, 1)
-gare_montparnasse = Gare("Montparnasse", "Paris", 87391003, 3)
-gare_rennes = Gare("Gare de Rennes", "Rennes", 87471003, 7)
+gare_matabiau = Gare("Matabiau", "Toulouse", "stop_area:SNCF:87611004", 1)
+gare_montparnasse = Gare("Montparnasse", "Paris", "stop_area:SNCF:87391003", 3)
+gare_rennes = Gare("Gare de Rennes", "Rennes", "stop_area:SNCF:87471003", 7)
 
 ligne_toulouse_paris = Ligne(gare_matabiau, gare_montparnasse, id_ligne=1)
 ligne_paris_rennes = Ligne(gare_montparnasse, gare_rennes, id_ligne=2)
