@@ -13,6 +13,8 @@ from src.schema.train_schema import TrainBaseModel
 
 DEPART = datetime(2027, 6, 1, 8, 0)
 TRAIN = TrainBaseModel(type_train="TGV", places_premieres=120, places_secondes=280, num_train=8541)
+COLLAB = MagicMock(grade="COLLABORATEUR")  # remplace l'utilisateur fourni par verif_token
+CLIENT = MagicMock(grade="CLIENT")
 
 
 # --------------------------------------------------------------- routes existantes
@@ -27,8 +29,8 @@ def test_routes_deplacees_chez_le_collaborateur():
 
 
 def test_routes_retirees_de_l_administrateur():
-    chemins = _chemins(administrateur_controller, "POST") | _chemins(administrateur_controller, "PUT")
-    assert chemins == {"/utilisateurs", "/utilisateurs/{id_utilisateur}/grade"}
+    chemins = {route.path for route in administrateur_controller.router.routes}
+    assert not {"/trains", "/trains/{num_train}", "/gares/importer"} & chemins
 
 
 # --------------------------------------------------------------- lignes et trajets
@@ -91,7 +93,7 @@ def test_route_importer_gares_texte_trop_court():
     service = MagicMock()
     service.importer_gares.side_effect = ValueError("trop court")
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.importer_gares("a", service)
+        collaborateur_controller.importer_gares("a", service, COLLAB)
     assert erreur.value.status_code == 400
 
 
@@ -99,7 +101,7 @@ def test_route_importer_gares_api_indisponible():
     service = MagicMock()
     service.importer_gares.side_effect = requests.ConnectionError()
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.importer_gares("Rennes", service)
+        collaborateur_controller.importer_gares("Rennes", service, COLLAB)
     assert erreur.value.status_code == 502
 
 
@@ -107,14 +109,14 @@ def test_route_creer_train_numero_existant():
     service = MagicMock()
     service.creer_train.side_effect = ValueError("existe déjà")
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.creer_train(TRAIN, service)
+        collaborateur_controller.creer_train(TRAIN, service, COLLAB)
     assert erreur.value.status_code == 400
 
 
 def test_route_modifier_capacite_ok():
     service = MagicMock()
     service.modifier_capacite.return_value = "le train"
-    assert collaborateur_controller.modifier_capacite(8541, TRAIN, service) == "le train"
+    assert collaborateur_controller.modifier_capacite(8541, TRAIN, service, COLLAB) == "le train"
     service.modifier_capacite.assert_called_once_with(8541, 120, 280)
 
 
@@ -122,7 +124,7 @@ def test_route_modifier_capacite_invalide():
     service = MagicMock()
     service.modifier_capacite.side_effect = ValueError("capacité incorrecte")
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.modifier_capacite(8541, TRAIN, service)
+        collaborateur_controller.modifier_capacite(8541, TRAIN, service, COLLAB)
     assert erreur.value.status_code == 400
 
 
@@ -130,5 +132,21 @@ def test_route_modifier_capacite_non_executee():
     service = MagicMock()
     service.modifier_capacite.return_value = None
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.modifier_capacite(8541, TRAIN, service)
+        collaborateur_controller.modifier_capacite(8541, TRAIN, service, COLLAB)
     assert erreur.value.status_code == 500
+
+
+@pytest.mark.parametrize(
+    "appel",
+    [
+        lambda service: collaborateur_controller.importer_gares("Rennes", service, CLIENT),
+        lambda service: collaborateur_controller.creer_train(TRAIN, service, CLIENT),
+        lambda service: collaborateur_controller.modifier_capacite(8541, TRAIN, service, CLIENT),
+    ],
+)
+def test_routes_refusees_sans_le_grade_collaborateur(appel):
+    service = MagicMock()
+    with pytest.raises(HTTPException) as erreur:
+        appel(service)
+    assert erreur.value.status_code == 401
+    assert service.mock_calls == []

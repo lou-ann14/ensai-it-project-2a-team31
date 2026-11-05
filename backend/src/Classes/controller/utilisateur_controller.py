@@ -9,7 +9,9 @@ from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
-from src.Classes.classes_service.utilisateurs_service.client_service import ClientService
+from src.Classes.classes_service.utilisateurs_service.client_service import (
+    ClientService,
+)
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.schema.collaborateur_schema import MessageModel
 from src.schema.gare_schema import GareReponseModel
@@ -21,6 +23,7 @@ from src.schema.utilisateur_schema import (
     TrajetReponseModel,
 )
 from src.utils.log_utils import get_logger
+from src.utils.securite import verif_token
 
 router = APIRouter()
 
@@ -52,7 +55,7 @@ def get_client_service():
     return ClientService()
 
 
-def trouver_client(id_client: int) -> Client:
+def trouver_client(id_client: int, utilisateur=Depends(verif_token)) -> Client:
     """Récupère le client à partir de son id
     Raises:
         HTTPException: erreur 400 si le compte n'est pas un compte client
@@ -66,31 +69,66 @@ def trouver_client(id_client: int) -> Client:
     return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
 
 
+def trouver_gare(nom: str, gare_service: GareService) -> Gare:
+    """Retrouve une gare à partir de son nom (insensible à la casse)
+    Le nom exact est prioritaire : « Rennes » désigne Rennes, et non Rennes Beaulieu Chimie.
+    Sinon, un début de nom suffit s'il ne correspond qu'à une seule gare.
+    Param:
+        nom (str) : le nom de la gare, ou son début
+        gare_service (GareService)
+    Returns:
+        Gare : la gare trouvée
+    Raises:
+        HTTPException: erreur 400 si le nom est vide ou correspond à plusieurs gares
+        HTTPException: erreur 404 si aucune gare ne correspond
+    """
+    nom = nom.strip()
+    if not nom:
+        raise HTTPException(status_code=400, detail="Le nom de la gare est obligatoire.")
+
+    gares = gare_service.rechercher(nom, None)
+    exactes = [gare for gare in gares if gare.nom.casefold() == nom.casefold()]
+    candidates = exactes or gares
+
+    if not candidates:
+        raise HTTPException(status_code=404, detail=f"Aucune gare ne correspond à « {nom} ».")
+    if len(candidates) > 1:
+        exemples = ", ".join(f"{gare.nom} ({gare.ville})" for gare in candidates[:5])
+        raise HTTPException(
+            status_code=400,
+            detail=f"Plusieurs gares correspondent à « {nom} », précisez le nom : {exemples}.",
+        )
+    return candidates[0]
+
+
 @router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
 def rechercher_trajets(
-    id_gare_depart: int,
-    id_gare_arrivee: int,
+    gare_depart: str,
+    gare_arrivee: str,
     date_voyage: date,
     trajet_service=Depends(get_trajet_service),
+    gare_service=Depends(get_gare_service),
+    utilisateur=Depends(verif_token)
 ):
     """Recherche les trajets entre deux gares pour un jour donné
     Param:
-        id_gare_depart (int) : l'id de la gare de départ
-        id_gare_arrivee (int) : l'id de la gare d'arrivée
+        gare_depart (str) : le nom de la gare de départ
+        gare_arrivee (str) : le nom de la gare d'arrivée
         date_voyage (date) : le jour du voyage (format AAAA-MM-JJ)
     Returns:
         list[TrajetReponseModel] : les trajets triés par heure de départ (liste vide si aucun)
     Raises:
-        HTTPException: erreur 400 si les deux gares sont identiques
+        HTTPException: erreur 400 si les deux gares sont identiques ou si un nom est vide
+                       ou correspond à plusieurs gares
+        HTTPException: erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Recherche de trajets par un utilisateur")
 
-    # La recherche n'utilise que l'id des gares
-    gare_depart = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_depart)
-    gare_arrivee = Gare(nom=None, ville=None, id_sncf=None, id_gare=id_gare_arrivee)
+    depart = trouver_gare(gare_depart, gare_service)
+    arrivee = trouver_gare(gare_arrivee, gare_service)
 
     try:
-        return trajet_service.rechercher(gare_depart, gare_arrivee, date_voyage)
+        return trajet_service.rechercher(depart, arrivee, date_voyage)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -100,6 +138,7 @@ def rechercher_gares(
     nom: str | None = None,
     ville: str | None = None,
     gare_service=Depends(get_gare_service),
+    utilisateur=Depends(verif_token)
 ):
     """Recherche des gares par nom et/ou par ville (autocomplétion)
     Param:
@@ -122,6 +161,7 @@ def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
+    utilisateur=Depends(verif_token)
 ):
     """Réserve une place sur un trajet
     Param:
@@ -154,7 +194,7 @@ def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service)):
+def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
     """Affiche toutes les réservations d'un client (passées et à venir)
     Param:
         id_client (int) : l'id du client
@@ -170,7 +210,7 @@ def voir_historique_reservations(id_client: int, client_service=Depends(get_clie
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service)):
+def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
     """Annule une réservation d'un client
     Param:
         id_reservation (int) : l'id de la réservation à annuler
@@ -202,7 +242,7 @@ def annuler_reservation(id_reservation: int, id_client: int, client_service=Depe
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def creer_compte(compte: CompteCreationModel):
+def creer_compte(compte: CompteCreationModel, utilisateur=Depends(verif_token)):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
@@ -230,7 +270,7 @@ def creer_compte(compte: CompteCreationModel):
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
-def trouver_train(num_train: int, train_service=Depends(get_train_service)):
+def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
     """Trouve un train à l'aide de son numéro
     Param:
         num_train (int)
