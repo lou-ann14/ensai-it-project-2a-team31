@@ -242,7 +242,7 @@ def annuler_reservation(id_reservation: int, id_client: int, client_service=Depe
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def creer_compte(compte: CompteCreationModel, utilisateur=Depends(verif_token)):
+def creer_compte(compte: CompteCreationModel):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
