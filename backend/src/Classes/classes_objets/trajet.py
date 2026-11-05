@@ -31,7 +31,7 @@ class Trajet:
             raise TypeError("L'heure d'arrivée doit être de type datetime.")
         if not isinstance(ligne, Ligne):
             raise TypeError("La ligne doit être de type Ligne")
-        if not isinstance(train, Train):
+        if train is not None and not isinstance(train, Train):
             raise TypeError("Le train doit être de type Train.")
         if not isinstance(tarif_base, float):
             raise TypeError("Le tarif de base doit être un nombre flottant.")
