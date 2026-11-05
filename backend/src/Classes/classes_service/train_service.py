@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from psycopg2.errors import UniqueViolation
+from psycopg2.errors import ForeignKeyViolation, UniqueViolation
 from src.Classes.classes_DAO.train_DAO import TrainDAO
 from src.Classes.classes_objets.train import Train
 from src.utils.log_utils import log
@@ -101,3 +101,32 @@ class TrainService:
             raise HTTPException(status_code=404, detail="Train pas trouvé")
 
         return TrainDAO().modifier_capacite(num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde)
+
+    @log
+    def supprimer(self, num_train: int) -> bool:
+        """
+        Méthode servant à supprimer un train.
+
+        Param:
+        ------
+        num_train: int
+            le numéro du train à supprimer
+
+        Return:
+        ------
+        bool
+            True si la suppression a réussi, False sinon (train inexistant)
+
+        Raises:
+        ------
+        ValueError
+            si des trajets utilisent encore ce train
+        """
+        id_train = TrainDAO().trouver_id_par_num(num_train)
+        if id_train is None:
+            return False
+
+        try:
+            return TrainDAO().supprimer(id_train)
+        except ForeignKeyViolation:
+            raise ValueError(f"Impossible de supprimer le train numéro {num_train} : des trajets l'utilisent.")

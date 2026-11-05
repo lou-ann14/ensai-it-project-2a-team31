@@ -142,3 +142,39 @@ def test_supprimer_inexistante(mock_db):
     suppression = GareDAO().supprimer(99)
 
     assert suppression is False
+
+
+# Tests creer_ou_mettre_a_jour
+
+
+def creer_nouvelle_gare():
+    """Renvoie une nouvelle gare venant de l'API, pas encore enregistrée (pas d'id_gare).
+    Fonction et pas variable : le DAO modifie la gare en lui donnant un id."""
+    return Gare("Gare de Rennes", "Rennes", "stop_area:SNCF:7")
+
+
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_creer_ou_mettre_a_jour_ok(mock_db):
+    """La BDD renvoie l'id 7 : la gare renvoyée a cet id"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"id_gare": 7}
+    gare = creer_nouvelle_gare()
+
+    gare_enregistree = GareDAO().creer_ou_mettre_a_jour(gare)
+
+    assert gare_enregistree is gare  # c'est la même gare, complétée
+    assert gare_enregistree.id_gare == 7
+
+
+@patch("src.Classes.classes_DAO.gare_DAO.DBConnexion")
+def test_creer_ou_mettre_a_jour_parametres(mock_db):
+    """Le DAO envoie nom, ville et id_sncf, et met à jour la gare si l'id_sncf existe déjà"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"id_gare": 7}
+
+    GareDAO().creer_ou_mettre_a_jour(creer_nouvelle_gare())
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "INSERT INTO gares" in requete
+    assert "ON CONFLICT (id_sncf) DO UPDATE" in requete  # pas de doublon pour une gare déjà importée
+    assert parametres == {"nom": "Gare de Rennes", "ville": "Rennes", "id_sncf": "stop_area:SNCF:7"}

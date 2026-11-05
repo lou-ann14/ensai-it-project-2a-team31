@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
-from psycopg2.errors import UniqueViolation
+from psycopg2.errors import ForeignKeyViolation, UniqueViolation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_service.train_service import TrainService
 
@@ -87,3 +87,33 @@ def test_modifier_capacite_train_inexistant(dao):
 
     assert erreur.value.status_code == 404
     dao.modifier_capacite.assert_not_called()
+
+
+# Tests supprimer
+
+
+def test_supprimer_ok(dao):
+    """Le train 8541 existe (id 1) : il est supprimé par son id"""
+    dao.trouver_id_par_num.return_value = 1
+    dao.supprimer.return_value = True
+
+    assert TrainService().supprimer(8541) is True
+    dao.trouver_id_par_num.assert_called_once_with(8541)
+    dao.supprimer.assert_called_once_with(1)
+
+
+def test_supprimer_train_inexistant(dao):
+    """Le train 9999 n'existe pas : False, sans appeler supprimer"""
+    dao.trouver_id_par_num.return_value = None
+
+    assert TrainService().supprimer(9999) is False
+    dao.supprimer.assert_not_called()
+
+
+def test_supprimer_train_utilise_par_des_trajets(dao):
+    """La BDD refuse (clé étrangère) : ValueError"""
+    dao.trouver_id_par_num.return_value = 1
+    dao.supprimer.side_effect = ForeignKeyViolation
+
+    with pytest.raises(ValueError, match="des trajets l'utilisent"):
+        TrainService().supprimer(8541)
