@@ -10,6 +10,15 @@ from src.utils.log_utils import log
 from src.utils.sncf_client import SncfClient
 
 
+def train_depuis_id(id_train: int) -> Train:
+    """Construit le Train d'un trajet à partir de son seul id.
+    Seul id_train est enregistré sur le trajet et la base vérifie qu'il existe (clé étrangère) :
+    les autres champs sont des valeurs neutres, à ne pas lire.
+    TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
+    """
+    return Train(type_train="", places_premieres=0, places_secondes=0, num_train=0, id_train=id_train)
+
+
 class TrajetService:
     """Classe qui gère les opérations métier sur les trajets"""
 
@@ -61,15 +70,12 @@ class TrajetService:
 
         duree = self._calculer_duree(ligne, heure_depart)
 
-        # TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
-        # En attendant, seul l'id du train est connu : la base vérifie qu'il existe (clé étrangère).
-        train = Train(type_train=None, places_premieres=None, places_secondes=None, num_train=None, id_train=id_train)
         trajet = Trajet(
             heure_depart=heure_depart,
             heure_arrivee=heure_depart + timedelta(seconds=duree),
             ligne=ligne,
-            train=train,
-            tarif_base=tarif_base,
+            train=train_depuis_id(id_train),
+            tarif_base=float(tarif_base),
             temps_trajet=round(duree / 60),
         )
         try:

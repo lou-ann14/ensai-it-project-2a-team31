@@ -18,7 +18,7 @@ def hash_password(mdp: str, salt: str = "") -> str:
     return hash_object.hexdigest()
 
 
-def verif_niv_hab(niv_hab: str, x_auth_token=Header(None)) -> UtilisateurDAO:
+def verif_token(x_auth_token=Header(None)) -> UtilisateurDAO:
     """Verifies the authenticity of a player via the provided auth token.
 
     This function checks if a token is present in the request headers and
@@ -38,7 +38,5 @@ def verif_niv_hab(niv_hab: str, x_auth_token=Header(None)) -> UtilisateurDAO:
     utilisateur = UtilisateurDAO().trouver_par_token(x_auth_token)
     if not utilisateur:
         raise HTTPException(status_code=401, detail="Token invalide.")
-    if utilisateur.grade != niv_hab:
-        raise HTTPException(status_code=401, detail="Vous n'avez pas le niveau d'habilitation requis.")
 
     return utilisateur

@@ -8,7 +8,7 @@ from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.ligne_service import LigneService
 from src.Classes.classes_service.train_service import TrainService
-from src.Classes.classes_service.trajet_service import TrajetService
+from src.Classes.classes_service.trajet_service import TrajetService, train_depuis_id
 from src.utils.log_utils import log
 
 
@@ -196,8 +196,7 @@ class CollaborateurService:
         if ligne is None:
             raise ValueError(f"La ligne #{id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante.")
 
-        # Seul l'id du train est connu : la base vérifie qu'il existe (clé étrangère).
-        train = Train(type_train=None, places_premieres=None, places_secondes=None, num_train=None, id_train=id_train)
+        train = train_depuis_id(id_train)
         # L'heure d'arrivée est provisoire : TrajetService.modifier la recalcule.
         trajet = Trajet(heure_depart, heure_depart, ligne, train, tarif_base, id_trajet=id_trajet)
 
