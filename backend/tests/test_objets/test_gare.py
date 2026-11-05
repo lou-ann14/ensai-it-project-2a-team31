@@ -36,7 +36,7 @@ class TestGare:
 
     @pytest.mark.parametrize(
         "id_gare, nom, ville, resultat_attendu",
-        [(1, "Matabiau", "Toulouse", "La gare Matabiau 1 se situe à Toulouse")]
+        [(1, "Matabiau", "Toulouse", "La gare Matabiau (1) se situe à Toulouse")]
     )
     def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
-        assert str(Gare()) == resultat_attendu
+        assert str(Gare(nom, ville, id_gare=id_gare)) == resultat_attendu
