@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from src.Classes.classes_objets.utilisateurs.client import Client
-from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.utilisateurs_service.client_service import ClientService
 
 # La base est simulée : ReservationDAO est remplacé par un MagicMock.
@@ -19,7 +18,7 @@ def faire_reservation(client=CLIENT, depart_dans_jours=7):
 
 @pytest.fixture
 def dao():
-    """Le même faux DAO pour les deux services"""
+    """Le même faux DAO pour ClientService et pour ReservationService, qu'il appelle"""
     with (
         patch("src.Classes.classes_service.reservations_service.ReservationDAO") as dao_reservation,
         patch("src.Classes.classes_service.utilisateurs_service.client_service.ReservationDAO", dao_reservation),
@@ -28,32 +27,7 @@ def dao():
         yield dao_reservation.return_value
 
 
-# ------------------------------------------------------- ReservationService
-
-
-def test_annuler_ok(dao):
-    dao.trouver_par_id.return_value = faire_reservation()
-
-    assert ReservationService().annuler(1) is True
-    dao.annuler.assert_called_once_with(1)
-
-
-def test_annuler_inexistante(dao):
-    dao.trouver_par_id.return_value = None
-
-    assert ReservationService().annuler(99) is False
-    dao.annuler.assert_not_called()
-
-
-def test_annuler_trajet_deja_parti(dao):
-    dao.trouver_par_id.return_value = faire_reservation(depart_dans_jours=-1)
-
-    with pytest.raises(ValueError, match="déjà parti"):
-        ReservationService().annuler(1)
-    dao.annuler.assert_not_called()
-
-
-# ------------------------------------------------------------ ClientService
+# Tests annuler_reservation
 
 
 def test_client_annule_sa_reservation(dao):

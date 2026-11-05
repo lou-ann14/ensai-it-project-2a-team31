@@ -153,3 +153,28 @@ def test_supprimer_inexistante(mock_db):
     suppression = LigneDAO().supprimer(99)
 
     assert suppression is False
+
+
+# Tests modifier et a_des_trajets (anciennement dans test_collaborateur_modifs.py)
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_modifier_ok(mock_db):
+    """Modification de la ligne 7 : le DAO envoie les bons ids et renvoie True"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.rowcount = 1
+    modification = LigneDAO().modifier(Ligne(gare_matabiau, gare_montparnasse, id_ligne=7))
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "UPDATE lignes" in requete
+    assert parametres == {"id_gare_depart": 1, "id_gare_arrivee": 3, "id_ligne": 7}
+    assert modification is True
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_a_des_trajets_ok(mock_db):
+    """La BDD indique qu'un trajet existe sur la ligne 1 : True"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchone.return_value = {"existe": True}
+
+    assert LigneDAO().a_des_trajets(1) is True
