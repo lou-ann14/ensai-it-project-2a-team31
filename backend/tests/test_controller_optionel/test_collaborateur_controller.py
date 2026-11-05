@@ -81,7 +81,7 @@ def test_route_creer_trajet_api_indisponible_renvoie_502():
     donnees = TrajetCreationModel(id_ligne=1, id_train=1, heure_depart=DEPART, tarif_base=40.0)
 
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.creer_trajet(donnees, service)
+        collaborateur_controller.creer_trajet(donnees, service, COLLAB)
 
     assert erreur.value.status_code == 502
 

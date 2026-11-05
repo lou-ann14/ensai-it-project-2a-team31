@@ -1,5 +1,5 @@
-import datetime
 import re
+from datetime import datetime
 
 import pytest
 from src.Classes.classes_objets.gare import Gare
@@ -8,6 +8,20 @@ from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_objets.utilisateurs.client import Client
+
+
+def creer_client():
+    return Client("0000", "jaimelestrains", id=4)
+
+
+def creer_trajet():
+    ligne = Ligne(
+        Gare("Matabiau", "Toulouse", id_gare=1),
+        Gare("Montparnasse", "Paris", id_gare=2),
+        id_ligne=14,
+    )
+    train = Train("TGV", 120, 400, 8541, id_train=1)
+    return Trajet(datetime(2026, 11, 3, 11, 54), datetime(2026, 11, 3, 17), ligne, train, 150.0, id_trajet=22)
 
 
 class TestReservation:
@@ -27,7 +41,7 @@ class TestReservation:
             (
                 {"trajet": 42},
                 TypeError,
-                "Le trajet doit être de type trajet."
+                "Le trajet doit être de type Trajet."
             ),
             (
                 {"place": 42},
@@ -47,28 +61,23 @@ class TestReservation:
         ]
     )
     def test_init_reservation(self, params, erreur, message_erreur):
-        client = Client.__init__(4, "0000", "jaimelestrains")
-        heure_depart = datetime(2026, 11, 3, 11, 54)
-        heure_arrivee = datetime(2026, 11, 3, 17)
-        gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
-        gare_arrivee = Gare.__init__(2, "Montparnasse", "Paris")
-        ligne = Ligne.__init__(14, gare_depart, gare_arrivee)
-        train = Train.__init__("TGV", [120, 400])
-        trajet = Trajet.__init__(22, heure_depart, heure_arrivee, ligne, train, 150.0)
         dico = {
             "id_reservation": 45,
-            "client": client,
-            "trajet": trajet,
-            "place": 67,
+            "client": creer_client(),
+            "trajet": creer_trajet(),
+            "place": "67",
             "classe": 1,
             "prix": 180.0}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Reservation(**dico)
 
-    @pytest.mark.parametrize(
-        "id_reservation, client, trajet, place, classe, prix",
-        [("22", "Alice", "Matabiau-Montparnasse", "67", "1", "200.0", "La réservation 22 du client Alice pour le trajet Matabiau-Montparnasse, en 1 à la place 67 a coûté 200.0 euros")]
-    )
-    def test_str_reservation(self, id_reservation, client, trajet, place, classe, prix, resultat_attendu):
-        assert Reservation.__str__() == resultat_attendu
+    def test_str_reservation(self):
+        client = creer_client()
+        trajet = creer_trajet()
+        reservation = Reservation(client, trajet, "67", 1, 200.0, id_reservation=22)
+
+        assert str(reservation) == (
+            f"La réservation #22 du client #{client} pour le trajet #{trajet}, "
+            "en 1 à la place 67 a coûté 200.0 euros"
+        )

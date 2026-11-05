@@ -42,7 +42,7 @@ class TestUtilisateur:
 
     @pytest.mark.parametrize(
         "id, mdp, nom_utilisateur, grade, resultat_attendu",
-        [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains 22 est un Client")]
+        [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains (#22) est un Client")]
     )
     def test_str_utilisateurs(self, id, mdp, nom_utilisateur, grade, resultat_attendu):
-        assert str(Utilisateur()) == resultat_attendu
+        assert str(Utilisateur(mdp, nom_utilisateur, grade, id=id)) == resultat_attendu

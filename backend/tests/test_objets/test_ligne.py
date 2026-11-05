@@ -12,12 +12,12 @@ class TestLigne:
             (
                 {"id_ligne": "Matabiau-Rennes"},
                 TypeError,
-                "L'identifiant de la gare doit être un entier."
+                "L'id de la ligne doit être un entier."
             ),
             (
                 {"gare_depart": 42},
                 TypeError,
-                "La gare de départ doit être de type Gare."
+                "La gare de départ doit être de type Gare"
             ),
             (
                 {"gare_arrivee": 42},
@@ -27,8 +27,8 @@ class TestLigne:
         ]
     )
     def test_init_ligne(self, params, erreur, message_erreur):
-        gare_depart = Gare.__init__(1, "Matabiau", "Toulouse")
-        gare_arrivee = Gare.__init__(2, "Gare de Rennes", "Rennes")
+        gare_depart = Gare("Matabiau", "Toulouse", id_gare=1)
+        gare_arrivee = Gare("Gare de Rennes", "Rennes", id_gare=2)
         dico = {
             "id_ligne": 1,
             "gare_depart": gare_depart,
@@ -41,10 +41,10 @@ class TestLigne:
         "id_ligne, gare_depart, gare_arrivee, resultat_attendu",
         [(
             1,
-            Gare(1, "Matabiau", "Toulouse"),
-            Gare(2, "Gare de Rennes", "Rennes"),
-            "la gare de depart de la ligne : 1 est Matabiau et la gare d'arrivée est : Gare de Rennes"
+            Gare("Matabiau", "Toulouse", id_gare=1),
+            Gare("Gare de Rennes", "Rennes", id_gare=2),
+            "la gare de depart de la ligne #1 est : #Matabiau et la gare d'arrivée est : # Gare de Rennes"
         )]
     )
     def test_str_ligne(self, id_ligne, gare_depart, gare_arrivee, resultat_attendu):
-        assert str(Ligne(id_ligne, gare_depart, gare_arrivee)) == resultat_attendu
+        assert str(Ligne(gare_depart, gare_arrivee, id_ligne=id_ligne)) == resultat_attendu
