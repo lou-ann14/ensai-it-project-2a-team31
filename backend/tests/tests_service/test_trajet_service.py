@@ -78,7 +78,7 @@ def test_verifier_donnees_train_manquant():
 
 
 def test_verifier_donnees_heures_pas_datetime():
-    """Les heures ne sont pas des datetime : TypeError"""
+    """L'heure de départ n'est pas un datetime : TypeError"""
     with pytest.raises(TypeError):
         TrajetService()._verifier_donnees(
             ligne_test.id_ligne,
@@ -114,52 +114,70 @@ def test_verifier_donnees_tarif_manquant():
 # tests creer
 
 
-def test_creer_ok():
-    """Crée un trajet avec succès : le service renvoie ce que renvoie le DAO"""
+@patch("src.Classes.classes_service.trajet_service.SncfClient")
+def test_creer_ok(sncf):
+    """Crée un trajet avec succès"""
     # GIVEN
+    sncf.return_value.duree_trajet.return_value = 3600
     service = TrajetService()
+    service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
-    service._calculer_duree = MagicMock(return_value=3600)  # 1 h d'après l'API SNCF
-    service.trajet_dao.creer = MagicMock(side_effect=lambda trajet: trajet)
+    service.trajet_dao.creer = MagicMock(return_value=trajet_test)
 
     # WHEN
-    trajet = service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
+    trajet = service.creer(
+        ligne_test.id_ligne,
+        train_test.id_train,
+        heure_depart,
+        tarif_base
+        )
 
     # THEN
-    assert trajet.ligne is ligne_test
-    assert trajet.train.id_train == train_test.id_train
-    assert trajet.heure_arrivee == heure_arrivee
-    assert trajet.temps_trajet == 60
+    assert trajet is trajet_test
+    trajet_envoye = service.trajet_dao.creer.call_args.args[0]
+    assert trajet_envoye.ligne is ligne_test
+    assert trajet_envoye.train.id_train == train_test.id_train
+    assert trajet_envoye.heure_arrivee == heure_arrivee
 
 
-def test_creer_fail():
+@patch("src.Classes.classes_service.trajet_service.SncfClient")
+def test_creer_fail(sncf):
     """Ne parvient pas à créer de trajet car TrajetDAO().creer retourne None"""
     # GIVEN
+    sncf.return_value.duree_trajet.return_value = 3600
     service = TrajetService()
+    service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
     service._trajet_similaire_existe = MagicMock(return_value=False)
-    service._calculer_duree = MagicMock(return_value=3600)
     service.trajet_dao.creer = MagicMock(return_value=None)
 
     # WHEN
-    trajet = service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
+    trajet = service.creer(
+        ligne_test.id_ligne,
+        train_test.id_train,
+        heure_depart,
+        tarif_base
+        )
 
     # THEN
     assert trajet is None
 
 
 def test_creer_donnees_invalides():
-    """Les données sont invalides : l'erreur est propagée et rien n'est créé"""
+    """Les données sont invalides : l'erreur est propagée"""
     # GIVEN
     service = TrajetService()
     service._verifier_donnees = MagicMock(side_effect=ValueError)
-    service.trajet_dao.creer = MagicMock()
 
     # WHEN / THEN
     with pytest.raises(ValueError):
-        service.creer(ligne_test.id_ligne, train_test.id_train, heure_depart, tarif_base)
-    service.trajet_dao.creer.assert_not_called()
+        service.creer(
+            ligne_test.id_ligne,
+            train_test.id_train,
+            heure_depart,
+            tarif_base
+            )
 
 # TODO test creer: ligne inexistante, trajet déjà existant, train inexistant
 

@@ -16,6 +16,8 @@ class Train:
         id du train dans la BDD
     """
     def __init__(self, type_train: str, places_premieres: int, places_secondes: int, num_train: int, id_train: int | None = None):
+        if id_train is not None and not isinstance(id_train, int):
+            raise TypeError("L'identifiant du train doit être un entier.")
         if not isinstance(type_train, str):
             raise TypeError("Le type de train doit être une chaîne de caractères.")
         if not isinstance(places_premieres, int):

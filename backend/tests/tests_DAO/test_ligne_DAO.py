@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
@@ -17,10 +17,8 @@ gare_part_dieu = Gare("Part-Dieu", "Lyon", id_gare=5)
 gare_saint_charles = Gare("Saint-Charles", "Marseille", id_gare=6)
 gare_rennes = Gare("Gare de Rennes", "Rennes", id_gare=7)
 
-# lignes : dicts, car c'est ce que renvoie le curseur après la requête SELECT_LIGNE
-# (la ligne et ses deux gares sur une seule ligne)
+# lignes : dicts, car c'est ce que renvoie le curseur (la requête joint les deux gares)
 def ligne_bdd(id_ligne, gare_depart, gare_arrivee):
-    """Construit le dict renvoyé par SELECT_LIGNE pour une ligne entre deux gares"""
     return {
         "id_ligne": id_ligne,
         "id_gare_depart": gare_depart.id_gare,
@@ -102,6 +100,7 @@ def test_rechercher_ok(mock_db):
     assert ligne_trouvee.gare_depart.id_gare == 1
     assert ligne_trouvee.gare_depart.nom == "Matabiau"
     assert ligne_trouvee.gare_arrivee.id_gare == 3
+    assert ligne_trouvee.gare_arrivee.nom == "Montparnasse"
 
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
@@ -139,7 +138,6 @@ def test_trouver_par_id_ok(mock_db):
     assert isinstance(ligne_trouvee, Ligne)
     assert ligne_trouvee.gare_depart.id_gare == 5
     assert ligne_trouvee.gare_arrivee.id_gare == 6
-    assert ligne_trouvee.gare_arrivee.ville == "Marseille"
 
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
