@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
@@ -17,12 +17,28 @@ gare_part_dieu = Gare("Part-Dieu", "Lyon", id_gare=5)
 gare_saint_charles = Gare("Saint-Charles", "Marseille", id_gare=6)
 gare_rennes = Gare("Gare de Rennes", "Rennes", id_gare=7)
 
-# lignes : dicts, car c'est ce que renvoie le curseur
-ligne_toulouse_paris = {"id_ligne": 1, "id_gare_depart": 1, "id_gare_arrivee": 3}
-ligne_paris_rennes = {"id_ligne": 2, "id_gare_depart": 3, "id_gare_arrivee": 7}
-ligne_paris_lyon = {"id_ligne": 3, "id_gare_depart": 4, "id_gare_arrivee": 5}
-ligne_lyon_marseille = {"id_ligne": 4, "id_gare_depart": 5, "id_gare_arrivee": 6}
-ligne_massy_toulouse = {"id_ligne": 5, "id_gare_depart": 2, "id_gare_arrivee": 1}
+# lignes : dicts, car c'est ce que renvoie le curseur après la requête SELECT_LIGNE
+# (la ligne et ses deux gares sur une seule ligne)
+def ligne_bdd(id_ligne, gare_depart, gare_arrivee):
+    """Construit le dict renvoyé par SELECT_LIGNE pour une ligne entre deux gares"""
+    return {
+        "id_ligne": id_ligne,
+        "id_gare_depart": gare_depart.id_gare,
+        "nom_gare_depart": gare_depart.nom,
+        "ville_gare_depart": gare_depart.ville,
+        "id_sncf_gare_depart": gare_depart.id_sncf,
+        "id_gare_arrivee": gare_arrivee.id_gare,
+        "nom_gare_arrivee": gare_arrivee.nom,
+        "ville_gare_arrivee": gare_arrivee.ville,
+        "id_sncf_gare_arrivee": gare_arrivee.id_sncf,
+    }
+
+
+ligne_toulouse_paris = ligne_bdd(1, gare_matabiau, gare_montparnasse)
+ligne_paris_rennes = ligne_bdd(2, gare_montparnasse, gare_rennes)
+ligne_paris_lyon = ligne_bdd(3, gare_de_lyon, gare_part_dieu)
+ligne_lyon_marseille = ligne_bdd(4, gare_part_dieu, gare_saint_charles)
+ligne_massy_toulouse = ligne_bdd(5, gare_massy, gare_matabiau)
 
 lignes_bdd = [
     ligne_toulouse_paris,
@@ -35,7 +51,7 @@ lignes_bdd = [
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
 def test_creer_ok(mock_db):
-    """Création Matabiau -> Montparnasse : le DAO envoie les bons ids et renvoie True"""
+    """Création Matabiau -> Montparnasse : le DAO envoie les bons ids et renvoie la Ligne créée"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.fetchone.return_value = {"id_ligne": 1} # la nouvelle ligne a pour idd = 1
     ligne_cree = LigneDAO().creer(gare_matabiau, gare_montparnasse)
@@ -44,7 +60,10 @@ def test_creer_ok(mock_db):
     assert "INSERT INTO lignes" in requete
     assert parametres["id_gare_depart"] == 1
     assert parametres["id_gare_arrivee"] == 3
-    assert ligne_cree is True
+    assert isinstance(ligne_cree, Ligne)
+    assert ligne_cree.id_ligne == 1
+    assert ligne_cree.gare_depart is gare_matabiau
+    assert ligne_cree.gare_arrivee is gare_montparnasse
 
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
@@ -80,8 +99,9 @@ def test_rechercher_ok(mock_db):
     assert parametres["id_gare_arrivee"] == 3
     assert isinstance(ligne_trouvee, Ligne)
     assert ligne_trouvee.id_ligne == 1
-    assert ligne_trouvee.id_gare_depart == 1
-    assert ligne_trouvee.id_gare_arrivee == 3
+    assert ligne_trouvee.gare_depart.id_gare == 1
+    assert ligne_trouvee.gare_depart.nom == "Matabiau"
+    assert ligne_trouvee.gare_arrivee.id_gare == 3
 
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
@@ -117,8 +137,9 @@ def test_trouver_par_id_ok(mock_db):
 
     assert parametres["id_ligne"] == 4
     assert isinstance(ligne_trouvee, Ligne)
-    assert ligne_trouvee.id_gare_depart == 5
-    assert ligne_trouvee.id_gare_arrivee == 6
+    assert ligne_trouvee.gare_depart.id_gare == 5
+    assert ligne_trouvee.gare_arrivee.id_gare == 6
+    assert ligne_trouvee.gare_arrivee.ville == "Marseille"
 
 
 @patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
