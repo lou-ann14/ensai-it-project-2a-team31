@@ -103,13 +103,14 @@ class TestsTrainDAO:
         """Le train existe : son id est renvoyé sous forme d'entier"""
         curseur.fetchone.return_value = {"id_train": 1}
 
+        id_train = TrainDAO().trouver_id_par_num(8541)
         requete, parametres = curseur.execute.call_args.args
 
         assert "SELECT id_train" in requete
         assert "FROM trains" in requete
         assert "WHERE num_train = %(num_train)s" in requete
         assert parametres == {"num_train": 8541}
-        assert TrainDAO().trouver_id_par_num(8541) == 1
+        assert id_train == 1
 
     def test_trouver_id_par_num_inexistant(self, curseur):
         """Le train n'existe pas : None"""

@@ -16,12 +16,22 @@ class TestTrain:
             (
                 {"type_train": 42},
                 TypeError,
-                "Le type du train doit être une chaîne de caractères."
+                "Le type de train doit être une chaîne de caractères."
             ),
             (
-                {"places_initiales": 42},
+                {"places_premieres": "500"},
                 TypeError,
-                "Les places initiales doit être une liste d'entiers."
+                "Le nombre de places en première classe doit être un entier."
+            ),
+            (
+                {"places_secondes": "1000"},
+                TypeError,
+                "Le nombre de places en seconde classe doit être un entier."
+            ),
+            (
+                {"num_train": "1"},
+                TypeError,
+                "Le numéro du train doit être un entier."
             )
         ]
     )
@@ -29,14 +39,16 @@ class TestTrain:
         dico = {
             "id_train": 1,
             "type_train": "rouge",
-            "places_initiales": [500, 1000]}
+            "places_premieres": 500,
+            "places_secondes": 1000,
+            "num_train": 1}
         dico.update(**params)
         with pytest.raises(erreur, match=re.escape(message_erreur)):
             Train(**dico)
 
     @pytest.mark.parametrize(
-        "id_train, type_train, places_initiales, resultat_attendu",
-        [(1, "rouge", [500, 1000], "Le train numéro 1 dispose de 500 places en première classe et 1000 en seconde classe, c'est un tgv rouge")]
+        "num_train, type_train, places_premieres, places_secondes, resultat_attendu",
+        [(1, "rouge", 500, 1000, "Le train numéro 1 dispose de 500 places en première classe et 1000 en seconde classe, c'est un train rouge")]
     )
-    def test_str_train(self, id_gare, nom, ville, resultat_attendu):
-        assert Train.__str__() == resultat_attendu
+    def test_str_train(self, num_train, type_train, places_premieres, places_secondes, resultat_attendu):
+        assert str(Train(type_train, places_premieres, places_secondes, num_train)) == resultat_attendu

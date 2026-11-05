@@ -7,13 +7,13 @@ from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_service.trajet_service import TrajetService
+from src.Classes.classes_service.trajet_service import TrajetService, train_depuis_id
 
 # Données communes aux tests
 
 ligne_test = Ligne(
-    gare_depart=Gare("Rennes", "Rennes", 87471003, id_gare=1),
-    gare_arrivee=Gare("Nantes", "Nantes", 87481002, id_gare=2),
+    gare_depart=Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", id_gare=1),
+    gare_arrivee=Gare("Nantes", "Nantes", "stop_area:SNCF:87481002", id_gare=2),
     id_ligne=1,
 )
 
@@ -48,7 +48,6 @@ def test_verifier_donnees_ok():
         ligne_test.id_ligne,
         train_test.id_train,
         heure_depart,
-        heure_arrivee,
         tarif_base
         )
 
@@ -63,7 +62,6 @@ def test_verifier_donnees_ligne_manquante():
             None,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             tarif_base
             )
 
@@ -75,31 +73,17 @@ def test_verifier_donnees_train_manquant():
             ligne_test.id_ligne,
             None,
             heure_depart,
-            heure_arrivee,
             tarif_base
             )
 
 
 def test_verifier_donnees_heures_pas_datetime():
-    """Les heures ne sont pas des datetime : TypeError"""
+    """L'heure de départ n'est pas un datetime : TypeError"""
     with pytest.raises(TypeError):
         TrajetService()._verifier_donnees(
             ligne_test.id_ligne,
             train_test.id_train,
             "10h",
-            "11h",
-            tarif_base
-            )
-
-
-def test_verifier_donnees_arrivee_avant_depart():
-    """L'arrivée est avant le départ : ValueError"""
-    with pytest.raises(ValueError):
-        TrajetService()._verifier_donnees(
-            ligne_test.id_ligne,
-            train_test.id_train,
-            heure_arrivee,
-            heure_depart,
             tarif_base
             )
 
@@ -111,7 +95,6 @@ def test_verifier_donnees_tarif_negatif():
             ligne_test.id_ligne,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             -5.0
             )
 
@@ -123,7 +106,6 @@ def test_verifier_donnees_tarif_manquant():
             ligne_test.id_ligne,
             train_test.id_train,
             heure_depart,
-            heure_arrivee,
             None
             )
 
@@ -132,9 +114,11 @@ def test_verifier_donnees_tarif_manquant():
 # tests creer
 
 
-def test_creer_ok():
+@patch("src.Classes.classes_service.trajet_service.SncfClient")
+def test_creer_ok(sncf):
     """Crée un trajet avec succès"""
     # GIVEN
+    sncf.return_value.duree_trajet.return_value = 3600
     service = TrajetService()
     service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
@@ -143,20 +127,25 @@ def test_creer_ok():
 
     # WHEN
     trajet = service.creer(
-        ligne_test,
-        train_test,
+        ligne_test.id_ligne,
+        train_test.id_train,
         heure_depart,
-        heure_arrivee,
         tarif_base
         )
 
     # THEN
-    assert trajet.id_ligne == ligne_test.id_ligne
+    assert trajet is trajet_test
+    trajet_envoye = service.trajet_dao.creer.call_args.args[0]
+    assert trajet_envoye.ligne is ligne_test
+    assert trajet_envoye.train.id_train == train_test.id_train
+    assert trajet_envoye.heure_arrivee == heure_arrivee
 
 
-def test_creer_fail():
+@patch("src.Classes.classes_service.trajet_service.SncfClient")
+def test_creer_fail(sncf):
     """Ne parvient pas à créer de trajet car TrajetDAO().creer retourne None"""
     # GIVEN
+    sncf.return_value.duree_trajet.return_value = 3600
     service = TrajetService()
     service._verifier_donnees = MagicMock()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
@@ -165,10 +154,9 @@ def test_creer_fail():
 
     # WHEN
     trajet = service.creer(
-        ligne_test,
-        train_test,
+        ligne_test.id_ligne,
+        train_test.id_train,
         heure_depart,
-        heure_arrivee,
         tarif_base
         )
 
@@ -185,10 +173,9 @@ def test_creer_donnees_invalides():
     # WHEN / THEN
     with pytest.raises(ValueError):
         service.creer(
-            ligne_test,
-            train_test,
+            ligne_test.id_ligne,
+            train_test.id_train,
             heure_depart,
-            heure_arrivee,
             tarif_base
             )
 
@@ -308,3 +295,40 @@ def test_modifier_recalcule_arrivee_et_temps(mocks):
     assert trajet.heure_arrivee == datetime(2027, 6, 1, 9, 0)
     assert trajet.temps_trajet == 60
     assert trajet.id_trajet == 1
+
+
+# tests train_depuis_id et creer (anciennement test_gare_et_train_trajet.py)
+
+SERVICE_TRAJET = "src.Classes.classes_service.trajet_service"
+DEPART_RENNES_NANTES = datetime(2026, 11, 18, 8, 35)
+LIGNE_RENNES_NANTES = Ligne(
+    Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", 1),
+    Gare("Nantes", "Nantes", "stop_area:SNCF:87481002", 5),
+    id_ligne=1,
+)
+
+
+@pytest.fixture
+def service_trajet():
+    with patch(f"{SERVICE_TRAJET}.TrajetDAO") as trajet_dao, patch(f"{SERVICE_TRAJET}.LigneDAO") as ligne_dao, patch(
+        f"{SERVICE_TRAJET}.SncfClient"
+    ) as sncf:
+        ligne_dao.return_value.trouver_par_id.return_value = LIGNE_RENNES_NANTES
+        trajet_dao.return_value.rechercher.return_value = []
+        trajet_dao.return_value.creer.side_effect = lambda trajet: trajet
+        sncf.return_value.duree_trajet.return_value = 4620
+        yield TrajetService()
+
+
+def test_train_depuis_id():
+    assert train_depuis_id(3).id_train == 3
+
+
+@pytest.mark.parametrize("tarif", [40, 40.0])
+def test_creer_trajet_garde_l_id_du_train(service_trajet, tarif):
+    """Un tarif entier est accepté : Trajet exige un float."""
+    trajet = service_trajet.creer(1, 3, DEPART_RENNES_NANTES, tarif)
+
+    assert trajet.train.id_train == 3
+    assert trajet.tarif_base == 40.0
+    assert trajet.temps_trajet == 77
