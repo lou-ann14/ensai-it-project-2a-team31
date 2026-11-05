@@ -115,7 +115,7 @@ class TrajetDAO:
                     "RETURNING id_trajet                                                                                           ",
                     {
                         "id_ligne": trajet.ligne.id_ligne,
-                        "id_train": trajet.train.id_train,
+                        "id_train": trajet.train.id_train if trajet.train else None,
                         "heure_depart": trajet.heure_depart,
                         "heure_arrivee": trajet.heure_arrivee,
                         "tarif_base": trajet.tarif_base,
@@ -165,7 +165,7 @@ class TrajetDAO:
                     " WHERE id_trajet = %(id_trajet)s                  ",
                     {
                         "id_ligne": trajet.ligne.id_ligne,
-                        "id_train": trajet.train.id_train,
+                        "id_train": trajet.train.id_train if trajet.train else None,
                         "heure_depart": trajet.heure_depart,
                         "heure_arrivee": trajet.heure_arrivee,
                         "tarif_base": trajet.tarif_base,
