@@ -15,10 +15,10 @@ class Ligne:
     """
     def __init__(self, gare_depart: Gare, gare_arrivee: Gare, id_ligne: int | None = None):
         if not isinstance(gare_depart, Gare):
-            raise TypeError("La gare de départ doit être de type Gare")
+            raise TypeError("La gare de départ doit être de type Gare.")
         if not isinstance(gare_arrivee, Gare):
             raise TypeError("La gare d'arrivée doit être de type Gare.")
-        if not isinstance(id_ligne, int):
+        if id_ligne is not None and not isinstance(id_ligne, int):
             raise TypeError("L'id de la ligne doit être un entier.")
 
         self.id_ligne = id_ligne

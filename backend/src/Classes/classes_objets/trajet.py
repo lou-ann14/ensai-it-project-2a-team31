@@ -15,8 +15,8 @@ class Trajet:
         Heure d'arrivée du trajet
     ligne: Ligne
         Ligne sur laquelle à lieu le trajet
-    train: Train
-        Train utilisé pour le trajet
+    train: Train | None
+        Train utilisé pour le trajet (None si aucun train ne lui est encore associé)
     tarif_base: float
         Tarif minimum pour le trajet effectué
     temps_trajet: int | None = None
@@ -24,7 +24,7 @@ class Trajet:
     id_trajet: int | None = None
         id du trajet dans la BDD
     """
-    def __init__(self, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train, tarif_base: float, id_trajet: int | None = None, temps_trajet: int | None = None):
+    def __init__(self, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train | None, tarif_base: float, id_trajet: int | None = None, temps_trajet: int | None = None):
         if not isinstance(heure_depart, datetime):
             raise TypeError("L'heure de départ doit être de type datetime.")
         if not isinstance(heure_arrivee, datetime):

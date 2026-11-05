@@ -44,7 +44,7 @@ class TestGare:
         [(1, "Matabiau", "Toulouse", "La gare Matabiau (1) se situe à Toulouse")]
     )
     def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
-        assert str(Gare(nom, ville, id_gare=id_gare)) == resultat_attendu
+        assert str(Gare(nom=nom, ville=ville, id_gare=id_gare)) == resultat_attendu
 
     def test_gare_importee_depuis_l_api_sans_id(self):
         """Cas de GareService.importer : l'id SNCF est du texte et la gare n'a pas encore d'id."""
