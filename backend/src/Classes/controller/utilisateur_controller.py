@@ -4,13 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.utilisateurs.client import Client
-from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
 from src.Classes.classes_service.utilisateurs_service.client_service import (
     ClientService,
+)
+from src.Classes.classes_service.utilisateurs_service.utilisateur_service import (
+    UtilisateurService,
 )
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.schema.collaborateur_schema import MessageModel
@@ -28,6 +30,11 @@ from src.utils.securite import verif_token
 router = APIRouter()
 
 logger = get_logger(__name__)
+
+
+def get_utilisateur_service():
+    """Dependency Injection provider for UtilisateurService."""
+    return UtilisateurService()
 
 
 def get_gare_service():
@@ -242,7 +249,7 @@ def annuler_reservation(id_reservation: int, id_client: int, client_service=Depe
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def creer_compte(compte: CompteCreationModel):
+def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
@@ -260,13 +267,11 @@ def creer_compte(compte: CompteCreationModel):
     if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
         raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
 
-    # Le grade est imposé : on ne laisse pas quelqu'un se créer un compte ADMIN
+    # Le service impose le grade CLIENT et hache le mot de passe
     try:
-        nouvel_utilisateur = Utilisateur(id=None, mdp=compte.mdp, nom_utilisateur=nom_utilisateur, grade="CLIENT")
+        return utilisateur_service.creer_compte(nom_utilisateur, compte.mdp)
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    return UtilisateurDAO().creer(nouvel_utilisateur)
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
