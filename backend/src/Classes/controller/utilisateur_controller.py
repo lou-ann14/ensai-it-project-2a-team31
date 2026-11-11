@@ -201,7 +201,7 @@ def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-def voir_historique_reservations(id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
+def voir_historique_reservations(id_client: int, reserv_service=Depends(get_reservation_service), utilisateur=Depends(verif_token)):
     """Affiche toutes les réservations d'un client (passées et à venir)
     Param:
         id_client (int) : l'id du client
