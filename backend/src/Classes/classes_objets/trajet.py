@@ -45,6 +45,21 @@ class Trajet:
         self.tarif_base = tarif_base
         self.temps_trajet = temps_trajet
 
+    @property
+    def nom_gare_depart(self) -> str:
+        """Nom de la gare de départ (utilisé par l'API pour afficher le trajet)."""
+        return self.ligne.gare_depart.nom
+
+    @property
+    def nom_gare_arrivee(self) -> str:
+        """Nom de la gare d'arrivée (utilisé par l'API pour afficher le trajet)."""
+        return self.ligne.gare_arrivee.nom
+
+    @property
+    def num_train(self) -> int | None:
+        """Numéro du train, ou None si aucun train n'est associé."""
+        return self.train.num_train if self.train else None
+
     def __str__(self):
         id_train = self.train.id_train if self.train else None
         return f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"

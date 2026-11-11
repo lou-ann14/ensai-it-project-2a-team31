@@ -1,0 +1,11 @@
+[project]
+name = "concurrent-sncf-front"
+version = "0.1.0"
+description = "Interface Streamlit de l'API Concurrent SNCF (projet informatique 2A ENSAI)"
+requires-python = ">=3.13"
+
+dependencies = [
+    "python-dotenv",
+    "requests",
+    "streamlit>=1.40",
+]

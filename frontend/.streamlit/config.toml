@@ -1,0 +1,34 @@
+[server]
+headless = true
+port = 8501
+# Nécessaire derrière le proxy d'Onyxia (code-server)
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+# Identité visuelle : bleu nuit des panneaux de gare, ambre des afficheurs, papier des billets
+[theme]
+base = "light"
+primaryColor = "#13294a"
+backgroundColor = "#f6f3ec"
+secondaryBackgroundColor = "#ece6d8"
+textColor = "#14213d"
+linkColor = "#13294a"
+borderColor = "#d9d1bf"
+baseRadius = "0.4rem"
+font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+headingFont = "Barlow Condensed:https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap"
+headingFontWeights = [700, 700, 600]
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap"
+
+[theme.sidebar]
+backgroundColor = "#0b1d33"
+secondaryBackgroundColor = "#13294a"
+textColor = "#f6f3ec"
+primaryColor = "#ffb000"
+linkColor = "#ffb000"

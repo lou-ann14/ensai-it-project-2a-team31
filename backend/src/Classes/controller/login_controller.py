@@ -21,7 +21,7 @@ def login(utilisateur: CompteCreationModel, service=Depends(get_uti_service)):
     Param:
         utilisateur: nom et mot de passe
     Returns:
-        dict: contient l'id de l'utilisateur et son nom
+        dict: contient l'id de l'utilisateur, son nom, son grade et son token d'accès
     Raises:
         HTTPException: 401 error si les paramètres sont faux ou que l'utilisateur n'existe pas."""
     logger.info("Login")
@@ -30,6 +30,7 @@ def login(utilisateur: CompteCreationModel, service=Depends(get_uti_service)):
         return {
             "id": uti.id,
             "nom": uti.nom_utilisateur,
+            "grade": uti.grade,
             "token_acces": uti.token,
         }
     raise HTTPException(status_code=401, detail="Invalid credentials")

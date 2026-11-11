@@ -15,6 +15,9 @@ class TrajetReponseModel(BaseModel):
     heure_arrivee: datetime
     temps_trajet: int | None = None  # en minutes
     tarif_base: float
+    nom_gare_depart: str | None = None
+    nom_gare_arrivee: str | None = None
+    num_train: int | None = None
 
 
 class CompteCreationModel(BaseModel):
