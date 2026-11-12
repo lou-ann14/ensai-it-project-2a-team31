@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from src.Classes.controller import (
@@ -10,6 +10,7 @@ from src.Classes.controller import (
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
+from src.utils.securite import verif_token
 
 logger = get_logger(__name__)
 
@@ -50,11 +51,12 @@ async def redirect_to_docs():
 
 
 @app.get("/reset_database", tags=["BDD"])
-async def reset_database():
+async def reset_database(token=Depends(verif_token)):
     """Réinitialise la base de données"""
     logger.info("Database reset")
     succes = Reset_bdd().demarrer()
-
+    if token.grade != "ADMIN":
+        raise ValueError("Vous n'avez pas les permissions requises : ADMIN uniquement")
     return {
         "message": f"Database re-initialization - {'SUCCES' if succes else 'ECHEC'}"
     }

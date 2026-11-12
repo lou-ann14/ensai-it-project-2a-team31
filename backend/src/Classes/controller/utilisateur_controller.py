@@ -8,9 +8,6 @@ from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
-from src.Classes.classes_service.utilisateurs_service.client_service import (
-    ClientService,
-)
 from src.Classes.classes_service.utilisateurs_service.utilisateur_service import (
     UtilisateurService,
 )
@@ -57,17 +54,13 @@ def get_trajet_service():
     return TrajetService()
 
 
-def get_client_service():
-    """Dependency Injection provider for ClientService."""
-    return ClientService()
-
-
-def trouver_client(id_client: int, utilisateur=Depends(verif_token)) -> Client:
+def trouver_client(utilisateur=Depends(verif_token)) -> Client:
     """Récupère le client à partir de son id
     Raises:
         HTTPException: erreur 400 si le compte n'est pas un compte client
         HTTPException: erreur 404 si le client n'existe pas
     """
+    id_client = utilisateur.id
     utilisateur = UtilisateurDAO().trouver_par_id(id_client)
     if utilisateur is None:
         raise HTTPException(status_code=404, detail=f"Le client #{id_client} n'existe pas.")
@@ -213,11 +206,11 @@ def voir_historique_reservations(id_client: int, reserv_service=Depends(get_rese
     """
     logger.info("Consultation de l'historique des réservations")
 
-    return client_service.voir_historique_reservations(trouver_client(id_client))
+    return reserv_service.historique_par_client(trouver_client(id_client))
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
+def annuler_reservation(id_reservation: int, reserv_service=Depends(get_reservation_service), utilisateur=Depends(verif_token)):
     """Annule une réservation d'un client
     Param:
         id_reservation (int) : l'id de la réservation à annuler
@@ -231,10 +224,8 @@ def annuler_reservation(id_reservation: int, id_client: int, client_service=Depe
     """
     logger.info("Annulation d'une réservation")
 
-    client = trouver_client(id_client)
-
     try:
-        annulee = client_service.annuler_reservation(client, id_reservation)
+        annulee = reserv_service.annuler(id_reservation)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not annulee:
