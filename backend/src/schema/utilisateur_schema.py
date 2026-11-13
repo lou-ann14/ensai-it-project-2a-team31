@@ -18,6 +18,9 @@ class TrajetReponseModel(BaseModel):
     nom_gare_depart: str | None = None
     nom_gare_arrivee: str | None = None
     num_train: int | None = None
+    # F5 : places restantes par classe (None si non calculées ou si le trajet n'a pas de train)
+    places_restantes_premiere: int | None = None
+    places_restantes_seconde: int | None = None
 
 
 class CompteCreationModel(BaseModel):
