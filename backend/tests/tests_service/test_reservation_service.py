@@ -138,7 +138,7 @@ def test_annuler_ok(dao):
     dao.annuler.return_value = True
 
     # WHEN / THEN
-    assert ReservationService().annuler(1) is True
+    assert ReservationService().annuler(1, client_fan2train.id) is True
     dao.annuler.assert_called_once_with(1)
 
 
@@ -146,7 +146,7 @@ def test_annuler_inexistante(dao):
     """La réservation 99 n'existe pas : False, sans appeler annuler"""
     dao.trouver_par_id.return_value = None
 
-    assert ReservationService().annuler(99) is False
+    assert ReservationService().annuler(99, client_fan2train.id) is False
     dao.annuler.assert_not_called()
 
 
@@ -155,7 +155,16 @@ def test_annuler_trajet_deja_parti(dao):
     dao.trouver_par_id.return_value = reservation_passee
 
     with pytest.raises(ValueError, match="déjà parti"):
-        ReservationService().annuler(2)
+        ReservationService().annuler(2, client_fan2train.id)
+    dao.annuler.assert_not_called()
+
+
+def test_annuler_reservation_d_un_autre_client(dao):
+    """Un client ne peut pas annuler la réservation d'un autre : ValueError, sans appeler annuler"""
+    dao.trouver_par_id.return_value = reservation_future  # appartient au client #1
+
+    with pytest.raises(ValueError, match="autre client"):
+        ReservationService().annuler(1, id_client=2)
     dao.annuler.assert_not_called()
 
 

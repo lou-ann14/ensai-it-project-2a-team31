@@ -37,16 +37,15 @@ def get_collaborateur_service():
 def creer_ligne(
     gare_depart: str,
     gare_arrivee: str,
-    id_collaborateur: int,
     collaborateur_service=Depends(get_collaborateur_service),
     gare_service=Depends(get_gare_service),
     collab=Depends(verif_token),
 ):
-    """Permet à un collaborateur de créer une ligne
+    """Permet au collaborateur connecté de créer une ligne
+    (la ligne est rattachée au collaborateur du token, pas à un id passé en paramètre)
     Param:
         gare_depart (str) : le nom de la gare de départ
         gare_arrivee (str) : le nom de la gare d'arrivée
-        id_collaborateur (int) : l'id du collaborateur
     Returns:
         LigneCreeeModel : un message de confirmation et l'id de la ligne créée
     Raises:
@@ -65,7 +64,7 @@ def creer_ligne(
         nouvelle_ligne = collaborateur_service.creer_ligne(
             depart.id_gare,
             arrivee.id_gare,
-            id_collaborateur,
+            collab.id,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

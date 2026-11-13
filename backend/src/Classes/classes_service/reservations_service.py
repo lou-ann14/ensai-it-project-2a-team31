@@ -80,7 +80,7 @@ class ReservationService:
             raise ValueError(f"Le client #{client.id} n'existe pas.")
 
     @log
-    def annuler(self, id_reservation: int) -> bool:
+    def annuler(self, id_reservation: int, id_client: int) -> bool:
         """
         Méthode servant à annuler une réservation existante.
 
@@ -88,6 +88,8 @@ class ReservationService:
         ------
         id_reservation: int
             l'identifiant unique de la réservation à annuler
+        id_client: int
+            l'identifiant du client qui demande l'annulation
 
         Return:
         ------
@@ -97,11 +99,15 @@ class ReservationService:
         Raises:
         ------
         ValueError
-            si le trajet de la réservation est déjà parti
+            si la réservation appartient à un autre client
+            ou si le trajet de la réservation est déjà parti
         """
         reservation = ReservationDAO().trouver_par_id(id_reservation)
         if reservation is None:
             return False
+
+        if reservation.client.id != id_client:
+            raise ValueError("Cette réservation appartient à un autre client.")
 
         if reservation.trajet.heure_depart <= datetime.now():
             raise ValueError("Ce trajet est déjà parti : la réservation ne peut plus être annulée.")
