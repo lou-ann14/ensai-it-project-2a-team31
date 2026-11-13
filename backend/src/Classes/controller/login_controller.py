@@ -33,4 +33,4 @@ def login(utilisateur: CompteCreationModel, service=Depends(get_uti_service)):
             "grade": uti.grade,
             "token_acces": uti.token,
         }
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe incorrect.")

@@ -149,3 +149,16 @@ def test_annuler_reservation_d_un_autre_client(connecte):
     assert reponse.status_code == 400
     assert "autre client" in reponse.json()["detail"]
     dao.return_value.annuler.assert_not_called()
+
+
+# Tests GET /trains/{num_train} (le 404 est décidé par le contrôleur, plus par le service)
+
+
+def test_trouver_train_inexistant(connecte):
+    http, _ = connecte(CLIENT)
+    with patch("src.Classes.controller.utilisateur_controller.TrainService") as train_service:
+        train_service.return_value.trouver_train_par_num.return_value = None
+        reponse = http.get("/utilisateur/trains/9999")
+
+    assert reponse.status_code == 404
+    assert "9999" in reponse.json()["detail"]

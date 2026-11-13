@@ -97,6 +97,31 @@ class TestsTrainDAO:
 
         assert TrainDAO().trouver_train_par_num(9999) is None
 
+    # Tests trouver_par_id
+
+    def test_trouver_par_id_ok(self, curseur):
+        """Le train existe : un objet Train complet est renvoyé (plus de faux train vide)"""
+        curseur.fetchone.return_value = train_bdd
+
+        resultat = TrainDAO().trouver_par_id(1)
+
+        requete, parametres = curseur.execute.call_args.args
+        assert "WHERE id_train = %(id_train)s" in requete
+        assert parametres == {"id_train": 1}
+        assert isinstance(resultat, Train)
+        assert (resultat.id_train, resultat.num_train, resultat.places_premieres) == (1, 8541, 200)
+
+    def test_trouver_par_id_inexistant(self, curseur):
+        curseur.fetchone.return_value = None
+
+        assert TrainDAO().trouver_par_id(99) is None
+
+    def test_trouver_par_id_erreur_bdd(self, curseur):
+        curseur.execute.side_effect = Exception("connexion perdue")
+
+        with pytest.raises(Exception, match="connexion perdue"):
+            TrainDAO().trouver_par_id(1)
+
     # Tests trouver_id_par_num
 
     def test_trouver_id_par_num_ok(self, curseur):

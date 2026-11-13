@@ -9,13 +9,20 @@ logger = get_logger(__name__)
 BASE_URL = "https://api.sncf.com/v1/coverage/sncf"
 
 
+class SncfConfigurationError(requests.RequestException):
+    """L'API SNCF ne peut pas être appelée car le serveur est mal configuré (token absent).
+    Hérite de requests.RequestException : les contrôleurs, qui attrapent déjà cette exception,
+    renvoient donc une erreur 502 « API SNCF indisponible » au lieu d'une erreur 500."""
+
+
 class SncfClient:
     """Client pour interroger l'API SNCF (authentification : token en identifiant, mot de passe vide)"""
 
     def __init__(self):
         token = os.getenv("SNCF_API_TOKEN")
         if not token:
-            raise RuntimeError("SNCF_API_TOKEN manquant dans le fichier .env")
+            logger.error("SNCF_API_TOKEN manquant dans le fichier .env : l'API SNCF ne peut pas être appelée")
+            raise SncfConfigurationError("SNCF_API_TOKEN manquant dans le fichier .env")
         self.auth = (token, "")
 
     def _get(self, chemin: str, params: dict) -> dict:
