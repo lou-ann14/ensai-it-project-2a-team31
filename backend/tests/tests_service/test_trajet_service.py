@@ -504,11 +504,69 @@ def test_rechercher_ok():
     service.trajet_dao.rechercher = MagicMock(return_value=[trajet_test])
 
     # WHEN
-    res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
 
     # THEN
     service.trajet_dao.rechercher.assert_called_once_with(gare_depart=gare_rennes, gare_arrivee=gare_nantes, date=heure_depart)
     assert res == [trajet_test]
+
+
+def test_rechercher_affiche_les_places_restantes():
+    """F5 : chaque trajet trouvé indique ses places restantes par classe"""
+    # GIVEN : 100 places en 1re et 200 en 2de ; 4 réservées en 1re, 50 en 2de
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+    service = TrajetService()
+    service.trajet_dao.rechercher = MagicMock(return_value=[trajet])
+
+    # WHEN
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {10: {1: 4, 2: 50}}
+        res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
+
+    # THEN
+    reservation_dao.return_value.compter_par_trajets.assert_called_once_with([10])
+    assert res[0].places_restantes_premiere == 96
+    assert res[0].places_restantes_seconde == 150
+
+
+# tests ajouter_places_restantes
+
+
+def test_places_restantes_sans_reservation():
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    assert trajet.places_restantes_premiere == 100
+    assert trajet.places_restantes_seconde == 200
+
+
+def test_places_restantes_jamais_negatives():
+    """Si la capacité du train a été réduite sous le nombre de réservations : 0, pas un nombre négatif"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {10: {1: 120}}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    assert trajet.places_restantes_premiere == 0
+
+
+def test_places_restantes_trajet_sans_train():
+    """Un trajet sans train n'est pas compté : ses places restantes restent à None"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, None, tarif_base, id_trajet=11)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    reservation_dao.return_value.compter_par_trajets.assert_called_once_with([])
+    assert trajet.places_restantes_premiere is None
+    assert trajet.places_restantes_seconde is None
 
 
 @pytest.mark.parametrize(

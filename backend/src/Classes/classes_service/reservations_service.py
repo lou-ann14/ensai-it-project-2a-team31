@@ -5,6 +5,7 @@ from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_service.trajet_service import TrajetService
 from src.utils.log_utils import log
 
 CLASSES_VALIDES = (1, 2)  # 1 = première classe, 2 = seconde classe
@@ -39,7 +40,9 @@ class ReservationService:
         ------
         ValueError
             si une donnée est invalide, si le client ou le trajet est manquant,
-            si le trajet est déjà parti, si le client n'existe pas en base, ou si la place est déjà réservée pour ce trajet
+            si le trajet est déjà parti, si le trajet n'a pas de train, s'il n'y a plus de place
+            dans cette classe, si le numéro de place n'existe pas dans le train,
+            si le client n'existe pas en base, ou si la place est déjà réservée pour ce trajet
             dans cette classe
         """
         if client is None:
@@ -55,8 +58,7 @@ class ReservationService:
         if trajet.heure_depart <= datetime.now():
             raise ValueError("Ce trajet est déjà parti : il n'est plus réservable.")
 
-        # TODO : vérifier qu'il reste des places dans cette classe (capacité du train,
-        # TrainDAO.trouver_par_id) quand TrainDAO sera écrit.
+        place = self._verifier_place(trajet, place, classe)
 
         prix = trajet.tarif_base
         if classe == 1:
@@ -78,6 +80,41 @@ class ReservationService:
             raise ValueError(f"La place {place} est déjà réservée pour ce trajet dans cette classe.")
         except ForeignKeyViolation:
             raise ValueError(f"Le client #{client.id} n'existe pas.")
+
+    @staticmethod
+    def _verifier_place(trajet: Trajet, place: str, classe: int) -> str:
+        """
+        Vérifie qu'il reste de la place dans la classe choisie et que le numéro de place existe.
+        Une place est un numéro entre 1 et la capacité de la classe dans le train du trajet :
+        avec la contrainte UNIQUE (id_trajet, classe, place) de la base, aucune surréservation
+        n'est donc possible.
+
+        Return:
+        ------
+        str
+            le numéro de place normalisé (« 007 » devient « 7 », pour que la contrainte UNIQUE
+            ne voie pas deux places différentes)
+
+        Raises:
+        ------
+        ValueError
+            si le trajet n'a pas de train, si la classe est complète
+            ou si le numéro de place n'existe pas dans le train
+        """
+        if trajet.train is None:
+            raise ValueError("Aucun train n'est associé à ce trajet : il n'est pas réservable.")
+
+        libelle = "première classe" if classe == 1 else "seconde classe"
+        capacite = trajet.train.places_premieres if classe == 1 else trajet.train.places_secondes
+
+        TrajetService().ajouter_places_restantes([trajet])
+        restantes = trajet.places_restantes_premiere if classe == 1 else trajet.places_restantes_seconde
+        if not restantes:
+            raise ValueError(f"Ce trajet est complet en {libelle}.")
+
+        if not place.isdigit() or not 1 <= int(place) <= capacite:
+            raise ValueError(f"La place doit être un numéro entre 1 et {capacite} en {libelle}.")
+        return str(int(place))
 
     @log
     def annuler(self, id_reservation: int, id_client: int) -> bool:
