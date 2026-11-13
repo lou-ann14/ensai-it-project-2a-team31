@@ -63,3 +63,11 @@ def test_creer_compte_nom_deja_pris_en_base(dao):
 
     with pytest.raises(ValueError, match="déjà pris"):
         UtilisateurService().creer_compte("alice", "secret")
+
+
+@pytest.mark.parametrize("nouveau", ["", "   ", None])
+def test_changer_mdp_nouveau_vide(dao, nouveau):
+    """Un nouveau mot de passe vide est refusé, sans toucher à la base"""
+    with pytest.raises(ValueError, match="obligatoire"):
+        UtilisateurService().changer_mdp(1, "ancien", nouveau)
+    dao.modifier_mdp.assert_not_called()

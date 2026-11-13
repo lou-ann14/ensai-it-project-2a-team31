@@ -258,8 +258,8 @@ wheels = [
 ]
 
 [[package]]
-name = "project-name-back"
-version = "0.1.0"
+name = "concurrent-sncf-back"
+version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },

@@ -1,8 +1,15 @@
 [project]
-name = "project_name_back"
-version = "0.1.0"
-description = "API Template for the ENSAI 2nd year IT project"
-authors = [{ name = "Lastname Firstname" }, { name = "Author2" }]
+name = "concurrent-sncf-back"
+version = "1.0.0"
+description = "API Concurrent SNCF : comptes, lignes, trajets et réservations de train (projet informatique 2A ENSAI)"
+authors = [
+    { name = "Adam BENAMER" },
+    { name = "Satya KREMER" },
+    { name = "Nathan TIATIA" },
+    { name = "Laurine LEROY" },
+    { name = "Lou-Ann CLEMENT" },
+    { name = "Nour NSIRI" },
+]
 requires-python = ">=3.13"
 
 dependencies = [
