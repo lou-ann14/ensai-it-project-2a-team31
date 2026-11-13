@@ -5,19 +5,10 @@ from src.Classes.classes_DAO.ligne_DAO import LigneDAO
 from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_objets.gare import Gare
-from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_service.train_service import TrainService
 from src.utils.log_utils import log
 from src.utils.sncf_client import SncfClient
-
-
-def train_depuis_id(id_train: int) -> Train:
-    """Construit le Train d'un trajet à partir de son seul id.
-    Seul id_train est enregistré sur le trajet et la base vérifie qu'il existe (clé étrangère) :
-    les autres champs sont des valeurs neutres, à ne pas lire.
-    TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
-    """
-    return Train(type_train="", places_premieres=0, places_secondes=0, num_train=0, id_train=id_train)
 
 
 class TrajetService:
@@ -65,6 +56,8 @@ class TrajetService:
         """
         self._verifier_donnees(id_ligne, id_train, heure_depart, tarif_base)
         ligne = self._verifier_ligne(id_ligne)
+        # Le vrai train est chargé (et son existence vérifiée) AVANT d'appeler l'API SNCF
+        train = TrainService().trouver_par_id(id_train)
 
         if self._trajet_similaire_existe(ligne, heure_depart):
             raise ValueError("Un trajet existe déjà sur cette ligne à cette date et à cette heure.")
@@ -75,7 +68,7 @@ class TrajetService:
             heure_depart=heure_depart,
             heure_arrivee=heure_depart + timedelta(seconds=duree),
             ligne=ligne,
-            train=train_depuis_id(id_train),
+            train=train,
             tarif_base=float(tarif_base),
             temps_trajet=round(duree / 60),
         )

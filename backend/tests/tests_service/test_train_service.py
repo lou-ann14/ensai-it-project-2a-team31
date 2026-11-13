@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from fastapi import HTTPException
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_service.train_service import TrainService
@@ -60,13 +59,34 @@ def test_trouver_train_par_num_ok(dao):
 
 
 def test_trouver_train_par_num_inexistant(dao):
-    """Un train inconnu donne une erreur 404"""
+    """Train inconnu : None (c'est le contrôleur qui en fait une erreur 404)"""
     dao.trouver_train_par_num.return_value = None
 
-    with pytest.raises(HTTPException) as erreur:
-        TrainService().trouver_train_par_num(9999)
+    assert TrainService().trouver_train_par_num(9999) is None
 
-    assert erreur.value.status_code == 404
+
+# Tests trouver_par_id
+
+
+def test_trouver_par_id_ok(dao):
+    train = Train("TGV", 100, 300, 8541, id_train=1)
+    dao.trouver_par_id.return_value = train
+
+    assert TrainService().trouver_par_id(1) is train
+    dao.trouver_par_id.assert_called_once_with(1)
+
+
+def test_trouver_par_id_inexistant(dao):
+    dao.trouver_par_id.return_value = None
+
+    with pytest.raises(ValueError, match="train #99 n'existe pas"):
+        TrainService().trouver_par_id(99)
+
+
+def test_trouver_par_id_manquant(dao):
+    with pytest.raises(ValueError, match="obligatoire"):
+        TrainService().trouver_par_id(None)
+    dao.trouver_par_id.assert_not_called()
 
 
 def test_modifier_capacite_ok(dao):
@@ -87,13 +107,10 @@ def test_modifier_capacite_invalide(dao):
 
 
 def test_modifier_capacite_train_inexistant(dao):
-    """Un train inconnu donne une erreur 404"""
+    """Train inconnu : False, sans rien modifier"""
     dao.trouver_train_par_num.return_value = None
 
-    with pytest.raises(HTTPException) as erreur:
-        TrainService().modifier_capacite(9999, 100, 300)
-
-    assert erreur.value.status_code == 404
+    assert TrainService().modifier_capacite(9999, 100, 300) is False
     dao.modifier_capacite.assert_not_called()
 
 
@@ -112,7 +129,8 @@ def test_modifier_capacite_reduction_possible(dao, reservation_dao):
     [
         ({2: 40}, 100, 39, "39 places en seconde classe"),
         ({1: 12}, 11, 300, "11 places en première classe"),
-        ({1: 3, 2: 250}, 100, 0, "0 places en seconde classe"),
+        ({1: 3, 2: 250}, 100, 0, "0 place en seconde classe"),
+        ({2: 3}, 100, 1, "1 place en seconde classe"),  # singulier : « 1 place », pas « 1 places »
     ],
 )
 def test_modifier_capacite_sous_les_reservations(dao, reservation_dao, minimum, places_premieres, places_secondes, message):

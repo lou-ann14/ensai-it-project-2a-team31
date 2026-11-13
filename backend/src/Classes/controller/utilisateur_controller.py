@@ -278,4 +278,7 @@ def trouver_train(num_train: int, train_service=Depends(get_train_service), util
     """
     logger.info("Recherche d'un train par un utilisateur")
 
-    return train_service.trouver_train_par_num(num_train)
+    train = train_service.trouver_train_par_num(num_train)
+    if train is None:
+        raise HTTPException(status_code=404, detail=f"Le train numéro {num_train} n'existe pas.")
+    return train

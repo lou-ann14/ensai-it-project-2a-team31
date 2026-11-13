@@ -142,6 +142,6 @@ def test_creer_ligne_sans_le_grade_collaborateur():
     gares = service_gares()
     with pytest.raises(HTTPException) as erreur:
         collaborateur_controller.creer_ligne("Rennes", "Nantes", service, gares, MagicMock(grade="CLIENT"))
-    assert erreur.value.status_code == 401
+    assert erreur.value.status_code == 403
     gares.rechercher.assert_not_called()
     service.creer_ligne.assert_not_called()

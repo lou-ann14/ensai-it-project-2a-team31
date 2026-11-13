@@ -8,9 +8,20 @@ from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_service.trajet_service import TrajetService, train_depuis_id
+from src.Classes.classes_service.trajet_service import TrajetService
 
 # Données communes aux tests
+
+@pytest.fixture(autouse=True)
+def table_trains():
+    """Simule la table trains : tout train demandé par son id existe (TGV, 100 + 200 places).
+    Un test peut faire renvoyer None à trouver_par_id pour simuler un train inexistant."""
+    with patch("src.Classes.classes_service.train_service.TrainDAO") as train_dao:
+        train_dao.return_value.trouver_par_id.side_effect = lambda id_train: Train(
+            "TGV", 100, 200, 8500 + id_train, id_train=id_train
+        )
+        yield train_dao.return_value
+
 
 ligne_test = Ligne(
     gare_depart=Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", id_gare=1),
@@ -258,7 +269,7 @@ def test_creer_ligne_inexistante():
 
 
 def test_creer_train_inexistant():
-    """La BDD refuse le train (clé étrangère) : ValueError"""
+    """Le train est supprimé entre la vérification et l'insertion : la BDD le refuse (clé étrangère)"""
     # GIVEN
     service = TrajetService()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
@@ -409,8 +420,27 @@ def service_trajet():
         yield TrajetService()
 
 
-def test_train_depuis_id():
-    assert train_depuis_id(3).id_train == 3
+def test_creer_utilise_le_vrai_train(service_trajet):
+    """Le trajet créé porte le vrai train (lu en base), pas un train vide"""
+    trajet = service_trajet.creer(1, 3, DEPART_RENNES_NANTES, 40.0)
+
+    assert trajet.train.num_train == 8503
+    assert trajet.train.places_premieres == 100
+
+
+@patch(f"{SERVICE_TRAJET}.SncfClient")
+def test_creer_train_absent_sans_appeler_api(sncf, table_trains):
+    """Le train n'existe pas : ValueError, sans consommer de requête à l'API SNCF"""
+    table_trains.trouver_par_id.side_effect = None
+    table_trains.trouver_par_id.return_value = None
+    service = TrajetService()
+    service._verifier_ligne = MagicMock(return_value=ligne_test)
+    service.trajet_dao.creer = MagicMock()
+
+    with pytest.raises(ValueError, match="train #99 n'existe pas"):
+        service.creer(ligne_test.id_ligne, 99, heure_depart, tarif_base)
+    sncf.assert_not_called()
+    service.trajet_dao.creer.assert_not_called()
 
 
 @pytest.mark.parametrize("tarif", [40, 40.0])
