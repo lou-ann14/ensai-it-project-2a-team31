@@ -20,7 +20,16 @@ load_environment_variables()
 display_values()
 
 
-app = FastAPI(title="My Webservice")
+app = FastAPI(
+    title="API Concurrent SNCF",
+    version="1.0.0",
+    description=(
+        "API d'une compagnie ferroviaire concurrente de la SNCF (projet informatique 2A ENSAI).\n\n"
+        "**Authentification** : `POST /login/` renvoie un `token_acces`, à envoyer ensuite "
+        "dans l'en-tête `X-Auth-Token` de chaque requête.\n\n"
+        "**Comptes de test** : `admin` / `123`, `collaborateur` / `456`, `client` / `789`."
+    ),
+)
 
 app.add_middleware(LogMiddleware)
 

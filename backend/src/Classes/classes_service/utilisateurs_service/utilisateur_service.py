@@ -43,7 +43,12 @@ class UtilisateurService:
         Returns:
             True si le mot de passe a été changé, False si l'utilisateur n'existe pas
             ou si l'ancien mot de passe est incorrect.
+        Raises:
+            ValueError: si le nouveau mot de passe est vide.
         """
+        if not nouveau_mdp or not nouveau_mdp.strip():
+            raise ValueError("Le nouveau mot de passe est obligatoire.")
+
         utilisateur = UtilisateurDAO().trouver_par_id(id_utilisateur)
         if utilisateur is None:
             return False

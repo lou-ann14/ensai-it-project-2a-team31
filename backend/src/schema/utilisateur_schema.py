@@ -32,6 +32,14 @@ class CompteCreationModel(BaseModel):
     mdp: str
 
 
+class MotDePasseModificationModel(BaseModel):
+    """Données envoyées par un utilisateur connecté pour changer son mot de passe.
+    Pas d'id : l'utilisateur est celui du token d'authentification."""
+
+    ancien_mdp: str
+    nouveau_mdp: str
+
+
 class ReservationCreationModel(BaseModel):
     """Données envoyées par un client pour réserver une place sur un trajet.
     Pas d'id_client : le client est celui du token d'authentification."""

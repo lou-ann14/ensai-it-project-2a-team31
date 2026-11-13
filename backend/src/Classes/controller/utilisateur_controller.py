@@ -17,6 +17,7 @@ from src.schema.gare_schema import GareReponseModel
 from src.schema.train_schema import TrainReponseModel
 from src.schema.utilisateur_schema import (
     CompteCreationModel,
+    MotDePasseModificationModel,
     ReservationCreationModel,
     ReservationReponseModel,
     TrajetReponseModel,
@@ -264,6 +265,34 @@ def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_ut
         return utilisateur_service.creer_compte(nom_utilisateur, compte.mdp)
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/mot-de-passe", response_model=MessageModel, tags=["Utilisateur"])
+def changer_mot_de_passe(
+    demande: MotDePasseModificationModel,
+    utilisateur_service=Depends(get_utilisateur_service),
+    utilisateur=Depends(verif_token),
+):
+    """Change le mot de passe de l'utilisateur connecté (quel que soit son grade)
+    Param:
+        demande: l'ancien mot de passe (pour confirmer l'identité) et le nouveau
+    Returns:
+        MessageModel : un message de confirmation
+    Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
+        HTTPException: erreur 400 si l'ancien mot de passe est incorrect
+                       ou si le nouveau mot de passe est vide
+    """
+    logger.info("Changement de mot de passe")
+
+    try:
+        change = utilisateur_service.changer_mdp(utilisateur.id, demande.ancien_mdp, demande.nouveau_mdp)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not change:
+        raise HTTPException(status_code=400, detail="L'ancien mot de passe est incorrect.")
+
+    return {"message": "Mot de passe modifié avec succès"}
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
