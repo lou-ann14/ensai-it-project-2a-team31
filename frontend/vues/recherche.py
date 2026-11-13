@@ -62,10 +62,18 @@ def duree_panneau(minutes: int | None) -> str:
     return f"{h}H{m:02d}"
 
 
+def places_panneau(places: int | None) -> str:
+    """F5 : places restantes dans une classe (COMPLET à 0, -- si inconnues)."""
+    if places is None:
+        return "--"
+    return "COMPLET" if places == 0 else str(places)
+
+
 style.panneau_departs(
     f"{resultats['depart']['nom']} → {resultats['arrivee']['nom']}",
     colonnes=[("DÉPART", 5, False), ("ARRIVÉE", 5, False), ("DURÉE", 5, False),
-              ("TRAIN", 5, False), ("2DE CL.", 8, True), ("1RE CL.", 8, True)],
+              ("TRAIN", 5, False), ("2DE CL.", 8, True), ("1RE CL.", 8, True),
+              ("PL. 2DE", 7, True), ("PL. 1RE", 7, True)],
     lignes=[
         [
             commun.heure(t["heure_depart"]),
@@ -74,6 +82,8 @@ style.panneau_departs(
             str(t.get("num_train") or "--"),
             commun.euros(commun.prix_classe(t["tarif_base"], 2)),
             commun.euros(commun.prix_classe(t["tarif_base"], 1)),
+            places_panneau(t.get("places_restantes_seconde")),
+            places_panneau(t.get("places_restantes_premiere")),
         ]
         for t in trajets
     ],
@@ -96,14 +106,14 @@ with st.form("reserver"):
     )
     f1, f2 = st.columns(2)
     classe = f1.radio("Classe", [2, 1], format_func=commun.libelle_classe, horizontal=True)
-    place = f2.text_input("Numéro de place", max_chars=10, placeholder="ex. 42A")
+    place = f2.text_input("Numéro de place", max_chars=10, placeholder="ex. 42")
     if st.form_submit_button("Confirmer la réservation", type="primary", icon=":material/confirmation_number:"):
         if not place.strip():
             st.error("Indiquez un numéro de place.")
         else:
             try:
                 reservation = api.reserver(
-                    commun.token(), utilisateur["id"], trajet["id_trajet"], place.strip(), classe
+                    commun.token(), trajet["id_trajet"], place.strip(), classe
                 )
                 st.success("Réservation confirmée, voici votre billet :", icon=":material/check_circle:")
                 commun.afficher_billet(reservation)
