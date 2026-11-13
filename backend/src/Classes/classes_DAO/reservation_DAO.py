@@ -186,6 +186,101 @@ class ReservationDAO:
         else:
             return self._construire_reservation(reservation_bdd)
 
+    @log
+    def compter_par_trajets(self, ids_trajets: list[int]) -> dict[int, dict[int, int]]:
+        """
+        Compte les places réservées sur plusieurs trajets, classe par classe,
+        en une seule requête (utile pour afficher les places restantes d'une recherche).
+
+        Param:
+        ------
+        ids_trajets: list[int]
+            les identifiants des trajets
+
+        Return:
+        ------
+        dict[int, dict[int, int]]
+            {id_trajet: {classe: nombre de places réservées}}
+            (un trajet ou une classe sans réservation est absent du dictionnaire)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        if not ids_trajets:
+            return {}
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_trajet, classe, COUNT(*) AS nb_reservees "
+                    "  FROM reservations                                "
+                    " WHERE id_trajet = ANY(%(ids_trajets)s)            "
+                    " GROUP BY id_trajet, classe                        ",
+                    {"ids_trajets": list(ids_trajets)},
+                )
+                lignes_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.compter_par_trajets : {e}")
+            raise
+
+        comptes: dict[int, dict[int, int]] = {}
+        for ligne_bdd in lignes_bdd:
+            comptes.setdefault(ligne_bdd["id_trajet"], {})[ligne_bdd["classe"]] = ligne_bdd["nb_reservees"]
+        return comptes
+
+    @log
+    def capacite_minimale_par_train(self, id_train: int) -> dict[int, int]:
+        """
+        Calcule, pour chaque classe, le nombre de places minimum que doit garder un train
+        pour ne pas invalider les réservations de ses trajets à venir.
+        Ce minimum est le plus grand des deux nombres suivants :
+        - le nombre de réservations dans la classe ;
+        - le plus grand numéro de place réservé dans la classe (les places étant numérotées
+          de 1 à la capacité, réduire la capacité sous ce numéro rendrait la place inexistante).
+        Les places non numériques (ancien format, ex. « 12A ») ne comptent que dans le nombre.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train
+
+        Return:
+        ------
+        dict[int, int]
+            {classe: capacité minimale} (une classe sans réservation à venir est absente)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT r.classe,                                                       "
+                    "       COUNT(*) AS nb_reservees,                                       "
+                    "       MAX(CASE WHEN r.place ~ '^[0-9]+$' THEN r.place::int END)        "
+                    "           AS place_max                                                "
+                    "  FROM reservations r                                                  "
+                    "  JOIN trajets t ON t.id_trajet = r.id_trajet                          "
+                    " WHERE t.id_train = %(id_train)s                                       "
+                    "   AND t.heure_depart > NOW()                                          "
+                    " GROUP BY r.classe                                                     ",
+                    {"id_train": id_train},
+                )
+                lignes_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.capacite_minimale_par_train : {e}")
+            raise
+
+        return {
+            ligne_bdd["classe"]: max(ligne_bdd["nb_reservees"], ligne_bdd["place_max"] or 0)
+            for ligne_bdd in lignes_bdd
+        }
+
     def _construire_reservation(self, reservation_bdd: dict) -> Reservation | None:
         """
         Transforme une ligne de la table reservations en objet Reservation complet,

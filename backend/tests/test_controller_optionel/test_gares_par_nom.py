@@ -19,7 +19,7 @@ def gare(nom, id_gare, ville="Ville"):
 RENNES = gare("Rennes", 1)
 BEAULIEU = gare("Rennes Beaulieu Chimie", 2)
 NANTES = gare("Nantes", 5)
-COLLAB = MagicMock(grade="COLLABORATEUR")
+COLLAB = MagicMock(grade="COLLABORATEUR", id=2)  # collaborateur connecté (token)
 
 
 def service_gares():
@@ -103,10 +103,22 @@ def test_creer_ligne_par_nom():
     service = MagicMock()
     service.creer_ligne.return_value.id_ligne = 7
 
-    reponse = collaborateur_controller.creer_ligne("Rennes", "Nantes", 2, service, service_gares(), COLLAB)
+    reponse = collaborateur_controller.creer_ligne("Rennes", "Nantes", service, service_gares(), COLLAB)
 
     service.creer_ligne.assert_called_once_with(1, 5, 2)
     assert reponse["id_ligne"] == 7
+
+
+def test_creer_ligne_rattachee_au_collaborateur_du_token():
+    """L'id du collaborateur vient du token, jamais d'un paramètre de la requête"""
+    service = MagicMock()
+    service.creer_ligne.return_value.id_ligne = 7
+
+    collaborateur_controller.creer_ligne(
+        "Rennes", "Nantes", service, service_gares(), MagicMock(grade="COLLABORATEUR", id=42)
+    )
+
+    assert service.creer_ligne.call_args.args[2] == 42
 
 
 def test_modifier_ligne_par_nom():
@@ -120,7 +132,7 @@ def test_modifier_ligne_par_nom():
 def test_creer_ligne_gare_ambigue():
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.creer_ligne("Ren", "Nantes", 2, service, service_gares(), COLLAB)
+        collaborateur_controller.creer_ligne("Ren", "Nantes", service, service_gares(), COLLAB)
     assert erreur.value.status_code == 400
     service.creer_ligne.assert_not_called()
 
@@ -129,7 +141,7 @@ def test_creer_ligne_sans_le_grade_collaborateur():
     service = MagicMock()
     gares = service_gares()
     with pytest.raises(HTTPException) as erreur:
-        collaborateur_controller.creer_ligne("Rennes", "Nantes", 2, service, gares, MagicMock(grade="CLIENT"))
-    assert erreur.value.status_code == 401
+        collaborateur_controller.creer_ligne("Rennes", "Nantes", service, gares, MagicMock(grade="CLIENT"))
+    assert erreur.value.status_code == 403
     gares.rechercher.assert_not_called()
     service.creer_ligne.assert_not_called()

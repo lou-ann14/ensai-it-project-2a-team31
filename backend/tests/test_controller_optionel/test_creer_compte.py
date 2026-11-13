@@ -70,3 +70,18 @@ def test_creer_compte_nom_trop_long(dao):
 )
 def test_admin_sql_contient_les_mots_de_passe_haches(nom, mdp, grade):
     assert f"('{nom}', '{hash_password(mdp, nom)}', '{grade}')" in ADMIN_SQL.read_text(encoding="utf-8")
+
+
+def test_login_message_en_francais():
+    """Mauvais identifiants : 401 avec un message en français (comme le reste de l'API)"""
+    from src.Classes.controller.login_controller import login
+    from src.schema.utilisateur_schema import CompteCreationModel
+
+    service = MagicMock()
+    service.login.return_value = None
+
+    with pytest.raises(HTTPException) as erreur:
+        login(CompteCreationModel(nom_utilisateur="alice", mdp="faux"), service)
+
+    assert erreur.value.status_code == 401
+    assert erreur.value.detail == "Nom d'utilisateur ou mot de passe incorrect."

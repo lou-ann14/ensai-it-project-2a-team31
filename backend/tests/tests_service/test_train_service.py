@@ -1,16 +1,23 @@
 from unittest.mock import patch
 
 import pytest
-from fastapi import HTTPException
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_service.train_service import TrainService
 
-# La base est simulée : TrainDAO est remplacé par un MagicMock.
+# La base est simulée : TrainDAO et ReservationDAO sont remplacés par des MagicMock.
 
 
 @pytest.fixture
-def dao():
+def reservation_dao():
+    """Par défaut, aucune réservation à venir : aucune capacité minimale"""
+    with patch("src.Classes.classes_service.train_service.ReservationDAO") as dao_reservation:
+        dao_reservation.return_value.capacite_minimale_par_train.return_value = {}
+        yield dao_reservation.return_value
+
+
+@pytest.fixture
+def dao(reservation_dao):
     with patch("src.Classes.classes_service.train_service.TrainDAO") as train_dao:
         yield train_dao.return_value
 
@@ -52,13 +59,34 @@ def test_trouver_train_par_num_ok(dao):
 
 
 def test_trouver_train_par_num_inexistant(dao):
-    """Un train inconnu donne une erreur 404"""
+    """Train inconnu : None (c'est le contrôleur qui en fait une erreur 404)"""
     dao.trouver_train_par_num.return_value = None
 
-    with pytest.raises(HTTPException) as erreur:
-        TrainService().trouver_train_par_num(9999)
+    assert TrainService().trouver_train_par_num(9999) is None
 
-    assert erreur.value.status_code == 404
+
+# Tests trouver_par_id
+
+
+def test_trouver_par_id_ok(dao):
+    train = Train("TGV", 100, 300, 8541, id_train=1)
+    dao.trouver_par_id.return_value = train
+
+    assert TrainService().trouver_par_id(1) is train
+    dao.trouver_par_id.assert_called_once_with(1)
+
+
+def test_trouver_par_id_inexistant(dao):
+    dao.trouver_par_id.return_value = None
+
+    with pytest.raises(ValueError, match="train #99 n'existe pas"):
+        TrainService().trouver_par_id(99)
+
+
+def test_trouver_par_id_manquant(dao):
+    with pytest.raises(ValueError, match="obligatoire"):
+        TrainService().trouver_par_id(None)
+    dao.trouver_par_id.assert_not_called()
 
 
 def test_modifier_capacite_ok(dao):
@@ -79,14 +107,49 @@ def test_modifier_capacite_invalide(dao):
 
 
 def test_modifier_capacite_train_inexistant(dao):
-    """Un train inconnu donne une erreur 404"""
+    """Train inconnu : False, sans rien modifier"""
     dao.trouver_train_par_num.return_value = None
 
-    with pytest.raises(HTTPException) as erreur:
-        TrainService().modifier_capacite(9999, 100, 300)
-
-    assert erreur.value.status_code == 404
+    assert TrainService().modifier_capacite(9999, 100, 300) is False
     dao.modifier_capacite.assert_not_called()
+
+
+def test_modifier_capacite_reduction_possible(dao, reservation_dao):
+    """5 places réservées en 2de (jusqu'à la n°40) : on peut descendre à 40, pas en dessous"""
+    dao.trouver_train_par_num.return_value = Train("TGV", 100, 300, 8541, id_train=1)
+    dao.modifier_capacite.return_value = True
+    reservation_dao.capacite_minimale_par_train.return_value = {2: 40}
+
+    assert TrainService().modifier_capacite(8541, 100, 40) is True
+    reservation_dao.capacite_minimale_par_train.assert_called_once_with(1)
+
+
+@pytest.mark.parametrize(
+    "minimum, places_premieres, places_secondes, message",
+    [
+        ({2: 40}, 100, 39, "39 places en seconde classe"),
+        ({1: 12}, 11, 300, "11 places en première classe"),
+        ({1: 3, 2: 250}, 100, 0, "0 place en seconde classe"),
+        ({2: 3}, 100, 1, "1 place en seconde classe"),  # singulier : « 1 place », pas « 1 places »
+    ],
+)
+def test_modifier_capacite_sous_les_reservations(dao, reservation_dao, minimum, places_premieres, places_secondes, message):
+    """La nouvelle capacité est sous ce qui est réservé : ValueError, et la base n'est pas modifiée"""
+    dao.trouver_train_par_num.return_value = Train("TGV", 100, 300, 8541, id_train=1)
+    reservation_dao.capacite_minimale_par_train.return_value = minimum
+
+    with pytest.raises(ValueError, match=message):
+        TrainService().modifier_capacite(8541, places_premieres, places_secondes)
+    dao.modifier_capacite.assert_not_called()
+
+
+def test_modifier_capacite_augmentation_toujours_possible(dao, reservation_dao):
+    """Augmenter la capacité ne pose jamais de problème, même avec des réservations"""
+    dao.trouver_train_par_num.return_value = Train("TGV", 100, 300, 8541, id_train=1)
+    dao.modifier_capacite.return_value = True
+    reservation_dao.capacite_minimale_par_train.return_value = {1: 100, 2: 300}
+
+    assert TrainService().modifier_capacite(8541, 150, 400) is True
 
 
 # Tests supprimer

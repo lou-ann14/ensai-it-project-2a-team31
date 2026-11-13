@@ -5,12 +5,11 @@ import streamlit as st
 import api
 import commun
 
-utilisateur = commun.utilisateur()
 
 st.title("Mes réservations")
 
 try:
-    reservations = api.historique_reservations(commun.token(), utilisateur["id"])
+    reservations = api.historique_reservations(commun.token())
 except api.ErreurAPI as e:
     commun.afficher_erreur(e)
     st.stop()
@@ -30,7 +29,7 @@ def confirmer_annulation(id_reservation: int):
     c1, c2 = st.columns(2)
     if c1.button("Oui, annuler", type="primary", width="stretch"):
         try:
-            api.annuler_reservation(commun.token(), utilisateur["id"], id_reservation)
+            api.annuler_reservation(commun.token(), id_reservation)
             st.rerun()
         except api.ErreurAPI as e:
             st.error(e.message)

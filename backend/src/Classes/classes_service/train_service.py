@@ -1,5 +1,5 @@
-from fastapi import HTTPException
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
+from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_DAO.train_DAO import TrainDAO
 from src.Classes.classes_objets.train import Train
 from src.utils.log_utils import log
@@ -59,19 +59,37 @@ class TrainService:
 
         Return:
         ------
+        Train | None
+            le train trouvé, ou None s'il n'existe pas
+            (c'est au contrôleur de transformer None en erreur 404 : le service ne connaît pas HTTP)
+        """
+        return TrainDAO().trouver_train_par_num(num_train)
+
+    @log
+    def trouver_par_id(self, id_train: int) -> Train:
+        """
+        Méthode servant à récupérer le train d'un trajet à partir de son identifiant.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train
+
+        Return:
+        ------
         Train
-            Le train trouvé
+            le train trouvé
 
         Raises:
         ------
-        HTTPException 404
-            Erreur 404 si le train n'est pas trouvé
+        ValueError
+            si l'identifiant est manquant ou si le train n'existe pas
         """
-        train = TrainDAO().trouver_train_par_num(num_train)
-
-        if not train:
-            raise HTTPException(status_code=404, detail="Train pas trouvé")
-
+        if id_train is None:
+            raise ValueError("Le train est obligatoire.")
+        train = TrainDAO().trouver_par_id(id_train)
+        if train is None:
+            raise ValueError(f"Le train #{id_train} n'existe pas.")
         return train
 
     @log
@@ -91,14 +109,34 @@ class TrainService:
         Return:
         ------
         bool
-            True si la modification a réussi, False sinon
+            True si la modification a réussi, False si le train n'existe pas
+
+        Raises:
+        ------
+        ValueError
+            si la capacité est incorrecte, ou si elle est trop petite pour les réservations
+            des trajets à venir de ce train (nombre de réservations ou numéro de place réservé)
         """
         self._verifier_capacite(capacite_premiere, capacite_seconde)
 
         train = TrainDAO().trouver_train_par_num(num_train)
 
         if not train:
-            raise HTTPException(status_code=404, detail="Train pas trouvé")
+            return False
+
+        # On ne peut pas descendre sous ce qui est déjà réservé sur les trajets à venir
+        minimum = ReservationDAO().capacite_minimale_par_train(train.id_train)
+        for classe, nouvelle_capacite, libelle in (
+            (1, capacite_premiere, "première classe"),
+            (2, capacite_seconde, "seconde classe"),
+        ):
+            requis = minimum.get(classe, 0)
+            if nouvelle_capacite < requis:
+                places = "place" if nouvelle_capacite <= 1 else "places"
+                raise ValueError(
+                    f"Impossible de passer à {nouvelle_capacite} {places} en {libelle} : "
+                    f"les réservations des trajets à venir de ce train en demandent au moins {requis}."
+                )
 
         return TrainDAO().modifier_capacite(num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde)
 

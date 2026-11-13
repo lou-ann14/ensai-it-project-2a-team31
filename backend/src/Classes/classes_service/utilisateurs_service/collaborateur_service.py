@@ -8,7 +8,7 @@ from src.Classes.classes_objets.trajet import Trajet
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.ligne_service import LigneService
 from src.Classes.classes_service.train_service import TrainService
-from src.Classes.classes_service.trajet_service import TrajetService, train_depuis_id
+from src.Classes.classes_service.trajet_service import TrajetService
 from src.utils.log_utils import log
 
 
@@ -196,7 +196,7 @@ class CollaborateurService:
         if ligne is None:
             raise ValueError(f"La ligne #{id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante.")
 
-        train = train_depuis_id(id_train)
+        train = TrainService().trouver_par_id(id_train)
         # L'heure d'arrivée est provisoire : TrajetService.modifier la recalcule.
         trajet = Trajet(heure_depart, heure_depart, ligne, train, tarif_base, id_trajet=id_trajet)
 
@@ -293,17 +293,17 @@ class CollaborateurService:
         Return:
         ------
         Train | None
-            le train modifié, ou None si la modification ne s'est pas exécutée
+            le train modifié, ou None si le train n'existe pas
 
         Raises:
         ------
         ValueError
-            si la capacité est incorrecte
-        HTTPException 404
-            si le train n'existe pas
+            si la capacité est incorrecte ou trop petite pour les réservations à venir
         """
         train_service = TrainService()
         train = train_service.trouver_train_par_num(num_train)
+        if train is None:
+            return None
 
         if not train_service.modifier_capacite(num_train, places_premieres, places_secondes):
             return None
