@@ -8,9 +8,20 @@ from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_service.trajet_service import TrajetService, train_depuis_id
+from src.Classes.classes_service.trajet_service import TrajetService
 
 # Données communes aux tests
+
+@pytest.fixture(autouse=True)
+def table_trains():
+    """Simule la table trains : tout train demandé par son id existe (TGV, 100 + 200 places).
+    Un test peut faire renvoyer None à trouver_par_id pour simuler un train inexistant."""
+    with patch("src.Classes.classes_service.train_service.TrainDAO") as train_dao:
+        train_dao.return_value.trouver_par_id.side_effect = lambda id_train: Train(
+            "TGV", 100, 200, 8500 + id_train, id_train=id_train
+        )
+        yield train_dao.return_value
+
 
 ligne_test = Ligne(
     gare_depart=Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", id_gare=1),
@@ -258,7 +269,7 @@ def test_creer_ligne_inexistante():
 
 
 def test_creer_train_inexistant():
-    """La BDD refuse le train (clé étrangère) : ValueError"""
+    """Le train est supprimé entre la vérification et l'insertion : la BDD le refuse (clé étrangère)"""
     # GIVEN
     service = TrajetService()
     service._verifier_ligne = MagicMock(return_value=ligne_test)
@@ -409,8 +420,27 @@ def service_trajet():
         yield TrajetService()
 
 
-def test_train_depuis_id():
-    assert train_depuis_id(3).id_train == 3
+def test_creer_utilise_le_vrai_train(service_trajet):
+    """Le trajet créé porte le vrai train (lu en base), pas un train vide"""
+    trajet = service_trajet.creer(1, 3, DEPART_RENNES_NANTES, 40.0)
+
+    assert trajet.train.num_train == 8503
+    assert trajet.train.places_premieres == 100
+
+
+@patch(f"{SERVICE_TRAJET}.SncfClient")
+def test_creer_train_absent_sans_appeler_api(sncf, table_trains):
+    """Le train n'existe pas : ValueError, sans consommer de requête à l'API SNCF"""
+    table_trains.trouver_par_id.side_effect = None
+    table_trains.trouver_par_id.return_value = None
+    service = TrajetService()
+    service._verifier_ligne = MagicMock(return_value=ligne_test)
+    service.trajet_dao.creer = MagicMock()
+
+    with pytest.raises(ValueError, match="train #99 n'existe pas"):
+        service.creer(ligne_test.id_ligne, 99, heure_depart, tarif_base)
+    sncf.assert_not_called()
+    service.trajet_dao.creer.assert_not_called()
 
 
 @pytest.mark.parametrize("tarif", [40, 40.0])
@@ -504,11 +534,69 @@ def test_rechercher_ok():
     service.trajet_dao.rechercher = MagicMock(return_value=[trajet_test])
 
     # WHEN
-    res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
 
     # THEN
     service.trajet_dao.rechercher.assert_called_once_with(gare_depart=gare_rennes, gare_arrivee=gare_nantes, date=heure_depart)
     assert res == [trajet_test]
+
+
+def test_rechercher_affiche_les_places_restantes():
+    """F5 : chaque trajet trouvé indique ses places restantes par classe"""
+    # GIVEN : 100 places en 1re et 200 en 2de ; 4 réservées en 1re, 50 en 2de
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+    service = TrajetService()
+    service.trajet_dao.rechercher = MagicMock(return_value=[trajet])
+
+    # WHEN
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {10: {1: 4, 2: 50}}
+        res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
+
+    # THEN
+    reservation_dao.return_value.compter_par_trajets.assert_called_once_with([10])
+    assert res[0].places_restantes_premiere == 96
+    assert res[0].places_restantes_seconde == 150
+
+
+# tests ajouter_places_restantes
+
+
+def test_places_restantes_sans_reservation():
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    assert trajet.places_restantes_premiere == 100
+    assert trajet.places_restantes_seconde == 200
+
+
+def test_places_restantes_jamais_negatives():
+    """Si la capacité du train a été réduite sous le nombre de réservations : 0, pas un nombre négatif"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {10: {1: 120}}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    assert trajet.places_restantes_premiere == 0
+
+
+def test_places_restantes_trajet_sans_train():
+    """Un trajet sans train n'est pas compté : ses places restantes restent à None"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, None, tarif_base, id_trajet=11)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        TrajetService().ajouter_places_restantes([trajet])
+
+    reservation_dao.return_value.compter_par_trajets.assert_called_once_with([])
+    assert trajet.places_restantes_premiere is None
+    assert trajet.places_restantes_seconde is None
 
 
 @pytest.mark.parametrize(

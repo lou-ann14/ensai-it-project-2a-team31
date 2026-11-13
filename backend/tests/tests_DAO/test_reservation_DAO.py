@@ -317,3 +317,78 @@ def test_construire_reservation_trajet_inexistant(mock_utilisateur_dao, mock_tra
     reservation = ReservationDAO()._construire_reservation(reservation_fan2train_toulouse_paris)
 
     assert reservation is None
+
+
+# Tests compter_par_trajets (F5 : places restantes)
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_compter_par_trajets_ok(mock_db):
+    """Les comptes renvoyés par la base sont regroupés par trajet puis par classe"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [
+        {"id_trajet": 10, "classe": 1, "nb_reservees": 3},
+        {"id_trajet": 10, "classe": 2, "nb_reservees": 40},
+        {"id_trajet": 11, "classe": 2, "nb_reservees": 1},
+    ]
+
+    comptes = ReservationDAO().compter_par_trajets([10, 11, 12])
+
+    assert comptes == {10: {1: 3, 2: 40}, 11: {2: 1}}
+    requete, parametres = cursor.execute.call_args.args
+    assert "GROUP BY id_trajet, classe" in requete
+    assert parametres["ids_trajets"] == [10, 11, 12]
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_compter_par_trajets_liste_vide(mock_db):
+    """Aucun trajet : pas de requête envoyée à la base"""
+    assert ReservationDAO().compter_par_trajets([]) == {}
+    mock_db.assert_not_called()
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_compter_par_trajets_erreur_bdd(mock_db):
+    """Une erreur de la base est relancée"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.execute.side_effect = Exception("connexion perdue")
+
+    with pytest.raises(Exception, match="connexion perdue"):
+        ReservationDAO().compter_par_trajets([10])
+
+
+# Tests capacite_minimale_par_train
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_capacite_minimale_par_train_ok(mock_db):
+    """Le minimum est le plus grand entre le nombre de réservations et le plus grand numéro de place"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [
+        {"classe": 1, "nb_reservees": 3, "place_max": 120},  # 3 réservations, mais la place 120 est prise
+        {"classe": 2, "nb_reservees": 5, "place_max": None},  # uniquement des places au format « 12A »
+    ]
+
+    minimum = ReservationDAO().capacite_minimale_par_train(1)
+
+    assert minimum == {1: 120, 2: 5}
+    requete, parametres = cursor.execute.call_args.args
+    assert "t.heure_depart > NOW()" in requete  # seuls les trajets à venir comptent
+    assert parametres["id_train"] == 1
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_capacite_minimale_par_train_sans_reservation(mock_db):
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+
+    assert ReservationDAO().capacite_minimale_par_train(1) == {}
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_capacite_minimale_par_train_erreur_bdd(mock_db):
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.execute.side_effect = Exception("connexion perdue")
+
+    with pytest.raises(Exception, match="connexion perdue"):
+        ReservationDAO().capacite_minimale_par_train(1)

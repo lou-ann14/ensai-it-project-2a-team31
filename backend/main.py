@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status, Depends
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from src.Classes.controller import (
@@ -52,11 +52,16 @@ async def redirect_to_docs():
 
 @app.get("/reset_database", tags=["BDD"])
 async def reset_database(token=Depends(verif_token)):
-    """Réinitialise la base de données"""
+    """Réinitialise la base de données (ADMIN uniquement)"""
+    # Le grade est vérifié AVANT la réinitialisation : sinon n'importe quel compte connecté
+    # pouvait effacer la base (l'erreur n'était levée qu'après coup).
+    if token.grade != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous n'avez pas les permissions requises : ADMIN uniquement",
+        )
     logger.info("Database reset")
     succes = Reset_bdd().demarrer()
-    if token.grade != "ADMIN":
-        raise ValueError("Vous n'avez pas les permissions requises : ADMIN uniquement")
     return {
         "message": f"Database re-initialization - {'SUCCES' if succes else 'ECHEC'}"
     }

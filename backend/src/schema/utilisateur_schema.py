@@ -18,6 +18,9 @@ class TrajetReponseModel(BaseModel):
     nom_gare_depart: str | None = None
     nom_gare_arrivee: str | None = None
     num_train: int | None = None
+    # F5 : places restantes par classe (None si non calculées ou si le trajet n'a pas de train)
+    places_restantes_premiere: int | None = None
+    places_restantes_seconde: int | None = None
 
 
 class CompteCreationModel(BaseModel):
@@ -30,9 +33,9 @@ class CompteCreationModel(BaseModel):
 
 
 class ReservationCreationModel(BaseModel):
-    """Données envoyées par un client pour réserver une place sur un trajet."""
+    """Données envoyées par un client pour réserver une place sur un trajet.
+    Pas d'id_client : le client est celui du token d'authentification."""
 
-    id_client: int
     id_trajet: int
     place: str
     classe: int  # 1 = première classe, 2 = seconde classe

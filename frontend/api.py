@@ -98,17 +98,19 @@ def trouver_train(token: str, num_train: int) -> dict:
 
 # --- Client --------------------------------------------------------------------
 
-def reserver(token: str, id_client: int, id_trajet: int, place: str, classe: int) -> dict:
-    corps = {"id_client": id_client, "id_trajet": id_trajet, "place": place, "classe": classe}
+# Pas d'id_client ni d'id_collaborateur : l'API identifie l'utilisateur grâce à son token.
+
+def reserver(token: str, id_trajet: int, place: str, classe: int) -> dict:
+    corps = {"id_trajet": id_trajet, "place": place, "classe": classe}
     return _appeler("POST", "/utilisateur/reservations", token, json=corps)
 
 
-def historique_reservations(token: str, id_client: int) -> list[dict]:
-    return _appeler("GET", "/utilisateur/reservations", token, params={"id_client": id_client})
+def historique_reservations(token: str) -> list[dict]:
+    return _appeler("GET", "/utilisateur/reservations", token)
 
 
-def annuler_reservation(token: str, id_client: int, id_reservation: int) -> dict:
-    return _appeler("DELETE", f"/utilisateur/reservations/{id_reservation}", token, params={"id_client": id_client})
+def annuler_reservation(token: str, id_reservation: int) -> dict:
+    return _appeler("DELETE", f"/utilisateur/reservations/{id_reservation}", token)
 
 
 # --- Collaborateur -----------------------------------------------------------
@@ -117,8 +119,8 @@ def importer_gares(token: str, texte: str) -> list[dict]:
     return _appeler("POST", "/collaborateur/gares/importer", token, params={"q": texte}, timeout=TIMEOUT_SNCF)
 
 
-def creer_ligne(token: str, gare_depart: str, gare_arrivee: str, id_collaborateur: int) -> dict:
-    params = {"gare_depart": gare_depart, "gare_arrivee": gare_arrivee, "id_collaborateur": id_collaborateur}
+def creer_ligne(token: str, gare_depart: str, gare_arrivee: str) -> dict:
+    params = {"gare_depart": gare_depart, "gare_arrivee": gare_arrivee}
     return _appeler("POST", "/collaborateur/lignes", token, params=params)
 
 
