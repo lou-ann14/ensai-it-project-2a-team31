@@ -36,7 +36,7 @@ def rechercher_compte(
     logger.info("Recherche d'un compte")
 
     if admin.grade != "ADMIN":
-        raise HTTPException(status_code=401, detail="Vous n'avez pas le niveau d'habilitation requis.")
+        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
     try:
         utilisateur = administrateur_service.recherche_compte(nom_utilisateur, id_utilisateur)
     except ValueError as e:
@@ -71,7 +71,7 @@ def modifier_grade(
     """
     logger.info("Modification du rôle d'un utilisateur")
     if admin.grade != "ADMIN":
-        raise HTTPException(status_code=401, detail="Vous n'avez pas le niveau d'habilitation requis.")
+        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
     try:
         utilisateur = administrateur_service.gerer_habilitation(id_utilisateur, nouveau_grade)
     except ValueError as e:

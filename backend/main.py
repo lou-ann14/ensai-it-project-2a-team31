@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from src.Classes.controller import (
@@ -10,6 +10,7 @@ from src.Classes.controller import (
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
+from src.utils.securite import verif_token
 
 logger = get_logger(__name__)
 
@@ -19,7 +20,16 @@ load_environment_variables()
 display_values()
 
 
-app = FastAPI(title="My Webservice")
+app = FastAPI(
+    title="API Concurrent SNCF",
+    version="1.0.0",
+    description=(
+        "API d'une compagnie ferroviaire concurrente de la SNCF (projet informatique 2A ENSAI).\n\n"
+        "**Authentification** : `POST /login/` renvoie un `token_acces`, à envoyer ensuite "
+        "dans l'en-tête `X-Auth-Token` de chaque requête.\n\n"
+        "**Comptes de test** : `admin` / `123`, `collaborateur` / `456`, `client` / `789`."
+    ),
+)
 
 app.add_middleware(LogMiddleware)
 
@@ -50,11 +60,17 @@ async def redirect_to_docs():
 
 
 @app.get("/reset_database", tags=["BDD"])
-async def reset_database():
-    """Réinitialise la base de données"""
+async def reset_database(token=Depends(verif_token)):
+    """Réinitialise la base de données (ADMIN uniquement)"""
+    # Le grade est vérifié AVANT la réinitialisation : sinon n'importe quel compte connecté
+    # pouvait effacer la base (l'erreur n'était levée qu'après coup).
+    if token.grade != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous n'avez pas les permissions requises : ADMIN uniquement",
+        )
     logger.info("Database reset")
     succes = Reset_bdd().demarrer()
-
     return {
         "message": f"Database re-initialization - {'SUCCES' if succes else 'ECHEC'}"
     }

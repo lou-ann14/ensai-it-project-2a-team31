@@ -19,15 +19,15 @@ def hash_password(mdp: str, salt: str = "") -> str:
 
 
 def verif_token(x_auth_token=Header(None)) -> UtilisateurDAO:
-    """Verifies the authenticity of a player via the provided auth token.
+    """Vérifie l'authentification d'un utilisateur via un token donné.
 
-    This function checks if a token is present in the request headers and
-    validates it against the database.
-    Args:
-        x_auth_token (str, optional): The token extracted from the
-            'X-Auth-Token' HTTP header. Defaults to None.
+    Cette fonction vérifie si un token est présent dans les arguments d'une fonction
+    et valide le token à l'aide de la base de données.
+    Param:
+        x_auth_token (str, otpionnel): Le token extrait depuis le 'X-AUth-Token' dans le header HTTP. 
+            None par défaut.
     Returns:
-        Player object associated with the valid token.
+        L'utilisateur avec le bon token.
     Raises:
         HTTPException: 401 error if the token is missing.
         HTTPException: 401 error if the token is not found in the database.

@@ -44,6 +44,10 @@ class Trajet:
         self.train = train
         self.tarif_base = tarif_base
         self.temps_trajet = temps_trajet
+        # Places restantes par classe : calculées par TrajetService.ajouter_places_restantes
+        # (None tant qu'elles n'ont pas été calculées, ou si aucun train n'est associé)
+        self.places_restantes_premiere: int | None = None
+        self.places_restantes_seconde: int | None = None
 
     @property
     def nom_gare_depart(self) -> str:

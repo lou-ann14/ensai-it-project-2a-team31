@@ -8,9 +8,6 @@ from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
 from src.Classes.classes_service.trajet_service import TrajetService
-from src.Classes.classes_service.utilisateurs_service.client_service import (
-    ClientService,
-)
 from src.Classes.classes_service.utilisateurs_service.utilisateur_service import (
     UtilisateurService,
 )
@@ -20,6 +17,7 @@ from src.schema.gare_schema import GareReponseModel
 from src.schema.train_schema import TrainReponseModel
 from src.schema.utilisateur_schema import (
     CompteCreationModel,
+    MotDePasseModificationModel,
     ReservationCreationModel,
     ReservationReponseModel,
     TrajetReponseModel,
@@ -57,20 +55,14 @@ def get_trajet_service():
     return TrajetService()
 
 
-def get_client_service():
-    """Dependency Injection provider for ClientService."""
-    return ClientService()
-
-
-def trouver_client(id_client: int, utilisateur=Depends(verif_token)) -> Client:
-    """Récupère le client à partir de son id
+def trouver_client(utilisateur=Depends(verif_token)) -> Client:
+    """Dépendance FastAPI : renvoie le client connecté (identifié par son token).
+    L'id du client vient toujours du token, jamais d'un paramètre de la requête :
+    un client ne peut donc pas agir au nom d'un autre.
     Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide (via verif_token)
         HTTPException: erreur 400 si le compte n'est pas un compte client
-        HTTPException: erreur 404 si le client n'existe pas
     """
-    utilisateur = UtilisateurDAO().trouver_par_id(id_client)
-    if utilisateur is None:
-        raise HTTPException(status_code=404, detail=f"Le client #{id_client} n'existe pas.")
     if utilisateur.grade != "CLIENT":
         raise HTTPException(status_code=400, detail="Cette action est réservée aux comptes clients.")
     return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
@@ -168,22 +160,20 @@ def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
-    utilisateur=Depends(verif_token)
+    client: Client = Depends(trouver_client),
 ):
-    """Réserve une place sur un trajet
+    """Réserve une place sur un trajet pour le client connecté
     Param:
-        reservation: l'id du client, l'id du trajet, la place et la classe (1 ou 2)
+        reservation: l'id du trajet, la place et la classe (1 ou 2)
     Returns:
         ReservationReponseModel : la réservation créée, avec son client, son trajet et son prix
     Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
         HTTPException: erreur 400 si une donnée est invalide, si le trajet est déjà parti,
                        si le compte n'est pas un compte client ou si la place est déjà prise
-        HTTPException: erreur 404 si le client ou le trajet n'existe pas
+        HTTPException: erreur 404 si le trajet n'existe pas
     """
     logger.info("Création d'une réservation")
-
-    # Les id servent seulement à désigner le client et le trajet : le service reçoit des objets
-    client = trouver_client(reservation.id_client)
 
     trajet = trajet_service.trouver_par_id(reservation.id_trajet)
     if trajet is None:
@@ -201,40 +191,43 @@ def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-def voir_historique_reservations(id_client: int, reserv_service=Depends(get_reservation_service), utilisateur=Depends(verif_token)):
-    """Affiche toutes les réservations d'un client (passées et à venir)
-    Param:
-        id_client (int) : l'id du client
+def voir_historique_reservations(
+    reserv_service=Depends(get_reservation_service),
+    client: Client = Depends(trouver_client),
+):
+    """Affiche toutes les réservations du client connecté (passées et à venir)
     Returns:
         list[ReservationReponseModel] : les réservations du client (liste vide si aucune)
     Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
         HTTPException: erreur 400 si le compte n'est pas un compte client
-        HTTPException: erreur 404 si le client n'existe pas
     """
     logger.info("Consultation de l'historique des réservations")
 
-    return client_service.voir_historique_reservations(trouver_client(id_client))
+    return reserv_service.historique_par_client(client.id)
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-def annuler_reservation(id_reservation: int, id_client: int, client_service=Depends(get_client_service), utilisateur=Depends(verif_token)):
-    """Annule une réservation d'un client
+def annuler_reservation(
+    id_reservation: int,
+    reserv_service=Depends(get_reservation_service),
+    client: Client = Depends(trouver_client),
+):
+    """Annule une réservation du client connecté
     Param:
         id_reservation (int) : l'id de la réservation à annuler
-        id_client (int) : l'id du client qui annule
     Returns:
         MessageModel : un message de confirmation
     Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
         HTTPException: erreur 400 si le compte n'est pas un compte client, si la réservation
                        appartient à un autre client ou si le trajet est déjà parti
-        HTTPException: erreur 404 si le client ou la réservation n'existe pas
+        HTTPException: erreur 404 si la réservation n'existe pas
     """
     logger.info("Annulation d'une réservation")
 
-    client = trouver_client(id_client)
-
     try:
-        annulee = client_service.annuler_reservation(client, id_reservation)
+        annulee = reserv_service.annuler(id_reservation, client.id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not annulee:
@@ -274,6 +267,34 @@ def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_ut
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.put("/mot-de-passe", response_model=MessageModel, tags=["Utilisateur"])
+def changer_mot_de_passe(
+    demande: MotDePasseModificationModel,
+    utilisateur_service=Depends(get_utilisateur_service),
+    utilisateur=Depends(verif_token),
+):
+    """Change le mot de passe de l'utilisateur connecté (quel que soit son grade)
+    Param:
+        demande: l'ancien mot de passe (pour confirmer l'identité) et le nouveau
+    Returns:
+        MessageModel : un message de confirmation
+    Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
+        HTTPException: erreur 400 si l'ancien mot de passe est incorrect
+                       ou si le nouveau mot de passe est vide
+    """
+    logger.info("Changement de mot de passe")
+
+    try:
+        change = utilisateur_service.changer_mdp(utilisateur.id, demande.ancien_mdp, demande.nouveau_mdp)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not change:
+        raise HTTPException(status_code=400, detail="L'ancien mot de passe est incorrect.")
+
+    return {"message": "Mot de passe modifié avec succès"}
+
+
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
 def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
     """Trouve un train à l'aide de son numéro
@@ -286,4 +307,7 @@ def trouver_train(num_train: int, train_service=Depends(get_train_service), util
     """
     logger.info("Recherche d'un train par un utilisateur")
 
-    return train_service.trouver_train_par_num(num_train)
+    train = train_service.trouver_train_par_num(num_train)
+    if train is None:
+        raise HTTPException(status_code=404, detail=f"Le train numéro {num_train} n'existe pas.")
+    return train

@@ -101,7 +101,7 @@ def test_route_refusee_sans_le_grade_collaborateur(appel):
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         appel(service)
-    assert erreur.value.status_code == 401
+    assert erreur.value.status_code == 403
     assert service.mock_calls == []
 
 
@@ -159,12 +159,13 @@ def test_route_modifier_capacite_invalide():
     assert erreur.value.status_code == 400
 
 
-def test_route_modifier_capacite_non_executee():
+def test_route_modifier_capacite_train_inexistant():
+    """Le service renvoie None quand le train n'existe pas : le contrôleur répond 404"""
     service = MagicMock()
     service.modifier_capacite.return_value = None
     with pytest.raises(HTTPException) as erreur:
         collaborateur_controller.modifier_capacite(8541, TRAIN, service, COLLAB)
-    assert erreur.value.status_code == 500
+    assert erreur.value.status_code == 404
 
 
 @pytest.mark.parametrize(
@@ -179,5 +180,5 @@ def test_routes_refusees_sans_le_grade_collaborateur(appel):
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         appel(service)
-    assert erreur.value.status_code == 401
+    assert erreur.value.status_code == 403
     assert service.mock_calls == []

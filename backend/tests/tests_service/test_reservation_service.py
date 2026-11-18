@@ -36,8 +36,13 @@ reservation_passee = Reservation(client_fan2train, trajet_passe, "12A", 2, 40.0,
 @pytest.fixture
 def dao():
     """Remplace ReservationDAO par un faux DAO : aucune vraie base n'est utilisée"""
-    with patch("src.Classes.classes_service.reservations_service.ReservationDAO") as reservation_dao:
+    # Le même faux DAO sert aussi à TrajetService, qui compte les places réservées
+    with (
+        patch("src.Classes.classes_service.reservations_service.ReservationDAO") as reservation_dao,
+        patch("src.Classes.classes_service.trajet_service.ReservationDAO", reservation_dao),
+    ):
         reservation_dao.return_value.creer.side_effect = lambda reservation: reservation  # renvoie ce qu'on lui donne
+        reservation_dao.return_value.compter_par_trajets.return_value = {}  # aucune place réservée
         yield reservation_dao.return_value
 
 
@@ -47,7 +52,7 @@ def dao():
 def test_creer_seconde_classe_ok(dao):
     """Seconde classe : le prix est le tarif de base"""
     # WHEN
-    res = ReservationService().creer(client_fan2train, trajet_futur, "12A", 2)
+    res = ReservationService().creer(client_fan2train, trajet_futur, "12", 2)
 
     # THEN
     dao.creer.assert_called_once()
@@ -59,22 +64,22 @@ def test_creer_seconde_classe_ok(dao):
 
 def test_creer_premiere_classe_ok(dao):
     """Première classe : le prix est multiplié par 1,5"""
-    res = ReservationService().creer(client_fan2train, trajet_futur, "3B", 1)
+    res = ReservationService().creer(client_fan2train, trajet_futur, "3", 1)
 
     assert res.prix == 60.0
 
 
 def test_creer_place_nettoyee(dao):
     """Les espaces autour de la place sont retirés"""
-    res = ReservationService().creer(client_fan2train, trajet_futur, "  12A  ", 2)
+    res = ReservationService().creer(client_fan2train, trajet_futur, "  12  ", 2)
 
-    assert res.place == "12A"
+    assert res.place == "12"
 
 
 def test_creer_client_manquant(dao):
     """Pas de client : ValueError"""
     with pytest.raises(ValueError, match="client est obligatoire"):
-        ReservationService().creer(None, trajet_futur, "12A", 2)
+        ReservationService().creer(None, trajet_futur, "12", 2)
     dao.creer.assert_not_called()
 
 
@@ -97,14 +102,14 @@ def test_creer_place_manquante(dao, place):
 def test_creer_trajet_manquant(dao):
     """Pas de trajet : ValueError"""
     with pytest.raises(ValueError, match="trajet est obligatoire"):
-        ReservationService().creer(client_fan2train, None, "12A", 2)
+        ReservationService().creer(client_fan2train, None, "12", 2)
     dao.creer.assert_not_called()
 
 
 def test_creer_trajet_deja_parti(dao):
     """Le trajet est parti hier : ValueError"""
     with pytest.raises(ValueError, match="déjà parti"):
-        ReservationService().creer(client_fan2train, trajet_passe, "12A", 2)
+        ReservationService().creer(client_fan2train, trajet_passe, "12", 2)
     dao.creer.assert_not_called()
 
 
@@ -115,7 +120,7 @@ def test_creer_place_deja_reservee(dao):
 
     # WHEN / THEN
     with pytest.raises(ValueError, match="déjà réservée"):
-        ReservationService().creer(client_fan2train, trajet_futur, "12A", 2)
+        ReservationService().creer(client_fan2train, trajet_futur, "12", 2)
 
 
 def test_creer_client_inexistant(dao):
@@ -125,7 +130,54 @@ def test_creer_client_inexistant(dao):
 
     # WHEN / THEN
     with pytest.raises(ValueError, match="n'existe pas"):
-        ReservationService().creer(client_fan2train, trajet_futur, "12A", 2)
+        ReservationService().creer(client_fan2train, trajet_futur, "12", 2)
+
+
+# Tests places (surréservation et numéro de place)
+
+
+def test_creer_place_normalisee(dao):
+    """« 007 » et « 7 » désignent la même place : elle est enregistrée sous la forme « 7 »"""
+    res = ReservationService().creer(client_fan2train, trajet_futur, "007", 2)
+
+    assert res.place == "7"
+
+
+@pytest.mark.parametrize("place, classe", [("999Z", 2), ("12A", 2), ("0", 2), ("301", 2), ("101", 1), ("-3", 1)])
+def test_creer_place_inexistante(dao, place, classe):
+    """Le train TGV a 100 places en 1re et 300 en 2de : une place hors de ces numéros est refusée"""
+    with pytest.raises(ValueError, match="numéro entre 1 et"):
+        ReservationService().creer(client_fan2train, trajet_futur, place, classe)
+    dao.creer.assert_not_called()
+
+
+def test_creer_derniere_place_ok(dao):
+    """Il reste 1 place en 1re classe (99 réservées sur 100) : la réservation passe"""
+    dao.compter_par_trajets.return_value = {trajet_futur.id_trajet: {1: 99}}
+
+    res = ReservationService().creer(client_fan2train, trajet_futur, "100", 1)
+
+    assert res.place == "100"
+    dao.creer.assert_called_once()
+
+
+def test_creer_classe_complete(dao):
+    """Les 300 places de seconde sont réservées : ValueError « complet », même si la 1re a de la place"""
+    dao.compter_par_trajets.return_value = {trajet_futur.id_trajet: {2: 300, 1: 10}}
+
+    with pytest.raises(ValueError, match="complet en seconde classe"):
+        ReservationService().creer(client_fan2train, trajet_futur, "12", 2)
+    dao.creer.assert_not_called()
+
+
+def test_creer_trajet_sans_train(dao):
+    """Un trajet sans train n'a pas de places : il n'est pas réservable"""
+    trajet = creer_trajet()
+    trajet.train = None
+
+    with pytest.raises(ValueError, match="Aucun train"):
+        ReservationService().creer(client_fan2train, trajet, "12", 2)
+    dao.creer.assert_not_called()
 
 
 # Tests annuler
@@ -138,7 +190,7 @@ def test_annuler_ok(dao):
     dao.annuler.return_value = True
 
     # WHEN / THEN
-    assert ReservationService().annuler(1) is True
+    assert ReservationService().annuler(1, client_fan2train.id) is True
     dao.annuler.assert_called_once_with(1)
 
 
@@ -146,7 +198,7 @@ def test_annuler_inexistante(dao):
     """La réservation 99 n'existe pas : False, sans appeler annuler"""
     dao.trouver_par_id.return_value = None
 
-    assert ReservationService().annuler(99) is False
+    assert ReservationService().annuler(99, client_fan2train.id) is False
     dao.annuler.assert_not_called()
 
 
@@ -155,7 +207,16 @@ def test_annuler_trajet_deja_parti(dao):
     dao.trouver_par_id.return_value = reservation_passee
 
     with pytest.raises(ValueError, match="déjà parti"):
-        ReservationService().annuler(2)
+        ReservationService().annuler(2, client_fan2train.id)
+    dao.annuler.assert_not_called()
+
+
+def test_annuler_reservation_d_un_autre_client(dao):
+    """Un client ne peut pas annuler la réservation d'un autre : ValueError, sans appeler annuler"""
+    dao.trouver_par_id.return_value = reservation_future  # appartient au client #1
+
+    with pytest.raises(ValueError, match="autre client"):
+        ReservationService().annuler(1, id_client=2)
     dao.annuler.assert_not_called()
 
 

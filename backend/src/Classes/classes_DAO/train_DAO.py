@@ -146,6 +146,51 @@ class TrainDAO:
         return train
 
     @log
+    def trouver_par_id(self, id_train: int) -> Train | None:
+        """
+        Récupère un train par son identifiant.
+
+        Param:
+        ------
+        id_train: int
+            l'identifiant du train
+
+        Return:
+        ------
+        Train | None
+            le train trouvé, ou None si aucun train n'a cet identifiant
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT *                          "
+                    "  FROM trains                     "
+                    " WHERE id_train = %(id_train)s    ",
+                    {"id_train": id_train},
+                )
+                train_bdd = cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.trouver_par_id : {e}")
+            raise
+
+        if train_bdd is None:
+            return None
+
+        return Train(
+            type_train=train_bdd["type_train"],
+            places_premieres=train_bdd["places_premieres"],
+            places_secondes=train_bdd["places_secondes"],
+            num_train=train_bdd["num_train"],
+            id_train=train_bdd["id_train"],
+        )
+
+    @log
     def trouver_id_par_num(self, num_train: int) -> int:
         """
         Récupère l'identifiant d'un train à partir de son numéro.

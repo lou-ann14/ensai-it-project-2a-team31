@@ -41,3 +41,33 @@ def test_changer_mdp_ne_passe_pas_par_modifier(dao):
     """modifier remettrait le token à vide : trouver_par_id ne le lit pas."""
     UtilisateurService().changer_mdp(1, "ancien", "nouveau")
     dao.modifier.assert_not_called()
+
+
+# Tests creer_compte
+
+
+def test_creer_compte_ok(dao):
+    dao.creer.return_value = True
+
+    utilisateur = UtilisateurService().creer_compte("alice", "secret")
+
+    assert utilisateur.grade == "CLIENT"
+    assert utilisateur.mdp == hash_password("secret", "alice")  # jamais stocké en clair
+
+
+def test_creer_compte_nom_deja_pris_en_base(dao):
+    """Deux inscriptions simultanées : la contrainte UNIQUE de la base refuse la seconde"""
+    from psycopg2.errors import UniqueViolation
+
+    dao.creer.side_effect = UniqueViolation
+
+    with pytest.raises(ValueError, match="déjà pris"):
+        UtilisateurService().creer_compte("alice", "secret")
+
+
+@pytest.mark.parametrize("nouveau", ["", "   ", None])
+def test_changer_mdp_nouveau_vide(dao, nouveau):
+    """Un nouveau mot de passe vide est refusé, sans toucher à la base"""
+    with pytest.raises(ValueError, match="obligatoire"):
+        UtilisateurService().changer_mdp(1, "ancien", nouveau)
+    dao.modifier_mdp.assert_not_called()
