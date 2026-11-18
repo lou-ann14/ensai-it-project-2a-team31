@@ -55,7 +55,7 @@ def get_trajet_service():
     return TrajetService()
 
 
-def trouver_client(utilisateur=Depends(verif_token)) -> Client:
+async def trouver_client(utilisateur=Depends(verif_token)) -> Client:
     """Dépendance FastAPI : renvoie le client connecté (identifié par son token).
     L'id du client vient toujours du token, jamais d'un paramètre de la requête :
     un client ne peut donc pas agir au nom d'un autre.
@@ -68,7 +68,7 @@ def trouver_client(utilisateur=Depends(verif_token)) -> Client:
     return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
 
 
-def trouver_gare(nom: str, gare_service: GareService) -> Gare:
+async def trouver_gare(nom: str, gare_service: GareService) -> Gare:
     """Retrouve une gare à partir de son nom (insensible à la casse)
     Le nom exact est prioritaire : « Rennes » désigne Rennes, et non Rennes Beaulieu Chimie.
     Sinon, un début de nom suffit s'il ne correspond qu'à une seule gare.
@@ -101,7 +101,7 @@ def trouver_gare(nom: str, gare_service: GareService) -> Gare:
 
 
 @router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
-def rechercher_trajets(
+async def rechercher_trajets(
     gare_depart: str,
     gare_arrivee: str,
     date_voyage: date,
@@ -133,7 +133,7 @@ def rechercher_trajets(
 
 
 @router.get("/gares", response_model=list[GareReponseModel], tags=["Utilisateur"])
-def rechercher_gares(
+async def rechercher_gares(
     nom: str | None = None,
     ville: str | None = None,
     gare_service=Depends(get_gare_service),
@@ -156,7 +156,7 @@ def rechercher_gares(
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def reserver(
+async def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
@@ -191,7 +191,7 @@ def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-def voir_historique_reservations(
+async def voir_historique_reservations(
     reserv_service=Depends(get_reservation_service),
     client: Client = Depends(trouver_client),
 ):
@@ -208,7 +208,7 @@ def voir_historique_reservations(
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-def annuler_reservation(
+async def annuler_reservation(
     id_reservation: int,
     reserv_service=Depends(get_reservation_service),
     client: Client = Depends(trouver_client),
@@ -242,7 +242,7 @@ def annuler_reservation(
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
+async def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
@@ -257,9 +257,6 @@ def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_ut
 
     if not nom_utilisateur or not compte.mdp:
         raise HTTPException(status_code=400, detail="Le nom d'utilisateur et le mot de passe sont obligatoires.")
-    if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
-        raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
-
     # Le service impose le grade CLIENT et hache le mot de passe
     try:
         return utilisateur_service.creer_compte(nom_utilisateur, compte.mdp)
@@ -268,7 +265,7 @@ def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_ut
 
 
 @router.put("/mot-de-passe", response_model=MessageModel, tags=["Utilisateur"])
-def changer_mot_de_passe(
+async def changer_mot_de_passe(
     demande: MotDePasseModificationModel,
     utilisateur_service=Depends(get_utilisateur_service),
     utilisateur=Depends(verif_token),
@@ -296,7 +293,7 @@ def changer_mot_de_passe(
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
-def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
+async def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
     """Trouve un train à l'aide de son numéro
     Param:
         num_train (int)
