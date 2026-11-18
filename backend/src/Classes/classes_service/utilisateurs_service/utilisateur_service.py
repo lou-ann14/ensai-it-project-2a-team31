@@ -1,5 +1,7 @@
 import secrets
 
+from psycopg2.errors import UniqueViolation
+
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.utils.log_utils import log
@@ -16,13 +18,19 @@ class UtilisateurService:
             mdp (str): mot de passe
         Returns:
             Utilisateur créer ou None sinon.
+        Raises:
+            ValueError: si le nom d'utilisateur est déjà pris (contrainte UNIQUE de la base,
+                qui protège aussi contre deux inscriptions simultanées avec le même nom)
         """
         utilisateur = Utilisateur(
             nom_utilisateur=nom,
             mdp=hash_password(mdp, nom),
             grade="CLIENT"
         )
-        return utilisateur if UtilisateurDAO().creer(utilisateur) else None
+        try:
+            return utilisateur if UtilisateurDAO().creer(utilisateur) else None
+        except UniqueViolation:
+            raise ValueError("Ce nom d'utilisateur est déjà pris.")
 
 
     @log
@@ -35,7 +43,12 @@ class UtilisateurService:
         Returns:
             True si le mot de passe a été changé, False si l'utilisateur n'existe pas
             ou si l'ancien mot de passe est incorrect.
+        Raises:
+            ValueError: si le nouveau mot de passe est vide.
         """
+        if not nouveau_mdp or not nouveau_mdp.strip():
+            raise ValueError("Le nouveau mot de passe est obligatoire.")
+
         utilisateur = UtilisateurDAO().trouver_par_id(id_utilisateur)
         if utilisateur is None:
             return False

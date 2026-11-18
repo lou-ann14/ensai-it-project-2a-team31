@@ -3,7 +3,6 @@ import streamlit as st
 import api
 import commun
 
-utilisateur = commun.utilisateur()
 
 st.title("Lignes")
 st.caption(
@@ -38,7 +37,7 @@ with creer, st.form("creer_ligne"):
             st.warning("Choisissez les deux gares.")
         else:
             try:
-                reponse = api.creer_ligne(commun.token(), depart["nom"], arrivee["nom"], utilisateur["id"])
+                reponse = api.creer_ligne(commun.token(), depart["nom"], arrivee["nom"])
                 memo[reponse["id_ligne"]] = f"{depart['nom']} → {arrivee['nom']}"
                 st.success(f"{reponse['message']} : ligne #{reponse['id_ligne']}.")
             except api.ErreurAPI as e:

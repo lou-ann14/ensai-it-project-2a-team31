@@ -2,21 +2,13 @@ from datetime import date, datetime, timedelta
 
 from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.ligne_DAO import LigneDAO
+from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_objets.gare import Gare
-from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_service.train_service import TrainService
 from src.utils.log_utils import log
 from src.utils.sncf_client import SncfClient
-
-
-def train_depuis_id(id_train: int) -> Train:
-    """Construit le Train d'un trajet à partir de son seul id.
-    Seul id_train est enregistré sur le trajet et la base vérifie qu'il existe (clé étrangère) :
-    les autres champs sont des valeurs neutres, à ne pas lire.
-    TODO : remplacer par TrainDAO.trouver_par_id quand cette méthode existera.
-    """
-    return Train(type_train="", places_premieres=0, places_secondes=0, num_train=0, id_train=id_train)
 
 
 class TrajetService:
@@ -64,6 +56,8 @@ class TrajetService:
         """
         self._verifier_donnees(id_ligne, id_train, heure_depart, tarif_base)
         ligne = self._verifier_ligne(id_ligne)
+        # Le vrai train est chargé (et son existence vérifiée) AVANT d'appeler l'API SNCF
+        train = TrainService().trouver_par_id(id_train)
 
         if self._trajet_similaire_existe(ligne, heure_depart):
             raise ValueError("Un trajet existe déjà sur cette ligne à cette date et à cette heure.")
@@ -74,7 +68,7 @@ class TrajetService:
             heure_depart=heure_depart,
             heure_arrivee=heure_depart + timedelta(seconds=duree),
             ligne=ligne,
-            train=train_depuis_id(id_train),
+            train=train,
             tarif_base=float(tarif_base),
             temps_trajet=round(duree / 60),
         )
@@ -190,7 +184,37 @@ class TrajetService:
         if date_voyage is None:
             raise ValueError("La date de voyage est obligatoire.")
 
-        return self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
+        trajets = self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
+        return self.ajouter_places_restantes(trajets)
+
+    @log
+    def ajouter_places_restantes(self, trajets: list[Trajet]) -> list[Trajet]:
+        """
+        Calcule les places restantes de chaque trajet, en première et en seconde classe
+        (capacité du train - places déjà réservées), et les renseigne sur les trajets.
+        Fonctionnalité F5 (positionnement commercial) : le client voit les places restantes.
+
+        Param:
+        ------
+        trajets: list[Trajet]
+            les trajets à compléter (leur train doit être chargé, comme le fait TrajetDAO)
+
+        Return:
+        ------
+        list[Trajet]
+            les mêmes trajets, avec places_restantes_premiere et places_restantes_seconde renseignés
+            (laissés à None pour un trajet sans train)
+        """
+        ids_trajets = [trajet.id_trajet for trajet in trajets if trajet.train is not None]
+        reservees = ReservationDAO().compter_par_trajets(ids_trajets)
+
+        for trajet in trajets:
+            if trajet.train is None:
+                continue
+            par_classe = reservees.get(trajet.id_trajet, {})
+            trajet.places_restantes_premiere = max(trajet.train.places_premieres - par_classe.get(1, 0), 0)
+            trajet.places_restantes_seconde = max(trajet.train.places_secondes - par_classe.get(2, 0), 0)
+        return trajets
 
     @log
     def trouver_par_id(self, id_trajet: int) -> Trajet | None:
