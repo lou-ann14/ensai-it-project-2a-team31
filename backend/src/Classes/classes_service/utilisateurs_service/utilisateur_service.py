@@ -1,7 +1,6 @@
 import secrets
 
 from psycopg2.errors import UniqueViolation
-
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.utils.log_utils import log
@@ -22,6 +21,8 @@ class UtilisateurService:
             ValueError: si le nom d'utilisateur est déjà pris (contrainte UNIQUE de la base,
                 qui protège aussi contre deux inscriptions simultanées avec le même nom)
         """
+        if UtilisateurDAO().trouver_par_nom_utilisateur(nom) is not None:
+            raise ValueError("Nom déjà pris, veuillez choisir un nom différent")
         utilisateur = Utilisateur(
             nom_utilisateur=nom,
             mdp=hash_password(mdp, nom),
