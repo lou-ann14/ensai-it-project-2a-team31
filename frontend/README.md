@@ -1,52 +1,67 @@
 # Frontend (Streamlit)
 
-Interface web de l'API Concurrent SNCF. Elle appelle l'API du backend : celle-ci doit donc être lancée avant.
+Web interface for the Concurrent SNCF API. It only talks to the backend API, so the backend
+must be running first.
 
-## Lancer l'application
+## Run the application
 
-Depuis la racine du dépôt :
+From the repository root:
 
 ```bash
-# 1. Backend (dans un premier terminal)
+# 1. Backend (first terminal)
 uv sync --project backend
 uv run --project backend python backend/main.py
 
-# 2. Frontend (dans un second terminal)
+# 2. Frontend (second terminal)
 uv sync --project frontend
 uv run --project frontend streamlit run frontend/app.py
 ```
 
-L'interface est servie sur le port **8501**. Sur Onyxia, ouvrez-la avec l'URL du proxy VS Code
-(`VSCODE_PROXY_URI`) en remplaçant `{{port}}` par `8501`, ou depuis l'onglet **Ports** de VS Code.
+The interface runs on port **8501** (`http://localhost:8501`). On Onyxia, open it with the
+VS Code proxy URL (`VSCODE_PROXY_URI`) by replacing `{{port}}` with `8501`, or from the
+**Ports** tab of VS Code.
 
-L'URL de l'API est lue dans le `.env` (`BACKEND_URL`, par défaut `http://localhost:5000`),
-tout comme le délai d'attente (`BACKEND_TIMEOUT`, en secondes).
+The API address is read from the `.env` file (`BACKEND_URL`, default `http://localhost:5000`),
+as well as the request timeout (`BACKEND_TIMEOUT`, in seconds, default 10). Requests that call
+the SNCF API (station import, journey creation) get at least 30 seconds.
 
-## Comptes de test
+## Test accounts
 
-Créés par `GET /reset_database` (fichier `backend/data/admin.sql`) :
+Created when the database is initialized (file `backend/data/admin.sql`):
 
-| Nom             | Mot de passe | Grade         |
-|-----------------|--------------|---------------|
-| `admin`         | `123`        | ADMIN         |
-| `collaborateur` | `456`        | COLLABORATEUR |
-| `client`        | `789`        | CLIENT        |
+| Username        | Password | Role          |
+|-----------------|----------|---------------|
+| `admin`         | `123`    | ADMIN         |
+| `collaborateur` | `456`    | COLLABORATEUR |
+| `client`        | `789`    | CLIENT        |
 
-## Pages selon le grade
+## Pages by role
 
-| Grade         | Pages                                                        |
-|---------------|--------------------------------------------------------------|
-| Tous          | Connexion, création de compte, recherche de trajets          |
-| CLIENT        | Réservation depuis la recherche, Mes réservations (annulation) |
-| COLLABORATEUR | Gares (import SNCF), Lignes, Trains, Trajets                 |
-| ADMIN         | Comptes (recherche, changement de grade)                     |
+Roles follow a hierarchy: each role also gets the pages of the roles below it.
 
-## Organisation du code
+| Role          | Pages                                                                     |
+|---------------|---------------------------------------------------------------------------|
+| Not logged in | Login, account creation                                                   |
+| CLIENT        | Search journeys, book a seat, My bookings (with cancellation)            |
+| COLLABORATEUR | Everything above, plus Stations (SNCF import), Lines, Trains, Journeys    |
+| ADMIN         | Everything above, plus Accounts (search, change a role)                   |
+
+### Search and booking
+
+- The departures board shows, for each journey: times, duration, train, price in both classes
+  and the **remaining seats** in each class (`COMPLET` when a class is full).
+- The "Tarification transparente" box shows how the price is split: operating cost,
+  network fee, margin and VAT.
+- When booking, the seat is given automatically by default. The user can also pick one in the
+  list of free seats.
+
+## Code organization
 
 ```
 frontend/
-├── app.py        # point d'entrée : connexion et navigation selon le grade
-├── api.py        # appels HTTP à l'API (une fonction par route)
-├── commun.py     # session, gestion des erreurs, formatage
-└── vues/         # une page par fichier
+├── app.py        # entry point: login and navigation by role
+├── api.py        # HTTP calls to the API (one function per route)
+├── commun.py     # session, error handling, formatting helpers
+├── style.py      # look of the app (departures board, tickets)
+└── vues/         # one page per file
 ```

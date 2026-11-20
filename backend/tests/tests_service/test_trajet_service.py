@@ -576,6 +576,7 @@ def test_rechercher_affiche_les_places_restantes():
 
 
 def test_places_restantes_sans_reservation():
+    """Aucune réservation : toutes les places du train sont libres"""
     trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
 
     with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
@@ -686,6 +687,7 @@ def test_places_libres_ignore_les_anciennes_places():
 
 
 def test_places_libres_trajet_sans_train():
+    """Trajet sans train : ValueError"""
     trajet = Trajet(heure_depart, heure_arrivee, ligne_test, None, tarif_base, id_trajet=11)
 
     with pytest.raises(ValueError, match="Aucun train"):
@@ -723,6 +725,7 @@ def test_creer_date_passee_refusee(mocks):
 
 
 def test_modifier_date_passee_refusee(mocks):
+    """Nouvelle date dans le passé : ValueError, rien n'est modifié"""
     mocks.dao.trouver_par_id.return_value = MagicMock()
     passe = datetime(2025, 1, 10, 8, 30)
     trajet = Trajet(passe, passe, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
@@ -767,6 +770,7 @@ def test_modifier_trajet_reserve_train_trop_petit(mocks, reservations):
 
 
 def test_modifier_trajet_reserve_premiere_classe_trop_petite(mocks, reservations):
+    """5 places déjà prises en 1re : un train de 4 places en 1re est refusé"""
     mocks.dao.trouver_par_id.return_value = ancien_trajet()
     reservations.capacite_minimale_par_trajet.return_value = {1: 5}
 

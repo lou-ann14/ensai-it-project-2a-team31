@@ -23,6 +23,7 @@ def test_reset_refuse_pour_un_non_admin():
 
 
 def test_reset_ok_pour_un_admin():
+    """Un admin peut réinitialiser la base"""
     with patch("main.Reset_bdd") as reset:
         reset.return_value.demarrer.return_value = True
         reponse = main.reset_database(token=MagicMock(grade="ADMIN"))

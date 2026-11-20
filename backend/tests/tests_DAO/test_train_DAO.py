@@ -112,11 +112,13 @@ class TestsTrainDAO:
         assert (resultat.id_train, resultat.num_train, resultat.places_premieres) == (1, 8541, 200)
 
     def test_trouver_par_id_inexistant(self, curseur):
+        """Le train n'existe pas : None"""
         curseur.fetchone.return_value = None
 
         assert TrainDAO().trouver_par_id(99) is None
 
     def test_trouver_par_id_erreur_bdd(self, curseur):
+        """Une erreur de la base est relancée"""
         curseur.execute.side_effect = Exception("connexion perdue")
 
         with pytest.raises(Exception, match="connexion perdue"):

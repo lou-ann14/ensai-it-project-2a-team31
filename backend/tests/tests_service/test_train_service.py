@@ -69,6 +69,7 @@ def test_trouver_train_par_num_inexistant(dao):
 
 
 def test_trouver_par_id_ok(dao):
+    """Le train trouvé par le DAO est renvoyé"""
     train = Train("TGV", 100, 300, 8541, id_train=1)
     dao.trouver_par_id.return_value = train
 
@@ -77,6 +78,7 @@ def test_trouver_par_id_ok(dao):
 
 
 def test_trouver_par_id_inexistant(dao):
+    """Train inexistant : ValueError"""
     dao.trouver_par_id.return_value = None
 
     with pytest.raises(ValueError, match="train #99 n'existe pas"):
@@ -84,6 +86,7 @@ def test_trouver_par_id_inexistant(dao):
 
 
 def test_trouver_par_id_manquant(dao):
+    """Pas d'id : ValueError, sans requête à la base"""
     with pytest.raises(ValueError, match="obligatoire"):
         TrainService().trouver_par_id(None)
     dao.trouver_par_id.assert_not_called()

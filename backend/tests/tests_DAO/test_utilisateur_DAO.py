@@ -154,6 +154,7 @@ class TestUtilisateurDAO:
         assert parametres == {"mdp": "nouveau_hash", "id": 1}
 
     def test_modifier_mdp_utilisateur_inexistant(self, curseur):
+        """Aucune ligne modifiée (utilisateur inexistant) : False"""
         curseur.rowcount = 0
 
         assert UtilisateurDAO().modifier_mdp(99, "nouveau_hash") is False
@@ -169,12 +170,14 @@ class TestUtilisateurDAO:
         assert "token_acces" in curseur.execute.call_args.args[0]
 
     def test_trouver_par_nom_utilisateur_lit_le_token(self, curseur):
+        """Le token est lu en base avec l'utilisateur"""
         curseur.fetchone.return_value = utilisateur_bdd
 
         assert UtilisateurDAO().trouver_par_nom_utilisateur("jaimelestrains").token == "jeton"
         assert "token_acces" in curseur.execute.call_args.args[0]
 
     def test_trouver_par_token_ok(self, curseur):
+        """Token connu : l'utilisateur correspondant est renvoyé"""
         curseur.fetchone.return_value = utilisateur_bdd
 
         resultat = UtilisateurDAO().trouver_par_token("jeton")
@@ -186,11 +189,13 @@ class TestUtilisateurDAO:
         assert parametres == {"token": "jeton"}
 
     def test_trouver_par_token_inconnu(self, curseur):
+        """Token inconnu : None"""
         curseur.fetchone.return_value = None
 
         assert UtilisateurDAO().trouver_par_token("inconnu") is None
 
     def test_trouver_par_token_vide(self, curseur):
+        """Token vide : None, sans requête à la base"""
         assert UtilisateurDAO().trouver_par_token(None) is None
         curseur.execute.assert_not_called()
 
@@ -198,6 +203,7 @@ class TestUtilisateurDAO:
     # Tests login
     # ------------------------------------------------------------------
     def test_login_ok(self, curseur):
+        """Bons identifiants : l'utilisateur est renvoyé"""
         curseur.fetchone.return_value = utilisateur_bdd
 
         resultat = UtilisateurDAO().login("jaimelestrains", "1234")
@@ -208,6 +214,7 @@ class TestUtilisateurDAO:
         assert parametres == {"nom_utilisateur": "jaimelestrains", "mdp": "1234"}
 
     def test_login_incorrect(self, curseur):
+        """Mauvais identifiants : None"""
         curseur.fetchone.return_value = None
 
         assert UtilisateurDAO().login("jaimelestrains", "faux") is None

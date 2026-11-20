@@ -27,6 +27,7 @@ def test_detail_prix_seconde_classe():
 
 
 def test_detail_prix_premiere_classe():
+    """En 1re classe, le total vaut 1,5 fois le tarif de base"""
     assert tarification.detail_prix(20.0, 1)["prix_total"] == 30.0
 
 
@@ -43,6 +44,7 @@ def test_detail_prix_somme_exacte(tarif_base, classe):
 
 
 def test_detail_prix_gratuit():
+    """Tarif de base à 0 : tous les postes valent 0"""
     assert tarification.detail_prix(0.0, 2) == {
         "prix_total": 0.0, "cout_exploitation": 0.0, "peage_reseau": 0.0, "marge": 0.0, "tva": 0.0,
     }

@@ -36,6 +36,7 @@ class TestTrain:
         ]
     )
     def test_init_train(self, params, erreur, message_erreur):
+        """Paramètres invalides : la bonne erreur est levée"""
         dico = {
             "id_train": 1,
             "type_train": "rouge",
@@ -51,4 +52,5 @@ class TestTrain:
         [(1, "rouge", 500, 1000, "Le train numéro 1 dispose de 500 places en première classe et 1000 en seconde classe, c'est un train rouge")]
     )
     def test_str_train(self, num_train, type_train, places_premieres, places_secondes, resultat_attendu):
+        """Affichage d'un train"""
         assert str(Train(type_train, places_premieres, places_secondes, num_train)) == resultat_attendu

@@ -37,14 +37,17 @@ def service_gares():
 
 @pytest.mark.parametrize("nom", ["Rennes", "rennes", "  RENNES  "])
 def test_nom_exact_prioritaire(nom):
+    """Le nom exact l'emporte (casse et espaces ignorés) : Rennes et pas Rennes Beaulieu"""
     assert trouver_gare(nom, service_gares()) is RENNES
 
 
 def test_debut_de_nom_unique():
+    """Un début de nom qui ne correspond qu'à une gare suffit"""
     assert trouver_gare("Nan", service_gares()) is NANTES
 
 
 def test_plusieurs_gares_correspondent():
+    """Début de nom ambigu : 400, avec la liste des gares possibles"""
     with pytest.raises(HTTPException) as erreur:
         trouver_gare("Ren", service_gares())
     assert erreur.value.status_code == 400
@@ -53,6 +56,7 @@ def test_plusieurs_gares_correspondent():
 
 
 def test_meme_nom_exact_dans_deux_villes():
+    """Même nom dans deux villes : 400, la ville est indiquée pour choisir"""
     service = MagicMock()
     service.rechercher.return_value = [gare("Centre", 1, "Lyon"), gare("Centre", 2, "Metz")]
     with pytest.raises(HTTPException) as erreur:
@@ -62,6 +66,7 @@ def test_meme_nom_exact_dans_deux_villes():
 
 
 def test_gare_inconnue():
+    """Aucune gare ne correspond : 404"""
     with pytest.raises(HTTPException) as erreur:
         trouver_gare("Zzz", service_gares())
     assert erreur.value.status_code == 404
@@ -81,6 +86,7 @@ def test_nom_vide_ne_lance_pas_la_recherche(nom):
 
 
 def test_rechercher_trajets_par_nom():
+    """La recherche de trajets accepte des noms de gares"""
     trajets = MagicMock()
     jour = date(2026, 11, 18)
 
@@ -90,6 +96,7 @@ def test_rechercher_trajets_par_nom():
 
 
 def test_rechercher_trajets_gare_inconnue():
+    """Gare inconnue : 404, sans lancer la recherche"""
     trajets = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         utilisateur_controller.rechercher_trajets(
@@ -100,6 +107,7 @@ def test_rechercher_trajets_gare_inconnue():
 
 
 def test_creer_ligne_par_nom():
+    """La ligne est créée à partir des noms des gares"""
     service = MagicMock()
     service.creer_ligne.return_value.id_ligne = 7
 
@@ -122,6 +130,7 @@ def test_creer_ligne_rattachee_au_collaborateur_du_token():
 
 
 def test_modifier_ligne_par_nom():
+    """La ligne est modifiée à partir des noms des gares"""
     service = MagicMock()
 
     collaborateur_controller.modifier_ligne(9, "Nantes", "Rennes", service, service_gares(), COLLAB)
@@ -130,6 +139,7 @@ def test_modifier_ligne_par_nom():
 
 
 def test_creer_ligne_gare_ambigue():
+    """Gare ambiguë : 400, et la ligne n'est pas créée"""
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         collaborateur_controller.creer_ligne("Ren", "Nantes", service, service_gares(), COLLAB)
@@ -138,6 +148,7 @@ def test_creer_ligne_gare_ambigue():
 
 
 def test_creer_ligne_sans_le_grade_collaborateur():
+    """Compte client : 403, avant même de chercher les gares"""
     service = MagicMock()
     gares = service_gares()
     with pytest.raises(HTTPException) as erreur:

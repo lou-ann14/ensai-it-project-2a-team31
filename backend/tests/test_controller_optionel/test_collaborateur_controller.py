@@ -35,11 +35,13 @@ def _chemins(controller, methode):
 
 
 def test_routes_deplacees_chez_le_collaborateur():
+    """Les routes des trains et de l'import des gares sont dans le contrôleur collaborateur"""
     assert {"/trains", "/gares/importer"} <= _chemins(collaborateur_controller, "POST")
     assert "/trains/{num_train}" in _chemins(collaborateur_controller, "PUT")
 
 
 def test_routes_retirees_de_l_administrateur():
+    """Ces routes ne sont plus dans le contrôleur administrateur"""
     chemins = {route.path for route in administrateur_controller.router.routes}
     assert not {"/trains", "/trains/{num_train}", "/gares/importer"} & chemins
 
@@ -57,6 +59,7 @@ def test_routes_retirees_de_l_administrateur():
     ],
 )
 def test_route_introuvable_renvoie_404(appel, methode, resultat):
+    """Ligne, trajet ou train introuvable : 404"""
     service = MagicMock()
     getattr(service, methode).return_value = resultat
     with pytest.raises(HTTPException) as erreur:
@@ -65,6 +68,7 @@ def test_route_introuvable_renvoie_404(appel, methode, resultat):
 
 
 def test_route_supprimer_refus_renvoie_400():
+    """Suppression refusée (trajet avec des réservations) : 400"""
     service = MagicMock()
     service.supprimer_trajet.side_effect = ValueError("Impossible de supprimer un trajet qui a des réservations.")
     with pytest.raises(HTTPException) as erreur:
@@ -73,6 +77,7 @@ def test_route_supprimer_refus_renvoie_400():
 
 
 def test_route_modifier_trajet_api_indisponible_renvoie_502():
+    """API SNCF injoignable pendant la modification d'un trajet : 502"""
     service = MagicMock()
     service.modifier_trajet.side_effect = requests.ConnectionError()
     with pytest.raises(HTTPException) as erreur:
@@ -81,6 +86,7 @@ def test_route_modifier_trajet_api_indisponible_renvoie_502():
 
 
 def test_route_modifier_ligne_transmet_les_id_des_gares():
+    """Les noms des gares sont transformés en id avant d'appeler le service"""
     service = MagicMock()
 
     collaborateur_controller.modifier_ligne(9, "Rennes", "Nantes", service, service_gares(), COLLAB)
@@ -98,6 +104,7 @@ def test_route_modifier_ligne_transmet_les_id_des_gares():
     ],
 )
 def test_route_refusee_sans_le_grade_collaborateur(appel):
+    """Compte client : 403, et le service n'est jamais appelé"""
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         appel(service)
@@ -121,6 +128,7 @@ def test_route_creer_trajet_api_indisponible_renvoie_502():
 
 
 def test_route_importer_gares_texte_trop_court():
+    """Texte de recherche trop court : 400"""
     service = MagicMock()
     service.importer_gares.side_effect = ValueError("trop court")
     with pytest.raises(HTTPException) as erreur:
@@ -129,6 +137,7 @@ def test_route_importer_gares_texte_trop_court():
 
 
 def test_route_importer_gares_api_indisponible():
+    """API SNCF injoignable pendant l'import des gares : 502"""
     service = MagicMock()
     service.importer_gares.side_effect = requests.ConnectionError()
     with pytest.raises(HTTPException) as erreur:
@@ -137,6 +146,7 @@ def test_route_importer_gares_api_indisponible():
 
 
 def test_route_creer_train_numero_existant():
+    """Numéro de train déjà utilisé : 400"""
     service = MagicMock()
     service.creer_train.side_effect = ValueError("existe déjà")
     with pytest.raises(HTTPException) as erreur:
@@ -145,6 +155,7 @@ def test_route_creer_train_numero_existant():
 
 
 def test_route_modifier_capacite_ok():
+    """Nouvelle capacité transmise au service, le train modifié est renvoyé"""
     service = MagicMock()
     service.modifier_capacite.return_value = "le train"
     assert collaborateur_controller.modifier_capacite(8541, TRAIN, service, COLLAB) == "le train"
@@ -152,6 +163,7 @@ def test_route_modifier_capacite_ok():
 
 
 def test_route_modifier_capacite_invalide():
+    """Capacité refusée par le service : 400"""
     service = MagicMock()
     service.modifier_capacite.side_effect = ValueError("capacité incorrecte")
     with pytest.raises(HTTPException) as erreur:
@@ -177,6 +189,7 @@ def test_route_modifier_capacite_train_inexistant():
     ],
 )
 def test_routes_refusees_sans_le_grade_collaborateur(appel):
+    """Toutes les routes collaborateur répondent 403 à un client, sans appeler le service"""
     service = MagicMock()
     with pytest.raises(HTTPException) as erreur:
         appel(service)

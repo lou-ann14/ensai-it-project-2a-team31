@@ -8,4 +8,5 @@ class TestClient:
         [(22, "jaimelestrains", "Client : jaimelestrains (#22)")]
     )
     def test_str_client(self, id, nom_utilisateur, resultat_attendu):
+        """Affichage d'un client"""
         assert str(Client("1234", nom_utilisateur, id=id)) == resultat_attendu

@@ -22,6 +22,7 @@ gares = [Gare("Paris Nord", "Paris", id_gare=1), Gare("Paris Est", "Paris", id_g
 def test_rechercher_ok(nom, ville, nom_attendu, ville_attendue):
 
     # GIVEN
+    """Les critères sont nettoyés (espaces, chaînes vides) avant d'appeler le DAO"""
     service = GareService()
     service.gare_dao.rechercher = MagicMock(return_value=gares)
 

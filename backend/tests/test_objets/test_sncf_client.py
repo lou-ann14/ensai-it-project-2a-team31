@@ -46,6 +46,7 @@ def test_token_manquant_est_une_erreur_requests(monkeypatch):
 
 
 def test_rechercher_gares(token):
+    """Une gare de l'API est transformée en dictionnaire (id SNCF, nom, ville)"""
     donnees = {"places": [{"stop_area": {
         "id": "stop_area:SNCF:87471003",
         "name": "Rennes",
@@ -60,6 +61,7 @@ def test_rechercher_gares(token):
 
 
 def test_rechercher_gares_sans_commune(token):
+    """Pas de commune dans la réponse de l'API : ville à None"""
     donnees = {"places": [{"stop_area": {"id": "x", "name": "Gare inconnue"}}]}
     with patch(GET, return_value=reponse_json(donnees)):
         assert SncfClient().rechercher_gares("Gare")[0]["ville"] is None
@@ -69,6 +71,7 @@ def test_rechercher_gares_sans_commune(token):
 
 
 def test_duree_trajet_le_plus_rapide(token):
+    """Plusieurs itinéraires : le plus court est gardé, la date est au format de l'API"""
     donnees = {"journeys": [{"duration": 5400}, {"duration": 4620}, {"duration": 6000}]}
     with patch(GET, return_value=reponse_json(donnees)) as get:
         duree = SncfClient().duree_trajet("a", "b", datetime(2027, 6, 1, 8, 35))
@@ -78,6 +81,7 @@ def test_duree_trajet_le_plus_rapide(token):
 
 
 def test_duree_trajet_aucun_itineraire(token):
+    """Aucun itinéraire : None"""
     with patch(GET, return_value=reponse_json({"journeys": []})):
         assert SncfClient().duree_trajet("a", "b") is None
 
