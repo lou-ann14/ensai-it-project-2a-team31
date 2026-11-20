@@ -31,6 +31,7 @@ class TestUtilisateur:
         ]
     )
     def test_init_utilisateur(self, params, erreur, message_erreur):
+        """Paramètres invalides : la bonne erreur est levée"""
         dico = {
             "id": 22,
             "mdp": "1234",
@@ -45,4 +46,5 @@ class TestUtilisateur:
         [(22, "1234", "jaimelestrains", "Client", "L'utilisateur jaimelestrains (#22) est un Client")]
     )
     def test_str_utilisateurs(self, id, mdp, nom_utilisateur, grade, resultat_attendu):
+        """Affichage d'un utilisateur"""
         assert str(Utilisateur(mdp, nom_utilisateur, grade, id=id)) == resultat_attendu

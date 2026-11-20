@@ -36,6 +36,7 @@ def test_creer_compte_nom_deja_pris():
 
 @pytest.mark.parametrize("nom, mdp", [("   ", "secret"), ("alice", "")])
 def test_creer_compte_donnee_vide(nom, mdp):
+    """Nom ou mot de passe vide : 400, sans appeler le service"""
     service = MagicMock()
 
     with pytest.raises(HTTPException) as erreur:
@@ -61,6 +62,7 @@ def test_creer_compte_nom_trop_long():
     [("admin", "123", "ADMIN"), ("collaborateur", "456", "COLLABORATEUR"), ("client", "789", "CLIENT")],
 )
 def test_admin_sql_contient_les_mots_de_passe_haches(nom, mdp, grade):
+    """admin.sql contient bien les mots de passe des comptes de test hachés"""
     assert f"('{nom}', '{hash_password(mdp, nom)}', '{grade}')" in ADMIN_SQL.read_text(encoding="utf-8")
 
 

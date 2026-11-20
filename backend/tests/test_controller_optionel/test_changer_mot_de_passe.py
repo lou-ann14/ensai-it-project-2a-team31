@@ -24,6 +24,7 @@ def http():
 
 
 def test_changer_mot_de_passe_ok(http):
+    """Bon ancien mot de passe : 200, et c'est bien l'utilisateur du token qui est modifié"""
     client, service = http
     service.changer_mdp.return_value = True
 
@@ -36,6 +37,7 @@ def test_changer_mot_de_passe_ok(http):
 
 
 def test_changer_mot_de_passe_ancien_incorrect(http):
+    """Ancien mot de passe faux : 400"""
     client, service = http
     service.changer_mdp.return_value = False
 
@@ -46,6 +48,7 @@ def test_changer_mot_de_passe_ancien_incorrect(http):
 
 
 def test_changer_mot_de_passe_nouveau_vide(http):
+    """Nouveau mot de passe vide : 400"""
     client, service = http
     service.changer_mdp.side_effect = ValueError("Le nouveau mot de passe est obligatoire.")
 
@@ -56,6 +59,7 @@ def test_changer_mot_de_passe_nouveau_vide(http):
 
 
 def test_changer_mot_de_passe_sans_token():
+    """Pas de token : 401"""
     app = FastAPI()
     app.include_router(controller.router, prefix="/utilisateur")
 

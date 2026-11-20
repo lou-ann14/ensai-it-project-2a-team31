@@ -37,6 +37,7 @@ def connecte():
 
 
 def test_trouver_client_ok():
+    """Compte client : l'utilisateur du token est renvoyé"""
     client = controller.trouver_client(CLIENT)
     assert client.id == 1
     assert client.grade == "CLIENT"
@@ -48,6 +49,7 @@ def test_trouver_client_collaborateur_autorise():
 
 
 def test_trouver_client_grade_inconnu():
+    """Grade inconnu : 403"""
     with pytest.raises(controller.HTTPException) as erreur:
         controller.trouver_client(Utilisateur("x", "pirate", "INCONNU", id=9))
     assert erreur.value.status_code == 403
@@ -72,6 +74,7 @@ def test_reserver_utilise_le_client_du_token(connecte):
 
 
 def test_reserver_trajet_inexistant(connecte):
+    """Trajet inexistant : 404, sans créer de réservation"""
     http, services = connecte(CLIENT)
     services["trajet"].trouver_par_id.return_value = None
 
@@ -122,6 +125,7 @@ def test_historique_collaborateur(connecte):
 
 
 def test_annuler_ok(connecte):
+    """Annulation réussie : 200, avec l'id de la réservation et celui du client du token"""
     http, services = connecte(CLIENT)
     services["reservation"].annuler.return_value = True
 
@@ -133,6 +137,7 @@ def test_annuler_ok(connecte):
 
 
 def test_annuler_reservation_inexistante(connecte):
+    """Réservation inexistante : 404"""
     http, services = connecte(CLIENT)
     services["reservation"].annuler.return_value = False
 
@@ -164,6 +169,7 @@ def test_annuler_reservation_d_un_autre_client(connecte):
 
 
 def test_trouver_train_inexistant(connecte):
+    """Numéro de train inconnu : 404"""
     http, _ = connecte(CLIENT)
     with patch("src.Classes.controller.utilisateur_controller.TrainService") as train_service:
         train_service.return_value.trouver_train_par_num.return_value = None
@@ -178,6 +184,7 @@ def test_trouver_train_inexistant(connecte):
 
 
 def test_places_libres_route(connecte):
+    """La route renvoie la capacité et les places libres de chaque classe"""
     from src.Classes.classes_objets.gare import Gare
     from src.Classes.classes_objets.ligne import Ligne
     from src.Classes.classes_objets.train import Train
@@ -200,6 +207,7 @@ def test_places_libres_route(connecte):
 
 
 def test_places_libres_trajet_inexistant(connecte):
+    """Trajet inexistant : 404"""
     http, services = connecte(CLIENT)
     services["trajet"].trouver_par_id.return_value = None
 
@@ -207,6 +215,7 @@ def test_places_libres_trajet_inexistant(connecte):
 
 
 def test_places_libres_trajet_sans_train(connecte):
+    """Trajet sans train : 400"""
     http, services = connecte(CLIENT)
     services["trajet"].places_libres.side_effect = ValueError("Aucun train n'est associé à ce trajet.")
 
@@ -214,6 +223,7 @@ def test_places_libres_trajet_sans_train(connecte):
 
 
 def test_places_libres_sans_token():
+    """Pas de token : 401"""
     app = FastAPI()
     app.include_router(controller.router, prefix="/utilisateur")
 

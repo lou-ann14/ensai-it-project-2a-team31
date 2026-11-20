@@ -23,14 +23,17 @@ from src.utils.securite import a_le_grade, verifier_grade
     ],
 )
 def test_a_le_grade(grade, minimum, attendu):
+    """Chaque grade a les droits des grades inférieurs, pas ceux des grades supérieurs"""
     assert a_le_grade(MagicMock(grade=grade), minimum) is attendu
 
 
 def test_verifier_grade_autorise():
+    """Grade suffisant : aucune erreur"""
     verifier_grade(MagicMock(grade="ADMIN"), "COLLABORATEUR")  # aucune exception
 
 
 def test_verifier_grade_refuse_en_403():
+    """Grade insuffisant : 403, le message indique le grade demandé"""
     with pytest.raises(HTTPException) as erreur:
         verifier_grade(MagicMock(grade="CLIENT"), "COLLABORATEUR")
     assert erreur.value.status_code == 403

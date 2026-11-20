@@ -19,6 +19,7 @@ SERVICE = "src.Classes.classes_service.utilisateurs_service.collaborateur_servic
 
 
 def test_service_modifier_ligne_inexistante():
+    """Ligne inexistante : None, sans chercher les gares"""
     with patch(f"{SERVICE}.LigneService") as ligne_service, patch(f"{SERVICE}.GareDAO") as gare_dao:
         ligne_service.return_value.trouver_par_id.return_value = None
         assert CollaborateurService().modifier_ligne(99, 1, 2) is None
@@ -26,6 +27,7 @@ def test_service_modifier_ligne_inexistante():
 
 
 def test_service_modifier_ligne_gare_inconnue():
+    """Gare inconnue : ValueError"""
     with patch(f"{SERVICE}.LigneService"), patch(f"{SERVICE}.GareDAO") as gare_dao:
         gare_dao.return_value.trouver_par_id.return_value = None
         with pytest.raises(ValueError, match="n'existe pas"):
@@ -33,6 +35,7 @@ def test_service_modifier_ligne_gare_inconnue():
 
 
 def test_service_modifier_trajet_inexistant():
+    """Trajet inexistant : None, sans rien modifier"""
     with patch(f"{SERVICE}.TrajetService") as trajet_service:
         trajet_service.return_value.trouver_par_id.return_value = None
         assert CollaborateurService().modifier_trajet(99, 1, 1, DEPART, 40.0) is None
@@ -40,6 +43,7 @@ def test_service_modifier_trajet_inexistant():
 
 
 def test_service_modifier_trajet_ligne_inconnue():
+    """Ligne inconnue : ValueError"""
     with patch(f"{SERVICE}.TrajetService"), patch(f"{SERVICE}.LigneService") as ligne_service:
         ligne_service.return_value.trouver_par_id.return_value = None
         with pytest.raises(ValueError, match="ligne #99"):
@@ -55,6 +59,7 @@ def train_service():
 
 
 def test_service_modifier_trajet_transmet_les_objets(train_service):
+    """Le service de trajet reçoit un Trajet avec sa vraie ligne et son train"""
     with patch(f"{SERVICE}.TrajetService") as trajet_service, patch(f"{SERVICE}.LigneService") as ligne_service:
         ligne = Ligne(RENNES, NANTES, id_ligne=3)
         ligne_service.return_value.trouver_par_id.return_value = ligne
@@ -69,6 +74,7 @@ def test_service_modifier_trajet_transmet_les_objets(train_service):
 
 
 def test_modifier_trajet_garde_l_id_du_train(train_service):
+    """Le trajet modifié utilise le vrai train (lu en base) et garde son id"""
     with patch(f"{SERVICE}.TrajetService") as trajet_service, patch(f"{SERVICE}.LigneService") as ligne_service:
         trajet_service.return_value.modifier.return_value = True
         ligne_service.return_value.trouver_par_id.return_value = Ligne(RENNES, NANTES, id_ligne=1)
@@ -97,6 +103,7 @@ def test_modifier_trajet_train_inexistant(train_service):
 
 
 def test_service_importer_gares():
+    """L'import est délégué au service des gares"""
     with patch(f"{SERVICE}.GareService") as gare_service:
         gare_service.return_value.importer.return_value = ["Rennes"]
         assert CollaborateurService().importer_gares("Rennes") == ["Rennes"]
@@ -104,12 +111,14 @@ def test_service_importer_gares():
 
 
 def test_service_creer_train():
+    """La création est déléguée au service des trains"""
     with patch(f"{SERVICE}.TrainService") as train_service:
         CollaborateurService().creer_train("TGV", 100, 300, 8541)
     train_service.return_value.creer.assert_called_once_with("TGV", 100, 300, 8541)
 
 
 def test_service_modifier_capacite_renvoie_le_train_modifie():
+    """Le train renvoyé a la nouvelle capacité"""
     with patch(f"{SERVICE}.TrainService") as train_service:
         train_service.return_value.trouver_train_par_num.return_value = Train("TGV", 100, 300, 8541, id_train=1)
         train_service.return_value.modifier_capacite.return_value = True
@@ -129,6 +138,7 @@ def test_service_modifier_capacite_train_inexistant():
 
 
 def test_service_modifier_capacite_non_executee():
+    """Modification refusée par le service des trains : None"""
     with patch(f"{SERVICE}.TrainService") as train_service:
         train_service.return_value.modifier_capacite.return_value = False
         assert CollaborateurService().modifier_capacite(8541, 120, 280) is None

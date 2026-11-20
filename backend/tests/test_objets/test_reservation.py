@@ -61,6 +61,7 @@ class TestReservation:
         ]
     )
     def test_init_reservation(self, params, erreur, message_erreur):
+        """Paramètres invalides : la bonne erreur est levée"""
         dico = {
             "id_reservation": 45,
             "client": creer_client(),
@@ -73,6 +74,7 @@ class TestReservation:
             Reservation(**dico)
 
     def test_str_reservation(self):
+        """Affichage d'une réservation"""
         client = creer_client()
         trajet = creer_trajet()
         reservation = Reservation(client, trajet, "67", 1, 200.0, id_reservation=22)

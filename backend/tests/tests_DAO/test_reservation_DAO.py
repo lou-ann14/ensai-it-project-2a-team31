@@ -380,6 +380,7 @@ def test_capacite_minimale_par_train_ok(mock_db):
 
 @patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
 def test_capacite_minimale_par_train_sans_reservation(mock_db):
+    """Aucune réservation à venir : dictionnaire vide"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.fetchall.return_value = []
 
@@ -388,6 +389,7 @@ def test_capacite_minimale_par_train_sans_reservation(mock_db):
 
 @patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
 def test_capacite_minimale_par_train_erreur_bdd(mock_db):
+    """Une erreur de la base est relancée"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.execute.side_effect = Exception("connexion perdue")
 
@@ -417,6 +419,7 @@ def test_places_reservees_ok(mock_db):
 
 @patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
 def test_places_reservees_aucune(mock_db):
+    """Aucune réservation sur le trajet : dictionnaire vide"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.fetchall.return_value = []
 
@@ -425,6 +428,7 @@ def test_places_reservees_aucune(mock_db):
 
 @patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
 def test_places_reservees_erreur_bdd(mock_db):
+    """Une erreur de la base est relancée"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.execute.side_effect = Exception("connexion perdue")
 
@@ -451,6 +455,7 @@ def test_capacite_minimale_par_trajet_ok(mock_db):
 
 @patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
 def test_capacite_minimale_par_trajet_sans_reservation(mock_db):
+    """Trajet sans réservation : dictionnaire vide"""
     cursor = mock_db().connexion.__enter__().cursor().__enter__()
     cursor.fetchall.return_value = []
 

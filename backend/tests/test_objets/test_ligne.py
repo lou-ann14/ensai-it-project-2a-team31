@@ -27,6 +27,7 @@ class TestLigne:
         ]
     )
     def test_init_ligne(self, params, erreur, message_erreur):
+        """Paramètres invalides : la bonne erreur est levée"""
         gare_depart = Gare("Matabiau", "Toulouse", id_gare=1)
         gare_arrivee = Gare("Gare de Rennes", "Rennes", id_gare=2)
         dico = {
@@ -47,4 +48,5 @@ class TestLigne:
         )]
     )
     def test_str_ligne(self, id_ligne, gare_depart, gare_arrivee, resultat_attendu):
+        """Affichage d'une ligne"""
         assert str(Ligne(gare_depart, gare_arrivee, id_ligne=id_ligne)) == resultat_attendu

@@ -31,6 +31,7 @@ class TestGare:
         ]
     )
     def test_init_gare(self, params, erreur, message_erreur):
+        """Paramètres invalides : la bonne erreur est levée"""
         dico = {
             "id_gare": 1,
             "nom": "Matabiau",
@@ -44,6 +45,7 @@ class TestGare:
         [(1, "Matabiau", "Toulouse", "La gare Matabiau (1) se situe à Toulouse")]
     )
     def test_str_gare(self, id_gare, nom, ville, resultat_attendu):
+        """Affichage d'une gare"""
         assert str(Gare(nom=nom, ville=ville, id_gare=id_gare)) == resultat_attendu
 
     def test_gare_importee_depuis_l_api_sans_id(self):
@@ -53,8 +55,10 @@ class TestGare:
         assert gare.id_gare is None
 
     def test_gare_lue_en_base(self):
+        """Une gare peut être créée avec son id et son id SNCF"""
         gare = Gare(id_gare=1, nom="Rennes", ville="Rennes", id_sncf="stop_area:SNCF:87471003")
         assert gare.id_gare == 1
 
     def test_gare_sans_id_sncf(self):
+        """Sans id SNCF, l'attribut vaut None"""
         assert Gare("Rennes", "Rennes").id_sncf is None
