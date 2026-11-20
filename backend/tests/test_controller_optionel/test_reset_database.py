@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,7 +16,7 @@ def test_reset_refuse_pour_un_non_admin():
     """Un compte non ADMIN reçoit une 403 et la base n'est PAS réinitialisée"""
     with patch("main.Reset_bdd") as reset:
         with pytest.raises(HTTPException) as erreur:
-            asyncio.run(main.reset_database(token=MagicMock(grade="CLIENT")))
+            main.reset_database(token=MagicMock(grade="CLIENT"))
 
     assert erreur.value.status_code == 403
     reset.return_value.demarrer.assert_not_called()
@@ -26,7 +25,7 @@ def test_reset_refuse_pour_un_non_admin():
 def test_reset_ok_pour_un_admin():
     with patch("main.Reset_bdd") as reset:
         reset.return_value.demarrer.return_value = True
-        reponse = asyncio.run(main.reset_database(token=MagicMock(grade="ADMIN")))
+        reponse = main.reset_database(token=MagicMock(grade="ADMIN"))
 
     reset.return_value.demarrer.assert_called_once()
     assert "SUCCES" in reponse["message"]
