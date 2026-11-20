@@ -60,7 +60,7 @@ async def redirect_to_docs():
 
 
 @app.get("/reset_database", tags=["BDD"])
-async def reset_database(token=Depends(verif_token)):
+def reset_database(token=Depends(verif_token)):
     """Réinitialise la base de données (ADMIN uniquement)"""
     # Le grade est vérifié AVANT la réinitialisation : sinon n'importe quel compte connecté
     # pouvait effacer la base (l'erreur n'était levée qu'après coup).
