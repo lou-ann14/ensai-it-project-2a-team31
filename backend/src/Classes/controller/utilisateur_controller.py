@@ -1,7 +1,6 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.gare_service import GareService
@@ -294,9 +293,6 @@ def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_ut
 
     if not nom_utilisateur or not compte.mdp:
         raise HTTPException(status_code=400, detail="Le nom d'utilisateur et le mot de passe sont obligatoires.")
-    if UtilisateurDAO().trouver_par_nom_utilisateur(nom_utilisateur) is not None:
-        raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
-
     # Le service impose le grade CLIENT et hache le mot de passe
     try:
         return utilisateur_service.creer_compte(nom_utilisateur, compte.mdp)
