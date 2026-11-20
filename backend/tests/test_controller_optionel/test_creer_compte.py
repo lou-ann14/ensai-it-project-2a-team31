@@ -9,18 +9,10 @@ from src.utils.securite import hash_password
 
 # La base est simulée : aucun appel réel n'est fait.
 
-UTILISATEUR_DAO = "src.Classes.controller.utilisateur_controller.UtilisateurDAO"
 ADMIN_SQL = Path(__file__).resolve().parents[2] / "data" / "admin.sql"
 
 
-@pytest.fixture
-def dao():
-    with patch(UTILISATEUR_DAO) as utilisateur_dao:
-        utilisateur_dao.return_value.trouver_par_nom_utilisateur.return_value = None
-        yield utilisateur_dao.return_value
-
-
-def test_creer_compte_passe_par_le_service(dao):
+def test_creer_compte_passe_par_le_service():
     """Le mot de passe est confié au service, qui le hache : la route n'écrit pas elle-même en base"""
     service = MagicMock()
 
@@ -28,22 +20,22 @@ def test_creer_compte_passe_par_le_service(dao):
 
     assert resultat is service.creer_compte.return_value
     service.creer_compte.assert_called_once_with("alice", "secret")
-    dao.creer.assert_not_called()
 
 
-def test_creer_compte_nom_deja_pris(dao):
-    dao.trouver_par_nom_utilisateur.return_value = MagicMock()
+def test_creer_compte_nom_deja_pris():
+    """Le service refuse un nom deja pris (ValueError) : la route repond 400 avec son message"""
     service = MagicMock()
+    service.creer_compte.side_effect = ValueError("Nom déjà pris, veuillez choisir un nom différent")
 
     with pytest.raises(HTTPException) as erreur:
         creer_compte(CompteCreationModel(nom_utilisateur="alice", mdp="secret"), service)
 
     assert erreur.value.status_code == 400
-    service.creer_compte.assert_not_called()
+    assert "déjà pris" in erreur.value.detail
 
 
 @pytest.mark.parametrize("nom, mdp", [("   ", "secret"), ("alice", "")])
-def test_creer_compte_donnee_vide(dao, nom, mdp):
+def test_creer_compte_donnee_vide(nom, mdp):
     service = MagicMock()
 
     with pytest.raises(HTTPException) as erreur:
@@ -53,7 +45,7 @@ def test_creer_compte_donnee_vide(dao, nom, mdp):
     service.creer_compte.assert_not_called()
 
 
-def test_creer_compte_nom_trop_long(dao):
+def test_creer_compte_nom_trop_long():
     """Le service refuse le nom (ValueError) : la route répond 400 et non 500"""
     service = MagicMock()
     service.creer_compte.side_effect = ValueError("Le nom doit faire 15 caractères maximum")

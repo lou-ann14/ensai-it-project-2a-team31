@@ -47,6 +47,7 @@ def test_changer_mdp_ne_passe_pas_par_modifier(dao):
 
 
 def test_creer_compte_ok(dao):
+    dao.trouver_par_nom_utilisateur.return_value = None  # nom libre
     dao.creer.return_value = True
 
     utilisateur = UtilisateurService().creer_compte("alice", "secret")
@@ -59,7 +60,8 @@ def test_creer_compte_nom_deja_pris_en_base(dao):
     """Deux inscriptions simultanées : la contrainte UNIQUE de la base refuse la seconde"""
     from psycopg2.errors import UniqueViolation
 
-    dao.creer.side_effect = UniqueViolation
+    dao.trouver_par_nom_utilisateur.return_value = None  # nom libre au moment du controle...
+    dao.creer.side_effect = UniqueViolation                # ...mais pris juste avant l'insertion
 
     with pytest.raises(ValueError, match="déjà pris"):
         UtilisateurService().creer_compte("alice", "secret")
@@ -71,3 +73,13 @@ def test_changer_mdp_nouveau_vide(dao, nouveau):
     with pytest.raises(ValueError, match="obligatoire"):
         UtilisateurService().changer_mdp(1, "ancien", nouveau)
     dao.modifier_mdp.assert_not_called()
+
+
+
+def test_creer_compte_nom_deja_pris(dao):
+    """Le nom existe deja : ValueError, sans tenter d'insertion"""
+    dao.trouver_par_nom_utilisateur.return_value = Utilisateur("x", "alice", "CLIENT", id=1)
+
+    with pytest.raises(ValueError, match="déjà pris"):
+        UtilisateurService().creer_compte("alice", "secret")
+    dao.creer.assert_not_called()
