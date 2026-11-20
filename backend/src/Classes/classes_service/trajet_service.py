@@ -62,6 +62,8 @@ class TrajetService:
 
         if self._trajet_similaire_existe(ligne, heure_depart):
             raise ValueError("Un trajet existe déjà sur cette ligne à cette date et à cette heure.")
+        if datetime.now() > heure_depart:
+            raise ValueError("Ce trajet est déjà terminé ou en cours")
 
         duree = self._calculer_duree(ligne, heure_depart)
 
