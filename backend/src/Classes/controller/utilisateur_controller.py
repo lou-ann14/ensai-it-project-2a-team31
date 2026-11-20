@@ -1,7 +1,6 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.utilisateurs.client import Client
 from src.Classes.classes_service.gare_service import GareService
@@ -55,7 +54,7 @@ def get_trajet_service():
     return TrajetService()
 
 
-async def trouver_client(utilisateur=Depends(verif_token)) -> Client:
+def trouver_client(utilisateur=Depends(verif_token)) -> Client:
     """Dépendance FastAPI : renvoie le client connecté (identifié par son token).
     L'id du client vient toujours du token, jamais d'un paramètre de la requête :
     un client ne peut donc pas agir au nom d'un autre.
@@ -101,7 +100,7 @@ def trouver_gare(nom: str, gare_service: GareService) -> Gare:
 
 
 @router.get("/trajets", response_model=list[TrajetReponseModel], tags=["Utilisateur"])
-async def rechercher_trajets(
+def rechercher_trajets(
     gare_depart: str,
     gare_arrivee: str,
     date_voyage: date,
@@ -133,7 +132,7 @@ async def rechercher_trajets(
 
 
 @router.get("/gares", response_model=list[GareReponseModel], tags=["Utilisateur"])
-async def rechercher_gares(
+def rechercher_gares(
     nom: str | None = None,
     ville: str | None = None,
     gare_service=Depends(get_gare_service),
@@ -156,7 +155,7 @@ async def rechercher_gares(
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-async def reserver(
+def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
@@ -191,7 +190,7 @@ async def reserver(
 
 
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
-async def voir_historique_reservations(
+def voir_historique_reservations(
     reserv_service=Depends(get_reservation_service),
     client: Client = Depends(trouver_client),
 ):
@@ -208,7 +207,7 @@ async def voir_historique_reservations(
 
 
 @router.delete("/reservations/{id_reservation}", response_model=MessageModel, tags=["Utilisateur"])
-async def annuler_reservation(
+def annuler_reservation(
     id_reservation: int,
     reserv_service=Depends(get_reservation_service),
     client: Client = Depends(trouver_client),
@@ -242,7 +241,7 @@ async def annuler_reservation(
     status_code=status.HTTP_201_CREATED,
     tags=["Utilisateur"],
 )
-async def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
+def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
     """Crée un compte client
     Param:
         compte: le nom d'utilisateur et le mot de passe
@@ -265,7 +264,7 @@ async def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(
 
 
 @router.put("/mot-de-passe", response_model=MessageModel, tags=["Utilisateur"])
-async def changer_mot_de_passe(
+def changer_mot_de_passe(
     demande: MotDePasseModificationModel,
     utilisateur_service=Depends(get_utilisateur_service),
     utilisateur=Depends(verif_token),
@@ -293,7 +292,7 @@ async def changer_mot_de_passe(
 
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
-async def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
+def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
     """Trouve un train à l'aide de son numéro
     Param:
         num_train (int)
