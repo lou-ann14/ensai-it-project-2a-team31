@@ -6,6 +6,7 @@ from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.classes_service import tarification
 from src.Classes.classes_service.train_service import TrainService
 from src.utils.log_utils import log
 from src.utils.sncf_client import SncfClient
@@ -98,21 +99,26 @@ class TrajetService:
         Raises:
         ------
         ValueError
-            si le trajet n'existe pas, si une donnée est invalide, si la ligne n'existe pas,
-            si un autre trajet existe déjà sur cette ligne à cette heure de départ
-            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+            si le trajet n'existe pas, si une donnée est invalide (dont une date de départ passée),
+            si la ligne n'existe pas, si un autre trajet existe déjà sur cette ligne à cette heure
+            de départ, si l'API SNCF ne trouve aucun itinéraire entre les deux gares,
+            ou si le trajet a des réservations et que la modification changerait sa ligne
+            ou lui donnerait un train trop petit pour les places déjà vendues
         requests.RequestException
             si l'API SNCF est indisponible
         """
         if trajet is None:
             raise ValueError("Le trajet à modifier est obligatoire.")
-        if self.trajet_dao.trouver_par_id(id_trajet) is None:
+        ancien = self.trajet_dao.trouver_par_id(id_trajet)
+        if ancien is None:
             raise ValueError(f"Le trajet #{id_trajet} n'existe pas.")
 
         id_ligne = trajet.ligne.id_ligne if trajet.ligne else None
         id_train = trajet.train.id_train if trajet.train else None
         self._verifier_donnees(id_ligne, id_train, trajet.heure_depart, trajet.tarif_base)
         ligne = self._verifier_ligne(id_ligne)
+        # Avant l'appel à l'API SNCF : ne pas invalider les réservations déjà faites
+        self._verifier_reservations(ancien, ligne, trajet.train)
 
         if self._trajet_similaire_existe(ligne, trajet.heure_depart, id_trajet_ignore=id_trajet):
             raise ValueError("Un autre trajet existe déjà sur cette ligne à cette date et à cette heure.")
@@ -185,7 +191,60 @@ class TrajetService:
             raise ValueError("La date de voyage est obligatoire.")
 
         trajets = self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
-        return self.ajouter_places_restantes(trajets)
+        return self.ajouter_detail_prix(self.ajouter_places_restantes(trajets))
+
+    @staticmethod
+    def ajouter_detail_prix(trajets: list[Trajet]) -> list[Trajet]:
+        """
+        Renseigne sur chaque trajet le détail de son prix en première et en seconde classe
+        (TVA, péage réseau, coût d'exploitation, marge).
+        Fonctionnalité F5 (tarification transparente).
+
+        Param:
+        ------
+        trajets: list[Trajet]
+            les trajets à compléter
+
+        Return:
+        ------
+        list[Trajet]
+            les mêmes trajets, avec detail_prix_premiere et detail_prix_seconde renseignés
+        """
+        for trajet in trajets:
+            trajet.detail_prix_premiere = tarification.detail_prix(trajet.tarif_base, 1)
+            trajet.detail_prix_seconde = tarification.detail_prix(trajet.tarif_base, 2)
+        return trajets
+
+    @log
+    def places_libres(self, trajet: Trajet) -> dict[int, list[int]]:
+        """
+        Liste les numéros de place encore libres sur un trajet, classe par classe
+        (les places vont de 1 à la capacité de la classe dans le train du trajet).
+
+        Param:
+        ------
+        trajet: Trajet
+            le trajet (son train doit être chargé, comme le fait TrajetDAO)
+
+        Return:
+        ------
+        dict[int, list[int]]
+            {1: places libres en première, 2: places libres en seconde}, triées par numéro
+
+        Raises:
+        ------
+        ValueError
+            si le trajet n'a pas de train
+        """
+        if trajet.train is None:
+            raise ValueError("Aucun train n'est associé à ce trajet : il n'est pas réservable.")
+
+        reservees = ReservationDAO().places_reservees(trajet.id_trajet)
+        capacites = {1: trajet.train.places_premieres, 2: trajet.train.places_secondes}
+        return {
+            classe: [num for num in range(1, capacite + 1) if str(num) not in reservees.get(classe, set())]
+            for classe, capacite in capacites.items()
+        }
 
     @log
     def ajouter_places_restantes(self, trajets: list[Trajet]) -> list[Trajet]:
@@ -240,8 +299,49 @@ class TrajetService:
             raise ValueError("La ligne et le train sont obligatoires.")
         if not isinstance(heure_depart, datetime):
             raise TypeError("L'heure de départ doit être une date avec heure.")
+        # Un trajet passé ne serait jamais réservable : on refuse de le planifier.
+        # (now() prend le fuseau de la date reçue, pour comparer deux dates de même nature)
+        if heure_depart <= datetime.now(heure_depart.tzinfo):
+            raise ValueError("La date de départ doit être dans le futur.")
         if tarif_base is None or tarif_base < 0:
             raise ValueError("Le tarif de base doit être positif ou nul.")
+
+    @staticmethod
+    def _verifier_reservations(ancien: Trajet, nouvelle_ligne, nouveau_train) -> None:
+        """
+        Si le trajet a déjà des réservations, refuse une modification qui les invaliderait :
+        - changer de ligne (les passagers ont réservé ce parcours précis) ;
+        - prendre un train trop petit : même règle que pour la capacité d'un train
+          (nombre de réservations ou plus grand numéro de place réservé, par classe).
+        Changer seulement l'horaire ou le tarif reste possible.
+
+        Raises:
+        ------
+        ValueError
+            si la modification invaliderait des réservations existantes
+        """
+        minimum = ReservationDAO().capacite_minimale_par_trajet(ancien.id_trajet)
+        if not minimum:
+            return  # aucune réservation : tout est modifiable
+
+        if nouvelle_ligne.id_ligne != ancien.ligne.id_ligne:
+            raise ValueError(
+                "Impossible de changer la ligne d'un trajet qui a des réservations : "
+                "les passagers ont réservé ce parcours."
+            )
+
+        for classe, capacite, libelle in (
+            (1, nouveau_train.places_premieres, "première classe"),
+            (2, nouveau_train.places_secondes, "seconde classe"),
+        ):
+            requis = minimum.get(classe, 0)
+            if capacite < requis:
+                places = "place" if capacite <= 1 else "places"
+                raise ValueError(
+                    f"Impossible d'utiliser le train numéro {nouveau_train.num_train} : "
+                    f"il n'a que {capacite} {places} en {libelle}, alors que les réservations "
+                    f"de ce trajet en demandent au moins {requis}."
+                )
 
     def _calculer_duree(self, ligne, heure_depart: datetime) -> int:
         """Demande à l'API SNCF la durée du trajet sur cette ligne, en secondes (lève ValueError si aucune)."""

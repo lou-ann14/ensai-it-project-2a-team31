@@ -42,10 +42,15 @@ def test_trouver_client_ok():
     assert client.grade == "CLIENT"
 
 
-def test_trouver_client_compte_non_client():
+def test_trouver_client_collaborateur_autorise():
+    """Hiérarchie des grades : un collaborateur a aussi les droits d'un client"""
+    assert controller.trouver_client(COLLABORATEUR) is COLLABORATEUR
+
+
+def test_trouver_client_grade_inconnu():
     with pytest.raises(controller.HTTPException) as erreur:
-        controller.trouver_client(COLLABORATEUR)
-    assert erreur.value.status_code == 400
+        controller.trouver_client(Utilisateur("x", "pirate", "INCONNU", id=9))
+    assert erreur.value.status_code == 403
 
 
 # Tests POST /reservations
@@ -76,13 +81,15 @@ def test_reserver_trajet_inexistant(connecte):
     services["reservation"].creer.assert_not_called()
 
 
-def test_reserver_compte_non_client(connecte):
-    http, services = connecte(COLLABORATEUR)
+@pytest.mark.parametrize("grade, id_utilisateur", [("COLLABORATEUR", 2), ("ADMIN", 5)])
+def test_reserver_avec_un_grade_superieur(connecte, grade, id_utilisateur):
+    """Un collaborateur ou un administrateur peut réserver, en son propre nom"""
+    http, services = connecte(Utilisateur("x", "u", grade, token_acces="jeton", id=id_utilisateur))
+    services["reservation"].creer.side_effect = ValueError("stop")  # on s'arrête après l'appel
 
-    reponse = http.post("/utilisateur/reservations", json={"id_trajet": 10, "place": "12A", "classe": 2})
+    http.post("/utilisateur/reservations", json={"id_trajet": 10, "place": "12", "classe": 2})
 
-    assert reponse.status_code == 400
-    services["reservation"].creer.assert_not_called()
+    assert services["reservation"].creer.call_args.args[0].id == id_utilisateur
 
 
 # Tests GET /reservations
@@ -100,13 +107,15 @@ def test_historique_du_client_connecte(connecte):
     services["reservation"].historique_par_client.assert_called_once_with(1)
 
 
-def test_historique_compte_non_client(connecte):
+def test_historique_collaborateur(connecte):
+    """Un collaborateur consulte ses propres réservations"""
     http, services = connecte(COLLABORATEUR)
+    services["reservation"].historique_par_client.return_value = []
 
     reponse = http.get("/utilisateur/reservations")
 
-    assert reponse.status_code == 400
-    services["reservation"].historique_par_client.assert_not_called()
+    assert reponse.status_code == 200
+    services["reservation"].historique_par_client.assert_called_once_with(2)
 
 
 # Tests DELETE /reservations/{id}
@@ -162,3 +171,61 @@ def test_trouver_train_inexistant(connecte):
 
     assert reponse.status_code == 404
     assert "9999" in reponse.json()["detail"]
+
+
+
+# Tests GET /trajets/{id}/places et réservation sans numéro de place
+
+
+def test_places_libres_route(connecte):
+    from src.Classes.classes_objets.gare import Gare
+    from src.Classes.classes_objets.ligne import Ligne
+    from src.Classes.classes_objets.train import Train
+    from src.Classes.classes_objets.trajet import Trajet
+
+    http, services = connecte(CLIENT)
+    depart = datetime.now() + timedelta(days=2)
+    ligne = Ligne(Gare("A", "A", "s:1", 1), Gare("B", "B", "s:2", 2), id_ligne=1)
+    trajet = Trajet(depart, depart + timedelta(hours=1), ligne, Train("TER", 2, 3, 857, id_train=1), 20.0, id_trajet=10)
+    services["trajet"].trouver_par_id.return_value = trajet
+    services["trajet"].places_libres.return_value = {1: [2], 2: [1, 3]}
+
+    reponse = http.get("/utilisateur/trajets/10/places")
+
+    assert reponse.status_code == 200
+    assert reponse.json() == {
+        "id_trajet": 10, "capacite_premiere": 2, "capacite_seconde": 3,
+        "libres_premiere": [2], "libres_seconde": [1, 3],
+    }
+
+
+def test_places_libres_trajet_inexistant(connecte):
+    http, services = connecte(CLIENT)
+    services["trajet"].trouver_par_id.return_value = None
+
+    assert http.get("/utilisateur/trajets/99/places").status_code == 404
+
+
+def test_places_libres_trajet_sans_train(connecte):
+    http, services = connecte(CLIENT)
+    services["trajet"].places_libres.side_effect = ValueError("Aucun train n'est associé à ce trajet.")
+
+    assert http.get("/utilisateur/trajets/10/places").status_code == 400
+
+
+def test_places_libres_sans_token():
+    app = FastAPI()
+    app.include_router(controller.router, prefix="/utilisateur")
+
+    assert TestClient(app).get("/utilisateur/trajets/10/places").status_code == 401
+
+
+def test_reserver_sans_numero_de_place(connecte):
+    """La place est optionnelle : sans elle, None est transmis au service (attribution automatique)"""
+    http, services = connecte(CLIENT)
+    services["reservation"].creer.side_effect = ValueError("stop")
+
+    reponse = http.post("/utilisateur/reservations", json={"id_trajet": 10, "classe": 2})
+
+    assert reponse.status_code == 400  # « stop » : le service a bien été appelé
+    assert services["reservation"].creer.call_args.args[2] is None

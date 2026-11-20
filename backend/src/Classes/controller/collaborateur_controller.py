@@ -16,7 +16,7 @@ from src.schema.collaborateur_schema import (
 from src.schema.gare_schema import GareReponseModel
 from src.schema.train_schema import TrainBaseModel, TrainReponseModel
 from src.utils.log_utils import get_logger
-from src.utils.securite import verif_token
+from src.utils.securite import verif_token, verifier_grade
 
 router = APIRouter()
 
@@ -54,8 +54,7 @@ def creer_ligne(
         HTTPException: erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Création d'une ligne")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
 
     depart = trouver_gare(gare_depart, gare_service)
     arrivee = trouver_gare(gare_arrivee, gare_service)
@@ -92,8 +91,7 @@ def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_
         HTTPException: erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Création d'un trajet")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         nouveau_trajet = collaborateur_service.creer_trajet(
             trajet.id_ligne,
@@ -138,8 +136,7 @@ def modifier_ligne(
         HTTPException: erreur 404 si la ligne n'existe pas ou si aucune gare ne correspond à un nom
     """
     logger.info("Modification d'une ligne")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
 
     depart = trouver_gare(gare_depart, gare_service)
     arrivee = trouver_gare(gare_arrivee, gare_service)
@@ -166,8 +163,7 @@ def supprimer_ligne(id_ligne: int, collaborateur_service=Depends(get_collaborate
         HTTPException: erreur 404 si la ligne n'existe pas
     """
     logger.info("Suppression d'une ligne")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         supprimee = collaborateur_service.supprimer_ligne(id_ligne)
     except ValueError as e:
@@ -200,8 +196,7 @@ def modifier_trajet(
         HTTPException: erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Modification d'un trajet")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         trajet_modifie = collaborateur_service.modifier_trajet(
             id_trajet,
@@ -238,8 +233,7 @@ def supprimer_trajet(id_trajet: int, collaborateur_service=Depends(get_collabora
         HTTPException: erreur 404 si le trajet n'existe pas
     """
     logger.info("Suppression d'un trajet")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         supprime = collaborateur_service.supprimer_trajet(id_trajet)
     except ValueError as e:
@@ -262,8 +256,7 @@ def importer_gares(q: str, collaborateur_service=Depends(get_collaborateur_servi
         HTTPException: erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Import de gares depuis l'API SNCF")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         return collaborateur_service.importer_gares(q)
     except ValueError as e:
@@ -289,8 +282,7 @@ def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collabo
         HTTPException: erreur 400 si la capacité est incorrecte ou si le numéro existe déjà
     """
     logger.info("Création d'un train")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         return collaborateur_service.creer_train(
             train.type_train,
@@ -315,8 +307,7 @@ def modifier_capacite(num_train: int, t: TrainBaseModel, collaborateur_service=D
         HTTPException: erreur 404 si le train n'existe pas
     """
     logger.info("Modification de la capacité d'un train")
-    if collab.grade != "COLLABORATEUR":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(collab, "COLLABORATEUR")
     try:
         train = collaborateur_service.modifier_capacite(num_train, t.places_premieres, t.places_secondes)
     except ValueError as e:

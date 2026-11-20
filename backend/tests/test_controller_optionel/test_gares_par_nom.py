@@ -145,3 +145,17 @@ def test_creer_ligne_sans_le_grade_collaborateur():
     assert erreur.value.status_code == 403
     gares.rechercher.assert_not_called()
     service.creer_ligne.assert_not_called()
+
+
+
+def test_creer_ligne_par_un_administrateur():
+    """Hiérarchie des grades : un administrateur peut faire tout ce que fait un collaborateur"""
+    service = MagicMock()
+    service.creer_ligne.return_value.id_ligne = 7
+
+    reponse = collaborateur_controller.creer_ligne(
+        "Rennes", "Nantes", service, service_gares(), MagicMock(grade="ADMIN", id=1)
+    )
+
+    assert reponse["id_ligne"] == 7
+    assert service.creer_ligne.call_args.args[2] == 1  # la ligne est rattachée à l'administrateur

@@ -1,5 +1,5 @@
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
 
 class Reservation:
@@ -7,8 +7,9 @@ class Reservation:
 
     Params
     ------
-    client: Client
-        Client à qui appartient la réservation
+    client: Utilisateur
+        Utilisateur qui a réservé (client, ou collaborateur et administrateur,
+        qui ont aussi les droits d'un client)
     trajet: Trajet
         Trajet sur lequel porte la réservation
     place: str
@@ -20,11 +21,11 @@ class Reservation:
     id_réservation: int | None = None
         id de la réservation dans la BDD
     """
-    def __init__(self, client: Client, trajet: Trajet, place: str, classe: int, prix: float, id_reservation: int | None = None):
+    def __init__(self, client: Utilisateur, trajet: Trajet, place: str, classe: int, prix: float, id_reservation: int | None = None):
         if id_reservation is not None and not isinstance(id_reservation, int):
             raise TypeError("L'identifiant de la réservation doit être un entier.")
-        if not isinstance(client, Client):
-            raise TypeError("Le client doit être de type Client.")
+        if not isinstance(client, Utilisateur):
+            raise TypeError("Le client doit être de type Utilisateur.")
         if not isinstance(trajet, Trajet):
             raise TypeError("Le trajet doit être de type Trajet.")
         if not isinstance(place, str):

@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.gare import Gare
-from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.gare_service import GareService
 from src.Classes.classes_service.reservations_service import ReservationService
 from src.Classes.classes_service.train_service import TrainService
@@ -18,12 +18,13 @@ from src.schema.train_schema import TrainReponseModel
 from src.schema.utilisateur_schema import (
     CompteCreationModel,
     MotDePasseModificationModel,
+    PlacesLibresModel,
     ReservationCreationModel,
     ReservationReponseModel,
     TrajetReponseModel,
 )
 from src.utils.log_utils import get_logger
-from src.utils.securite import verif_token
+from src.utils.securite import verif_token, verifier_grade
 
 router = APIRouter()
 
@@ -55,17 +56,17 @@ def get_trajet_service():
     return TrajetService()
 
 
-def trouver_client(utilisateur=Depends(verif_token)) -> Client:
-    """Dépendance FastAPI : renvoie le client connecté (identifié par son token).
-    L'id du client vient toujours du token, jamais d'un paramètre de la requête :
-    un client ne peut donc pas agir au nom d'un autre.
+def trouver_client(utilisateur=Depends(verif_token)) -> Utilisateur:
+    """Dépendance FastAPI : renvoie l'utilisateur connecté qui agit en tant que voyageur.
+    Grâce à la hiérarchie des grades, un collaborateur ou un administrateur peut aussi réserver.
+    L'id vient toujours du token, jamais d'un paramètre de la requête :
+    un utilisateur ne peut donc pas agir au nom d'un autre.
     Raises:
         HTTPException: erreur 401 si le token est manquant ou invalide (via verif_token)
-        HTTPException: erreur 400 si le compte n'est pas un compte client
+        HTTPException: erreur 403 si le grade est inconnu
     """
-    if utilisateur.grade != "CLIENT":
-        raise HTTPException(status_code=400, detail="Cette action est réservée aux comptes clients.")
-    return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
+    verifier_grade(utilisateur, "CLIENT")
+    return utilisateur
 
 
 def trouver_gare(nom: str, gare_service: GareService) -> Gare:
@@ -132,6 +133,41 @@ def rechercher_trajets(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/trajets/{id_trajet}/places", response_model=PlacesLibresModel, tags=["Utilisateur"])
+def voir_places_libres(
+    id_trajet: int,
+    trajet_service=Depends(get_trajet_service),
+    utilisateur=Depends(verif_token),
+):
+    """Liste les numéros de place encore libres sur un trajet, en première et en seconde classe
+    Param:
+        id_trajet (int) : l'id du trajet
+    Returns:
+        PlacesLibresModel : la capacité et les places libres de chaque classe
+    Raises:
+        HTTPException: erreur 401 si le token est manquant ou invalide
+        HTTPException: erreur 400 si le trajet n'a pas de train
+        HTTPException: erreur 404 si le trajet n'existe pas
+    """
+    logger.info("Consultation des places libres d'un trajet")
+
+    trajet = trajet_service.trouver_par_id(id_trajet)
+    if trajet is None:
+        raise HTTPException(status_code=404, detail=f"Le trajet #{id_trajet} n'existe pas.")
+    try:
+        libres = trajet_service.places_libres(trajet)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "id_trajet": id_trajet,
+        "capacite_premiere": trajet.train.places_premieres,
+        "capacite_seconde": trajet.train.places_secondes,
+        "libres_premiere": libres[1],
+        "libres_seconde": libres[2],
+    }
+
+
 @router.get("/gares", response_model=list[GareReponseModel], tags=["Utilisateur"])
 def rechercher_gares(
     nom: str | None = None,
@@ -160,11 +196,12 @@ def reserver(
     reservation: ReservationCreationModel,
     reservation_service=Depends(get_reservation_service),
     trajet_service=Depends(get_trajet_service),
-    client: Client = Depends(trouver_client),
+    client: Utilisateur = Depends(trouver_client),
 ):
     """Réserve une place sur un trajet pour le client connecté
     Param:
-        reservation: l'id du trajet, la place et la classe (1 ou 2)
+        reservation: l'id du trajet, la classe (1 ou 2) et la place
+                     (optionnelle : sans place, la première place libre est attribuée)
     Returns:
         ReservationReponseModel : la réservation créée, avec son client, son trajet et son prix
     Raises:
@@ -193,7 +230,7 @@ def reserver(
 @router.get("/reservations", response_model=list[ReservationReponseModel], tags=["Utilisateur"])
 def voir_historique_reservations(
     reserv_service=Depends(get_reservation_service),
-    client: Client = Depends(trouver_client),
+    client: Utilisateur = Depends(trouver_client),
 ):
     """Affiche toutes les réservations du client connecté (passées et à venir)
     Returns:
@@ -211,7 +248,7 @@ def voir_historique_reservations(
 def annuler_reservation(
     id_reservation: int,
     reserv_service=Depends(get_reservation_service),
-    client: Client = Depends(trouver_client),
+    client: Utilisateur = Depends(trouver_client),
 ):
     """Annule une réservation du client connecté
     Param:

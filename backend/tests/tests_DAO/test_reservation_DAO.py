@@ -176,7 +176,7 @@ def test_trouver_par_id_existe(mock_db, mock_utilisateur_dao, mock_trajet_dao):
     assert reservation.classe == 2
     assert reservation.prix == 45.0
     # le DAO a transformé l'Utilisateur renvoyé par UtilisateurDAO en Client
-    assert isinstance(reservation.client, Client)
+    assert isinstance(reservation.client, Utilisateur)
     assert reservation.client.id == id_client_fan2train
     assert reservation.client.nom_utilisateur == "fan2train"
     # "is" : on vérifie que c'est exactement l'objet renvoyé par TrajetDAO, pas une copie
@@ -229,7 +229,7 @@ def test_trouver_par_client_plusieurs(mock_db, mock_utilisateur_dao, mock_trajet
     assert reservations[0].trajet is trajet_toulouse_paris
     assert reservations[1].trajet is trajet_paris_rennes
     # les deux appartiennent bien au client fan2train, transformé en Client
-    assert all(isinstance(r.client, Client) for r in reservations)
+    assert all(isinstance(r.client, Utilisateur) for r in reservations)
     assert all(r.client.id == id_client_fan2train for r in reservations)
 
 
@@ -285,8 +285,9 @@ def test_construire_reservation_ok(mock_utilisateur_dao, mock_trajet_dao):
     assert reservation.place == "12A"
     assert reservation.classe == 2
     assert reservation.prix == 45.0
-    # l'Utilisateur a été transformé en Client, avec le même id et le même nom
-    assert isinstance(reservation.client, Client)
+    # l'utilisateur est conservé tel quel (avec son vrai grade : la hiérarchie permet
+    # aussi à un collaborateur ou à un administrateur de réserver)
+    assert isinstance(reservation.client, Utilisateur)
     assert reservation.client.id == id_client_fan2train
     assert reservation.client.nom_utilisateur == "fan2train"
     assert reservation.trajet is trajet_toulouse_paris
@@ -392,3 +393,65 @@ def test_capacite_minimale_par_train_erreur_bdd(mock_db):
 
     with pytest.raises(Exception, match="connexion perdue"):
         ReservationDAO().capacite_minimale_par_train(1)
+
+
+
+# Tests places_reservees
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_places_reservees_ok(mock_db):
+    """Les places sont regroupées par classe"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [
+        {"classe": 2, "place": "1"},
+        {"classe": 2, "place": "4"},
+        {"classe": 1, "place": "1"},
+    ]
+
+    assert ReservationDAO().places_reservees(10) == {2: {"1", "4"}, 1: {"1"}}
+    requete, parametres = cursor.execute.call_args.args
+    assert "WHERE id_trajet = %(id_trajet)s" in requete
+    assert parametres == {"id_trajet": 10}
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_places_reservees_aucune(mock_db):
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+
+    assert ReservationDAO().places_reservees(10) == {}
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_places_reservees_erreur_bdd(mock_db):
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.execute.side_effect = Exception("connexion perdue")
+
+    with pytest.raises(Exception, match="connexion perdue"):
+        ReservationDAO().places_reservees(10)
+
+
+
+# Tests capacite_minimale_par_trajet
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_capacite_minimale_par_trajet_ok(mock_db):
+    """Meme calcul que pour un train, restreint a un trajet (et sans filtre sur la date)"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [{"classe": 2, "nb_reservees": 2, "place_max": 3}]
+
+    assert ReservationDAO().capacite_minimale_par_trajet(10) == {2: 3}
+    requete, parametres = cursor.execute.call_args.args
+    assert "t.id_trajet = %(id_trajet)s" in requete
+    assert "NOW()" not in requete
+    assert parametres == {"id_trajet": 10}
+
+
+@patch("src.Classes.classes_DAO.reservation_DAO.DBConnexion")
+def test_capacite_minimale_par_trajet_sans_reservation(mock_db):
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+
+    assert ReservationDAO().capacite_minimale_par_trajet(10) == {}

@@ -4,7 +4,7 @@ from src.Classes.classes_service.utilisateurs_service.administrateur_service imp
 )
 from src.schema.administrateur_schema import UtilisateurReponseModel
 from src.utils.log_utils import get_logger
-from src.utils.securite import verif_token
+from src.utils.securite import verif_token, verifier_grade
 
 router = APIRouter()
 
@@ -35,8 +35,7 @@ def rechercher_compte(
     """
     logger.info("Recherche d'un compte")
 
-    if admin.grade != "ADMIN":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(admin, "ADMIN")
     try:
         utilisateur = administrateur_service.recherche_compte(nom_utilisateur, id_utilisateur)
     except ValueError as e:
@@ -70,8 +69,7 @@ def modifier_grade(
                        ou si c'est un administrateur
     """
     logger.info("Modification du rôle d'un utilisateur")
-    if admin.grade != "ADMIN":
-        raise HTTPException(status_code=403, detail="Vous n'avez pas le niveau d'habilitation requis.")
+    verifier_grade(admin, "ADMIN")
     try:
         utilisateur = administrateur_service.gerer_habilitation(id_utilisateur, nouveau_grade)
     except ValueError as e:

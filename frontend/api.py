@@ -100,9 +100,15 @@ def trouver_train(token: str, num_train: int) -> dict:
 
 # Pas d'id_client ni d'id_collaborateur : l'API identifie l'utilisateur grâce à son token.
 
-def reserver(token: str, id_trajet: int, place: str, classe: int) -> dict:
+def reserver(token: str, id_trajet: int, place: str | None, classe: int) -> dict:
+    """place à None : l'API attribue la première place libre de la classe."""
     corps = {"id_trajet": id_trajet, "place": place, "classe": classe}
     return _appeler("POST", "/utilisateur/reservations", token, json=corps)
+
+
+def places_libres(token: str, id_trajet: int) -> dict:
+    """{"capacite_premiere", "capacite_seconde", "libres_premiere", "libres_seconde", ...}"""
+    return _appeler("GET", f"/utilisateur/trajets/{id_trajet}/places", token)
 
 
 def historique_reservations(token: str) -> list[dict]:

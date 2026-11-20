@@ -36,7 +36,7 @@ class TestReservation:
             (
                 {"client": 42},
                 TypeError,
-                "Le client doit être de type Client."
+                "Le client doit être de type Utilisateur."
             ),
             (
                 {"trajet": 42},
