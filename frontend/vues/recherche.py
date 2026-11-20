@@ -7,7 +7,8 @@ import commun
 import style
 
 utilisateur = commun.utilisateur()
-est_client = utilisateur["grade"] == "CLIENT"
+# Tous les grades peuvent réserver (un collaborateur ou un administrateur a aussi les droits d'un client)
+est_client = utilisateur["grade"] in ("CLIENT", "COLLABORATEUR", "ADMIN")
 
 st.title("Rechercher un trajet")
 
@@ -91,31 +92,92 @@ style.panneau_departs(
 )
 st.caption(f"{commun.jour(resultats['jour']).capitalize()} · {len(trajets)} trajet(s)")
 
+
+def libelle_trajet(t: dict) -> str:
+    return (
+        f"{commun.heure(t['heure_depart'])} → {commun.heure(t['heure_arrivee'])}"
+        + (f" · train {t['num_train']}" if t.get("num_train") else "")
+    )
+
+
+# --- F5 : tarification transparente -------------------------------------------------
+POSTES_PRIX = [
+    ("cout_exploitation", "Coût d'exploitation (personnel, énergie, entretien)"),
+    ("peage_reseau", "Péage réseau (versé à SNCF Réseau)"),
+    ("marge", "Marge de la compagnie"),
+    ("tva", "TVA (10 %)"),
+    ("prix_total", "Prix payé"),
+]
+avec_detail = [t for t in trajets if t.get("detail_prix_seconde") and t.get("detail_prix_premiere")]
+if avec_detail:
+    with st.expander("Tarification transparente : où va votre argent ?", icon=":material/euro:"):
+        for t in avec_detail:
+            st.markdown(f"**{libelle_trajet(t)}**")
+            st.dataframe(
+                [
+                    {
+                        "Poste": libelle,
+                        "2de classe": commun.euros(t["detail_prix_seconde"][cle]),
+                        "1re classe": commun.euros(t["detail_prix_premiere"][cle]),
+                    }
+                    for cle, libelle in POSTES_PRIX
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+
 if not trajets or not est_client:
     st.stop()
 
+# --- Réservation (FO1) : la place est attribuée automatiquement ou choisie parmi les libres ---
 st.subheader("Réserver une place")
-with st.form("reserver"):
-    trajet = st.selectbox(
-        "Train",
-        trajets,
-        format_func=lambda t: (
-            f"{commun.heure(t['heure_depart'])} → {commun.heure(t['heure_arrivee'])}"
-            + (f" · train {t['num_train']}" if t.get("num_train") else "")
-        ),
+
+billet = st.session_state.pop("dernier_billet", None)
+if billet:
+    st.success(
+        f"Réservation confirmée (place {billet['place']}), voici votre billet :",
+        icon=":material/check_circle:",
     )
-    f1, f2 = st.columns(2)
-    classe = f1.radio("Classe", [2, 1], format_func=commun.libelle_classe, horizontal=True)
-    place = f2.text_input("Numéro de place", max_chars=10, placeholder="ex. 42")
-    if st.form_submit_button("Confirmer la réservation", type="primary", icon=":material/confirmation_number:"):
-        if not place.strip():
-            st.error("Indiquez un numéro de place.")
-        else:
-            try:
-                reservation = api.reserver(
-                    commun.token(), trajet["id_trajet"], place.strip(), classe
-                )
-                st.success("Réservation confirmée, voici votre billet :", icon=":material/check_circle:")
-                commun.afficher_billet(reservation)
-            except api.ErreurAPI as e:
-                commun.afficher_erreur(e)
+    commun.afficher_billet(billet)
+
+AUTO = "Attribution automatique"
+par_id = {t["id_trajet"]: t for t in trajets}
+id_trajet = st.selectbox("Train", list(par_id), format_func=lambda i: libelle_trajet(par_id[i]), key="resa_trajet")
+f1, f2 = st.columns(2)
+classe = f1.radio("Classe", [2, 1], format_func=commun.libelle_classe, horizontal=True, key="resa_classe")
+
+try:
+    places = api.places_libres(commun.token(), id_trajet)
+except api.ErreurAPI as e:
+    commun.afficher_erreur(e)
+    st.stop()
+
+libres = places["libres_premiere"] if classe == 1 else places["libres_seconde"]
+capacite = places["capacite_premiere"] if classe == 1 else places["capacite_seconde"]
+if not libres:
+    f2.warning(f"Complet en {commun.libelle_classe(classe)}.", icon=":material/block:")
+    st.stop()
+
+choix = f2.selectbox(
+    f"Place ({len(libres)} libre(s) sur {capacite})",
+    [AUTO, *libres],
+    help="Par défaut, la première place libre vous est attribuée. Vous pouvez aussi choisir votre place.",
+    key=f"resa_place_{id_trajet}_{classe}",
+)
+st.caption(f"Prix : {commun.euros(commun.prix_classe(par_id[id_trajet]['tarif_base'], classe))}")
+
+if st.button("Confirmer la réservation", type="primary", icon=":material/confirmation_number:"):
+    try:
+        reservation = api.reserver(commun.token(), id_trajet, None if choix == AUTO else str(choix), classe)
+    except api.ErreurAPI as e:
+        commun.afficher_erreur(e)
+        st.stop()
+    # Met à jour les places restantes affichées dans le panneau
+    try:
+        resultats["trajets"] = api.rechercher_trajets(
+            commun.token(), resultats["depart"]["nom"], resultats["arrivee"]["nom"], resultats["jour"]
+        )
+    except api.ErreurAPI:
+        pass
+    st.session_state.dernier_billet = reservation
+    st.rerun()

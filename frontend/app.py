@@ -100,20 +100,21 @@ if utilisateur is None:
     navigation = st.navigation([st.Page(page_connexion, title="Connexion", icon=":material/login:")],
                                position="hidden")
 else:
-    grade = utilisateur.get("grade")
+    # Hiérarchie des grades : chaque grade a aussi les pages des grades inférieurs
+    niveau = {"CLIENT": 1, "COLLABORATEUR": 2, "ADMIN": 3}.get(utilisateur.get("grade"), 0)
     arrets = [("Voyager", st.Page("vues/recherche.py", title="Rechercher", icon=":material/search:",
                                   default=True))]
-    if grade == "CLIENT":
+    if niveau >= 1:
         arrets.append(("Voyager", st.Page("vues/reservations.py", title="Mes réservations",
                                           icon=":material/confirmation_number:")))
-    if grade == "COLLABORATEUR":
+    if niveau >= 2:
         arrets += [
             ("Exploitation", st.Page("vues/gares.py", title="Gares", icon=":material/location_on:")),
             ("Exploitation", st.Page("vues/lignes.py", title="Lignes", icon=":material/route:")),
             ("Exploitation", st.Page("vues/trains.py", title="Trains", icon=":material/train:")),
             ("Exploitation", st.Page("vues/trajets.py", title="Trajets", icon=":material/schedule:")),
         ]
-    if grade == "ADMIN":
+    if niveau >= 3:
         arrets.append(("Administration", st.Page("vues/comptes.py", title="Comptes",
                                                  icon=":material/manage_accounts:")))
     navigation = st.navigation([page for _, page in arrets], position="hidden")

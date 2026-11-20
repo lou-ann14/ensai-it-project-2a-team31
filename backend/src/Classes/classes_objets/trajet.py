@@ -48,6 +48,9 @@ class Trajet:
         # (None tant qu'elles n'ont pas été calculées, ou si aucun train n'est associé)
         self.places_restantes_premiere: int | None = None
         self.places_restantes_seconde: int | None = None
+        # Tarification transparente (F5) : calculée par TrajetService.ajouter_detail_prix
+        self.detail_prix_premiere: dict | None = None
+        self.detail_prix_seconde: dict | None = None
 
     @property
     def nom_gare_depart(self) -> str:

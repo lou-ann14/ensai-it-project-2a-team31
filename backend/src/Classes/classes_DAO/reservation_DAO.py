@@ -1,7 +1,6 @@
 from src.Classes.classes_DAO.trajet_DAO import TrajetDAO
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
 from src.Classes.classes_objets.reservation import Reservation
-from src.Classes.classes_objets.utilisateurs.client import Client
 from src.utils.db_connexion import DBConnexion
 from src.utils.log_utils import get_logger, log
 
@@ -231,6 +230,45 @@ class ReservationDAO:
         return comptes
 
     @log
+    def places_reservees(self, id_trajet: int) -> dict[int, set[str]]:
+        """
+        Liste les places déjà réservées sur un trajet, classe par classe.
+
+        Param:
+        ------
+        id_trajet: int
+            l'identifiant du trajet
+
+        Return:
+        ------
+        dict[int, set[str]]
+            {classe: ensemble des numéros de place réservés} (une classe sans réservation est absente)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT classe, place                     "
+                    "  FROM reservations                      "
+                    " WHERE id_trajet = %(id_trajet)s         ",
+                    {"id_trajet": id_trajet},
+                )
+                lignes_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans ReservationDAO.places_reservees : {e}")
+            raise
+
+        reservees: dict[int, set[str]] = {}
+        for ligne_bdd in lignes_bdd:
+            reservees.setdefault(ligne_bdd["classe"], set()).add(ligne_bdd["place"])
+        return reservees
+
+    @log
     def capacite_minimale_par_train(self, id_train: int) -> dict[int, int]:
         """
         Calcule, pour chaque classe, le nombre de places minimum que doit garder un train
@@ -257,6 +295,44 @@ class ReservationDAO:
             en cas d'erreur lors de l'accès à la base de données
             (l'erreur est écrite dans les logs puis relancée)
         """
+        return self._capacite_minimale(
+            "t.id_train = %(id_train)s AND t.heure_depart > NOW()",
+            {"id_train": id_train},
+            "capacite_minimale_par_train",
+        )
+
+    @log
+    def capacite_minimale_par_trajet(self, id_trajet: int) -> dict[int, int]:
+        """
+        Calcule, pour chaque classe, le nombre de places minimum que doit offrir le train
+        d'un trajet pour ne pas invalider ses réservations (même règle que
+        capacite_minimale_par_train : nombre de réservations ou plus grand numéro de place).
+
+        Param:
+        ------
+        id_trajet: int
+            l'identifiant du trajet
+
+        Return:
+        ------
+        dict[int, int]
+            {classe: capacité minimale} (dictionnaire vide si le trajet n'a aucune réservation)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        return self._capacite_minimale(
+            "t.id_trajet = %(id_trajet)s",
+            {"id_trajet": id_trajet},
+            "capacite_minimale_par_trajet",
+        )
+
+    @staticmethod
+    def _capacite_minimale(condition: str, parametres: dict, nom_methode: str) -> dict[int, int]:
+        """Requête commune aux deux calculs de capacité minimale (condition SQL fixée par le code)."""
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
@@ -266,14 +342,13 @@ class ReservationDAO:
                     "           AS place_max                                                "
                     "  FROM reservations r                                                  "
                     "  JOIN trajets t ON t.id_trajet = r.id_trajet                          "
-                    " WHERE t.id_train = %(id_train)s                                       "
-                    "   AND t.heure_depart > NOW()                                          "
+                    " WHERE " + condition + "                                               "
                     " GROUP BY r.classe                                                     ",
-                    {"id_train": id_train},
+                    parametres,
                 )
                 lignes_bdd = cursor.fetchall()
         except Exception as e:
-            logger.error(f"Erreur base de données dans ReservationDAO.capacite_minimale_par_train : {e}")
+            logger.error(f"Erreur base de données dans ReservationDAO.{nom_methode} : {e}")
             raise
 
         return {
@@ -295,7 +370,7 @@ class ReservationDAO:
         Return:
         ------
         Reservation | None
-            la réservation avec ses objets Client et Trajet,
+            la réservation avec son Utilisateur et son Trajet,
             ou None si le client ou le trajet n'existe pas
 
         Raises:
@@ -310,15 +385,11 @@ class ReservationDAO:
         if utilisateur is None or trajet is None:
             return None
 
-        client = Client(
-            id=utilisateur.id,
-            mdp=utilisateur.mdp,
-            nom_utilisateur=utilisateur.nom_utilisateur,
-        )
-
+        # L'utilisateur garde son vrai grade : un collaborateur ou un administrateur
+        # peut aussi avoir réservé (hiérarchie des grades)
         return Reservation(
             id_reservation=reservation_bdd["id_reservation"],
-            client=client,
+            client=utilisateur,
             trajet=trajet,
             place=reservation_bdd["place"],
             classe=reservation_bdd["classe"],

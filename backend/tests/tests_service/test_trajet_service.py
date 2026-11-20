@@ -13,6 +13,17 @@ from src.Classes.classes_service.trajet_service import TrajetService
 # Données communes aux tests
 
 @pytest.fixture(autouse=True)
+def reservations():
+    """Simule les reservations : par defaut, aucun trajet n'en a.
+    Un test peut renseigner capacite_minimale_par_trajet pour simuler des places vendues."""
+    with patch("src.Classes.classes_service.trajet_service.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.capacite_minimale_par_trajet.return_value = {}
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        reservation_dao.return_value.places_reservees.return_value = {}
+        yield reservation_dao.return_value
+
+
+@pytest.fixture(autouse=True)
 def table_trains():
     """Simule la table trains : tout train demandé par son id existe (TGV, 100 + 200 places).
     Un test peut faire renvoyer None à trouver_par_id pour simuler un train inexistant."""
@@ -37,8 +48,8 @@ train_test = Train(
     id_train=1,
 )
 
-heure_depart = datetime(2026, 1, 15, 10, 0)
-heure_arrivee = datetime(2026, 1, 15, 11, 0)
+heure_depart = datetime(2030, 1, 15, 10, 0)
+heure_arrivee = datetime(2030, 1, 15, 11, 0)
 tarif_base = 30.0
 
 trajet_test = Trajet(
@@ -165,7 +176,7 @@ def test_trajet_similaire_existe_autre_heure():
     service = TrajetService()
     service.trajet_dao.rechercher = MagicMock(return_value=[trajet_test])
 
-    assert service._trajet_similaire_existe(ligne_test, datetime(2026, 1, 15, 18, 0)) is False
+    assert service._trajet_similaire_existe(ligne_test, datetime(2030, 1, 15, 18, 0)) is False
 
 
 def test_trajet_similaire_existe_aucun_trajet():
@@ -400,7 +411,7 @@ def test_modifier_recalcule_arrivee_et_temps(mocks):
 # tests train_depuis_id et creer (anciennement test_gare_et_train_trajet.py)
 
 SERVICE_TRAJET = "src.Classes.classes_service.trajet_service"
-DEPART_RENNES_NANTES = datetime(2026, 11, 18, 8, 35)
+DEPART_RENNES_NANTES = datetime(2030, 11, 18, 8, 35)
 LIGNE_RENNES_NANTES = Ligne(
     Gare("Rennes", "Rennes", "stop_area:SNCF:87471003", 1),
     Gare("Nantes", "Nantes", "stop_area:SNCF:87481002", 5),
@@ -642,3 +653,160 @@ def test_trouver_par_id_introuvable():
     service.trajet_dao.trouver_par_id = MagicMock(return_value=None)
 
     assert service.trouver_par_id(99) is None
+
+
+
+# tests places_libres
+
+
+def test_places_libres():
+    """Train de 100 places en 1re et 200 en 2de ; 1re : 1 et 3 prises ; 2de : 2 prise"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.places_reservees.return_value = {1: {"1", "3"}, 2: {"2"}}
+        libres = TrajetService().places_libres(trajet)
+
+    assert libres[1][:3] == [2, 4, 5]
+    assert len(libres[1]) == 98
+    assert libres[2][:2] == [1, 3]
+    assert len(libres[2]) == 199
+    reservation_dao.return_value.places_reservees.assert_called_once_with(10)
+
+
+def test_places_libres_ignore_les_anciennes_places():
+    """Une ancienne place au format 12A n'empêche pas la place 12 d'être libre"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.places_reservees.return_value = {2: {"12A"}}
+        libres = TrajetService().places_libres(trajet)
+
+    assert 12 in libres[2]
+
+
+def test_places_libres_trajet_sans_train():
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, None, tarif_base, id_trajet=11)
+
+    with pytest.raises(ValueError, match="Aucun train"):
+        TrajetService().places_libres(trajet)
+
+
+# tests ajouter_detail_prix (tarification transparente)
+
+
+def test_rechercher_affiche_le_detail_des_prix():
+    """F5 : chaque trajet trouvé indique le détail de son prix dans les deux classes"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, 20.0, id_trajet=10)
+    service = TrajetService()
+    service.trajet_dao.rechercher = MagicMock(return_value=[trajet])
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        res = service.rechercher(gare_rennes, gare_nantes, heure_depart)
+
+    assert res[0].detail_prix_seconde["prix_total"] == 20.0
+    assert res[0].detail_prix_premiere["prix_total"] == 30.0
+    assert res[0].detail_prix_seconde["tva"] == 1.82
+
+
+
+# tests : date de depart passee (creation et modification)
+
+
+def test_creer_date_passee_refusee(mocks):
+    """Un trajet dans le passe ne serait jamais reservable : refuse, sans appel a l'API SNCF"""
+    with pytest.raises(ValueError, match="dans le futur"):
+        TrajetService().creer(1, 1, datetime(2025, 1, 10, 8, 30), 40.0)
+    mocks.api.duree_trajet.assert_not_called()
+    mocks.dao.creer.assert_not_called()
+
+
+def test_modifier_date_passee_refusee(mocks):
+    mocks.dao.trouver_par_id.return_value = MagicMock()
+    passe = datetime(2025, 1, 10, 8, 30)
+    trajet = Trajet(passe, passe, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
+
+    with pytest.raises(ValueError, match="dans le futur"):
+        TrajetService().modifier(1, trajet)
+    mocks.dao.modifier.assert_not_called()
+
+
+def test_date_avec_fuseau_horaire():
+    """Une date recue avec un fuseau (ex. '...Z') est comparee sans erreur"""
+    from datetime import timezone
+    TrajetService()._verifier_donnees(1, 1, datetime(2030, 1, 1, 8, 0, tzinfo=timezone.utc), 10.0)
+    with pytest.raises(ValueError, match="dans le futur"):
+        TrajetService()._verifier_donnees(1, 1, datetime(2020, 1, 1, 8, 0, tzinfo=timezone.utc), 10.0)
+
+
+# tests : modification d'un trajet qui a des reservations
+
+
+def trajet_reserve(ligne=None, train=None):
+    """Nouvelles donnees d'un trajet (par defaut : meme ligne, train de 100 + 300 places)"""
+    return Trajet(DEPART, DEPART, ligne or faire_ligne(),
+                  train or Train("TGV", 100, 300, 8541, id_train=1), 40.0)
+
+
+def ancien_trajet():
+    """Le trajet tel qu'il est en base : ligne 1"""
+    return Trajet(DEPART, DEPART, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0, id_trajet=1)
+
+
+def test_modifier_trajet_reserve_train_trop_petit(mocks, reservations):
+    """Places 2 et 3 vendues en 2de : un train d'une seule place en 2de est refuse"""
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
+    reservations.capacite_minimale_par_trajet.return_value = {2: 3}
+
+    with pytest.raises(ValueError, match="1 place en seconde classe.*au moins 3"):
+        TrajetService().modifier(1, trajet_reserve(train=Train("TER", 1, 1, 999, id_train=2)))
+    reservations.capacite_minimale_par_trajet.assert_called_once_with(1)
+    mocks.api.duree_trajet.assert_not_called()
+    mocks.dao.modifier.assert_not_called()
+
+
+def test_modifier_trajet_reserve_premiere_classe_trop_petite(mocks, reservations):
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
+    reservations.capacite_minimale_par_trajet.return_value = {1: 5}
+
+    with pytest.raises(ValueError, match="première classe"):
+        TrajetService().modifier(1, trajet_reserve(train=Train("TER", 4, 300, 999, id_train=2)))
+    mocks.dao.modifier.assert_not_called()
+
+
+def test_modifier_trajet_reserve_changement_de_ligne(mocks, reservations):
+    """Les passagers ont reserve un parcours : la ligne ne peut plus changer"""
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
+    reservations.capacite_minimale_par_trajet.return_value = {2: 1}
+    autre_ligne = Ligne(Gare("Nantes", "Nantes", ID_NANTES, id_gare=2),
+                        Gare("Rennes", "Rennes", ID_RENNES, id_gare=1), id_ligne=2)
+    mocks.ligne.trouver_par_id.return_value = autre_ligne
+
+    with pytest.raises(ValueError, match="changer la ligne"):
+        TrajetService().modifier(1, trajet_reserve(ligne=autre_ligne))
+    mocks.api.duree_trajet.assert_not_called()
+    mocks.dao.modifier.assert_not_called()
+
+
+def test_modifier_trajet_reserve_horaire_et_train_assez_grand(mocks, reservations):
+    """Meme ligne, train assez grand : changer l'horaire reste possible (decision du groupe)"""
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
+    mocks.dao.modifier.return_value = True
+    mocks.api.duree_trajet.return_value = 3600
+    reservations.capacite_minimale_par_trajet.return_value = {1: 2, 2: 3}
+
+    assert TrajetService().modifier(1, trajet_reserve(train=Train("TER", 2, 3, 857, id_train=2))) is True
+    mocks.dao.modifier.assert_called_once()
+
+
+def test_modifier_trajet_sans_reservation_tout_est_modifiable(mocks, reservations):
+    """Sans reservation, on peut changer de ligne et prendre un train d'une place"""
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
+    mocks.dao.modifier.return_value = True
+    mocks.api.duree_trajet.return_value = 3600
+    autre_ligne = Ligne(Gare("Nantes", "Nantes", ID_NANTES, id_gare=2),
+                        Gare("Rennes", "Rennes", ID_RENNES, id_gare=1), id_ligne=2)
+    mocks.ligne.trouver_par_id.return_value = autre_ligne
+
+    assert TrajetService().modifier(1, trajet_reserve(ligne=autre_ligne, train=Train("TER", 1, 1, 9, id_train=3))) is True

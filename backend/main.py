@@ -10,7 +10,7 @@ from src.Classes.controller import (
 from src.utils.env_var import display_values, load_environment_variables
 from src.utils.log_utils import LogMiddleware, get_logger, initialize_logs
 from src.utils.reset_bdd import Reset_bdd
-from src.utils.securite import verif_token
+from src.utils.securite import verif_token, verifier_grade
 
 logger = get_logger(__name__)
 
@@ -64,11 +64,7 @@ async def reset_database(token=Depends(verif_token)):
     """Réinitialise la base de données (ADMIN uniquement)"""
     # Le grade est vérifié AVANT la réinitialisation : sinon n'importe quel compte connecté
     # pouvait effacer la base (l'erreur n'était levée qu'après coup).
-    if token.grade != "ADMIN":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Vous n'avez pas les permissions requises : ADMIN uniquement",
-        )
+    verifier_grade(token, "ADMIN")
     logger.info("Database reset")
     succes = Reset_bdd().demarrer()
     return {

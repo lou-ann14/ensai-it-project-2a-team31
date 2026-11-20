@@ -43,6 +43,7 @@ def dao():
     ):
         reservation_dao.return_value.creer.side_effect = lambda reservation: reservation  # renvoie ce qu'on lui donne
         reservation_dao.return_value.compter_par_trajets.return_value = {}  # aucune place réservée
+        reservation_dao.return_value.places_reservees.return_value = {}
         yield reservation_dao.return_value
 
 
@@ -91,12 +92,62 @@ def test_creer_classe_invalide(dao, classe):
     dao.creer.assert_not_called()
 
 
+# Tests attribution automatique de la place (place non renseignée)
+
+
 @pytest.mark.parametrize("place", [None, "", "   "])
-def test_creer_place_manquante(dao, place):
-    """Pas de numéro de place : ValueError"""
-    with pytest.raises(ValueError, match="place est obligatoire"):
-        ReservationService().creer(client_fan2train, trajet_futur, place, 2)
+def test_creer_sans_place_attribue_la_premiere_libre(dao, place):
+    """Pas de numéro de place : la place 1 est attribuée (aucune réservation)"""
+    res = ReservationService().creer(client_fan2train, trajet_futur, place, 2)
+
+    assert res.place == "1"
+    dao.creer.assert_called_once()
+
+
+def test_creer_sans_place_saute_les_places_prises(dao):
+    """Places 1, 2 et 4 prises en 2de : la place 3 est attribuée (les places de 1re ne comptent pas)"""
+    dao.places_reservees.return_value = {2: {"1", "2", "4"}, 1: {"3"}}
+
+    res = ReservationService().creer(client_fan2train, trajet_futur, None, 2)
+
+    assert res.place == "3"
+    dao.places_reservees.assert_called_with(trajet_futur.id_trajet)
+
+
+def test_creer_sans_place_classe_complete(dao):
+    """Les 100 places de 1re sont prises : ValueError « complet »"""
+    dao.places_reservees.return_value = {1: {str(n) for n in range(1, 101)}}
+
+    with pytest.raises(ValueError, match="complet en première classe"):
+        ReservationService().creer(client_fan2train, trajet_futur, None, 1)
     dao.creer.assert_not_called()
+
+
+def test_creer_sans_place_reessaie_si_place_prise_entre_temps(dao):
+    """La place attribuée est prise par un autre client juste avant l'insertion :
+    on recommence avec la place libre suivante"""
+    dao.places_reservees.side_effect = [{}, {2: {"1"}}]  # 1er calcul : 1 libre ; 2e calcul : 1 prise
+
+    def creer(reservation):
+        """La base refuse la place 1 (prise entre-temps), accepte les autres"""
+        if reservation.place == "1":
+            raise UniqueViolation
+        return reservation
+    dao.creer.side_effect = creer
+
+    res = ReservationService().creer(client_fan2train, trajet_futur, None, 2)
+
+    assert res.place == "2"
+    assert dao.creer.call_count == 2
+
+
+def test_creer_place_choisie_deja_prise_pas_de_nouvel_essai(dao):
+    """Place choisie par le client et déjà prise : erreur directe, pas de place au hasard"""
+    dao.creer.side_effect = UniqueViolation
+
+    with pytest.raises(ValueError, match="déjà réservée"):
+        ReservationService().creer(client_fan2train, trajet_futur, "12", 2)
+    assert dao.creer.call_count == 1
 
 
 def test_creer_trajet_manquant(dao):

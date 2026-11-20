@@ -17,8 +17,8 @@ l'[API SNCF](https://numerique.sncf.com/startup/api/).
 | **F2** | Créer, modifier, supprimer une ligne entre deux gares (gares importées depuis l'API SNCF, autocomplétion) | COLLABORATEUR |
 | **F3** | Planifier, modifier, supprimer un trajet (date, train, tarif) ; **durée calculée par l'API SNCF** | COLLABORATEUR |
 | **F4** | Rechercher les trajets entre deux gares pour un jour donné | Tous |
-| **F5** | **Places restantes** par classe affichées dans la recherche | Tous |
-| **FO1** | Réserver une place, voir ses réservations passées et à venir, annuler | CLIENT |
+| **F5** | **Places restantes** par classe et **tarification transparente** (détail du prix : exploitation, péage réseau, marge, TVA) dans la recherche | Tous |
+| **FO1** | Réserver une place (attribuée automatiquement, ou choisie parmi les places libres), voir ses réservations passées et à venir, annuler | CLIENT |
 | **FO2** | Deux classes de voyage : 2de classe (tarif de base) et 1re classe (tarif × 1,5) | CLIENT |
 
 ---
@@ -83,7 +83,8 @@ Sur Onyxia, ouvrir les ports 5000 / 8501 depuis l'onglet **Ports** de VS Code.
 3. Parcours type :
    - **collaborateur** : `POST /collaborateur/gares/importer?q=Rennes` (puis `Nantes`) → `POST /collaborateur/trains`
      → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`
-   - **client** : `GET /utilisateur/trajets` (avec les places restantes) → `POST /utilisateur/reservations`
+   - **client** : `GET /utilisateur/trajets` (places restantes, détail des prix) → `GET /utilisateur/trajets/{id}/places`
+     (places libres) → `POST /utilisateur/reservations`
      → `GET /utilisateur/reservations` → `DELETE /utilisateur/reservations/{id}`
 
 ### Règles à connaître
@@ -91,6 +92,10 @@ Sur Onyxia, ouvrir les ports 5000 / 8501 depuis l'onglet **Ports** de VS Code.
 - **Identité** : l'utilisateur est toujours déduit de son token, jamais d'un id passé dans la requête.
 - **Places** : une place est un numéro entre 1 et la capacité de la classe dans le train
   (ex. 1 à 300 en 2de). Une place ne peut être réservée qu'une fois par trajet et par classe.
+  Si le client n'indique pas de place, la première place libre lui est attribuée.
+- **Prix** : 2de classe = tarif de base, 1re classe = tarif × 1,5. Le détail affiché suppose une TVA
+  de 10 %, puis 35 % de péage réseau, 50 % de coût d'exploitation et 15 % de marge sur le prix HT
+  (hypothèses de la compagnie, dans `tarification.py`).
 - **Codes d'erreur** : `401` non connecté ou token invalide, `403` grade insuffisant,
   `400` donnée invalide ou règle métier non respectée, `404` introuvable,
   `502` API SNCF indisponible.
@@ -104,7 +109,7 @@ cd backend
 uv run --with pytest --with httpx python -m pytest -q
 ```
 
-348 tests, **84 % de couverture** du code. La base de données et l'API SNCF y sont simulées
+390 tests, **85 % de couverture** du code. La base de données et l'API SNCF y sont simulées
 (aucune connexion nécessaire). Le parcours complet a aussi été vérifié à la main sur PostgreSQL
 avec la vraie API SNCF.
 

@@ -18,6 +18,35 @@ def hash_password(mdp: str, salt: str = "") -> str:
     return hash_object.hexdigest()
 
 
+# Hiérarchie des habilitations : chaque grade dispose aussi des droits des grades inférieurs
+# (un collaborateur peut faire tout ce que fait un client, un administrateur tout ce que fait
+# un collaborateur).
+NIVEAUX_GRADE = {"CLIENT": 1, "COLLABORATEUR": 2, "ADMIN": 3}
+
+
+def a_le_grade(utilisateur, grade_minimum: str) -> bool:
+    """Indique si l'utilisateur a au moins le grade demandé.
+    Param:
+        utilisateur: l'utilisateur connecté (objet ayant un attribut grade)
+        grade_minimum (str): CLIENT, COLLABORATEUR ou ADMIN
+    Returns:
+        bool: True si son grade est égal ou supérieur au grade demandé
+    """
+    return NIVEAUX_GRADE.get(utilisateur.grade, 0) >= NIVEAUX_GRADE[grade_minimum]
+
+
+def verifier_grade(utilisateur, grade_minimum: str) -> None:
+    """Refuse l'action si l'utilisateur n'a pas au moins le grade demandé.
+    Raises:
+        HTTPException: 403 error si le grade est insuffisant.
+    """
+    if not a_le_grade(utilisateur, grade_minimum):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Vous n'avez pas le niveau d'habilitation requis ({grade_minimum} ou supérieur).",
+        )
+
+
 def verif_token(x_auth_token=Header(None)) -> UtilisateurDAO:
     """Vérifie l'authentification d'un utilisateur via un token donné.
 
