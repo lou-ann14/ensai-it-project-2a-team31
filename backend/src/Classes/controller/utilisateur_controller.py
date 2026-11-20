@@ -68,7 +68,7 @@ async def trouver_client(utilisateur=Depends(verif_token)) -> Client:
     return Client(mdp=utilisateur.mdp, nom_utilisateur=utilisateur.nom_utilisateur, id=utilisateur.id)
 
 
-async def trouver_gare(nom: str, gare_service: GareService) -> Gare:
+def trouver_gare(nom: str, gare_service: GareService) -> Gare:
     """Retrouve une gare à partir de son nom (insensible à la casse)
     Le nom exact est prioritaire : « Rennes » désigne Rennes, et non Rennes Beaulieu Chimie.
     Sinon, un début de nom suffit s'il ne correspond qu'à une seule gare.
