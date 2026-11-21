@@ -45,4 +45,4 @@ class Reservation:
     def __str__(self):
         """Représentation string d'une réservation.
         """
-        return f"La réservation #{self.id_reservation} du client #{self.client} pour le trajet #{self.trajet}, en {self.classe} à la place {self.place} a coûté {self.prix} euros"
+        return f"La réservation #{self.id_reservation} du client #{self.client.id} pour le trajet #{self.trajet}, en {self.classe} à la place {self.place} a coûté {self.prix} euros"
