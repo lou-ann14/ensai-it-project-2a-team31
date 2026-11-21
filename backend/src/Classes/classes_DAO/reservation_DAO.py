@@ -332,7 +332,30 @@ class ReservationDAO:
 
     @staticmethod
     def _capacite_minimale(condition: str, parametres: dict, nom_methode: str) -> dict[int, int]:
-        """Requête commune aux deux calculs de capacité minimale (condition SQL fixée par le code)."""
+        """
+        Requête commune aux deux calculs de capacité minimale
+        (capacite_minimale_par_train et capacite_minimale_par_trajet).
+
+        Param:
+        ------
+        condition: str
+            la condition SQL du WHERE (fixée par le code, jamais par l'utilisateur)
+        parametres: dict
+            les valeurs des paramètres de la condition
+        nom_methode: str
+            le nom de la méthode appelante, pour les logs
+
+        Return:
+        ------
+        dict[int, int]
+            {classe: capacité minimale} (une classe sans réservation est absente)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(

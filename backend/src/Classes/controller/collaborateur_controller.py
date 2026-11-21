@@ -24,7 +24,14 @@ logger = get_logger(__name__)
 
 
 def get_collaborateur_service():
-    """Dependency Injection provider for CollaborateurService."""
+    """
+    Fournit une instance de CollaborateurService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    CollaborateurService
+        une nouvelle instance de CollaborateurService
+    """
     return CollaborateurService()
 
 
@@ -41,17 +48,33 @@ def creer_ligne(
     gare_service=Depends(get_gare_service),
     collab=Depends(verif_token),
 ):
-    """Permet au collaborateur connecté de créer une ligne
-    (la ligne est rattachée au collaborateur du token, pas à un id passé en paramètre)
+    """
+    Permet au collaborateur connecté de créer une ligne.
+    La ligne est rattachée au collaborateur du token, pas à un id passé en paramètre.
+
     Param:
-        gare_depart (str) : le nom de la gare de départ
-        gare_arrivee (str) : le nom de la gare d'arrivée
-    Returns:
-        LigneCreeeModel : un message de confirmation et l'id de la ligne créée
+    ------
+    gare_depart: str
+        le nom de la gare de départ
+    gare_arrivee: str
+        le nom de la gare d'arrivée
+
+    Return:
+    ------
+    LigneCreeeModel
+        un message de confirmation et l'id de la ligne créée
+
     Raises:
-        HTTPException: erreur 400 si le collaborateur n'existe pas, si les deux gares sont identiques,
-                       si la ligne existe déjà, ou si un nom de gare est vide ou correspond à plusieurs gares
-        HTTPException: erreur 404 si aucune gare ne correspond à un nom
+    ------
+    HTTPException
+        erreur 400 si les deux gares sont identiques, si la ligne existe déjà,
+        ou si un nom de gare est vide ou correspond à plusieurs gares
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Création d'une ligne")
     verifier_grade(collab, "COLLABORATEUR")
@@ -78,17 +101,33 @@ def creer_ligne(
     tags=["Collaborateur"],
 )
 def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Permet à un collaborateur de créer un trajet
+    """
+    Permet à un collaborateur de créer un trajet.
+    L'heure d'arrivée et le temps de trajet sont calculés grâce à l'API SNCF.
+
     Param:
-        trajet: l'id de la ligne, l'id du train, l'heure de départ et le tarif de base
-    Returns:
-        TrajetCreeModel : un message de confirmation, l'id du trajet créé,
-                          et l'heure d'arrivée et le temps de trajet calculés avec l'API SNCF
+    ------
+    trajet: TrajetCreationModel
+        l'id de la ligne, l'id du train, l'heure de départ et le tarif de base
+
+    Return:
+    ------
+    TrajetCreeModel
+        un message de confirmation, l'id du trajet créé,
+        l'heure d'arrivée et le temps de trajet calculés
+
     Raises:
-        HTTPException: erreur 400 si une donnée est invalide, si la ligne ou le train n'existe pas
-                       si un trajet existe déjà sur cette ligne à cette heure
-                       ou si l'API SNCF ne trouve aucun itinéraire
-        HTTPException: erreur 502 si l'API SNCF est indisponible
+    ------
+    HTTPException
+        erreur 400 si une donnée est invalide (dont une date de départ passée),
+        si la ligne ou le train n'existe pas, si un trajet existe déjà sur cette ligne
+        à cette heure ou si l'API SNCF ne trouve aucun itinéraire
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Création d'un trajet")
     verifier_grade(collab, "COLLABORATEUR")
@@ -122,18 +161,35 @@ def modifier_ligne(
     gare_service=Depends(get_gare_service),
     collab=Depends(verif_token)
 ):
-    """Permet à un collaborateur de modifier les gares d'une ligne
+    """
+    Permet à un collaborateur de modifier les gares d'une ligne.
+
     Param:
-        id_ligne (int) : l'id de la ligne à modifier
-        gare_depart (str) : le nom de la nouvelle gare de départ
-        gare_arrivee (str) : le nom de la nouvelle gare d'arrivée
-    Returns:
-        LigneModifieeModel : un message de confirmation et l'id de la ligne
+    ------
+    id_ligne: int
+        l'id de la ligne à modifier
+    gare_depart: str
+        le nom de la nouvelle gare de départ
+    gare_arrivee: str
+        le nom de la nouvelle gare d'arrivée
+
+    Return:
+    ------
+    LigneModifieeModel
+        un message de confirmation et l'id de la ligne
+
     Raises:
-        HTTPException: erreur 400 si les deux gares sont identiques, si une autre ligne relie déjà
-                       ces gares, si la ligne a des trajets, ou si un nom de gare est vide
-                       ou correspond à plusieurs gares
-        HTTPException: erreur 404 si la ligne n'existe pas ou si aucune gare ne correspond à un nom
+    ------
+    HTTPException
+        erreur 400 si les deux gares sont identiques, si une autre ligne relie déjà
+        ces gares, si la ligne a des trajets, ou si un nom de gare est vide
+        ou correspond à plusieurs gares
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si la ligne n'existe pas ou si aucune gare ne correspond à un nom
     """
     logger.info("Modification d'une ligne")
     verifier_grade(collab, "COLLABORATEUR")
@@ -153,14 +209,29 @@ def modifier_ligne(
 
 @router.delete("/lignes/{id_ligne}", response_model=MessageModel, tags=["Collaborateur"])
 def supprimer_ligne(id_ligne: int, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Permet à un collaborateur de supprimer une ligne
+    """
+    Permet à un collaborateur de supprimer une ligne.
+
     Param:
-        id_ligne (int) : l'id de la ligne à supprimer
-    Returns:
-        MessageModel : un message de confirmation
+    ------
+    id_ligne: int
+        l'id de la ligne à supprimer
+
+    Return:
+    ------
+    MessageModel
+        un message de confirmation
+
     Raises:
-        HTTPException: erreur 400 si des trajets existent encore sur cette ligne
-        HTTPException: erreur 404 si la ligne n'existe pas
+    ------
+    HTTPException
+        erreur 400 si des trajets existent encore sur cette ligne
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si la ligne n'existe pas
     """
     logger.info("Suppression d'une ligne")
     verifier_grade(collab, "COLLABORATEUR")
@@ -181,19 +252,39 @@ def modifier_trajet(
     collaborateur_service=Depends(get_collaborateur_service),
     collab=Depends(verif_token)
 ):
-    """Permet à un collaborateur de modifier un trajet
+    """
+    Permet à un collaborateur de modifier un trajet.
+    L'heure d'arrivée et le temps de trajet sont recalculés grâce à l'API SNCF.
+
     Param:
-        id_trajet (int) : l'id du trajet à modifier
-        trajet: l'id de la ligne, l'id du train, l'heure de départ et le tarif de base
-    Returns:
-        TrajetModifieModel : un message de confirmation, l'id du trajet,
-                             et l'heure d'arrivée et le temps de trajet recalculés avec l'API SNCF
+    ------
+    id_trajet: int
+        l'id du trajet à modifier
+    trajet: TrajetModificationModel
+        l'id de la ligne, l'id du train, l'heure de départ et le tarif de base
+
+    Return:
+    ------
+    TrajetModifieModel
+        un message de confirmation, l'id du trajet,
+        l'heure d'arrivée et le temps de trajet recalculés
+
     Raises:
-        HTTPException: erreur 400 si une donnée est invalide, si la ligne ou le train n'existe pas,
-                       si un autre trajet existe déjà sur cette ligne à cette heure
-                       ou si l'API SNCF ne trouve aucun itinéraire
-        HTTPException: erreur 404 si le trajet n'existe pas
-        HTTPException: erreur 502 si l'API SNCF est indisponible
+    ------
+    HTTPException
+        erreur 400 si le trajet est déjà parti, si une donnée est invalide
+        (dont une date de départ passée), si la ligne ou le train n'existe pas,
+        si un autre trajet existe déjà sur cette ligne à cette heure,
+        si l'API SNCF ne trouve aucun itinéraire, ou si le trajet a des réservations
+        et que la modification changerait sa ligne ou lui donnerait un train trop petit
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si le trajet n'existe pas
+    HTTPException
+        erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Modification d'un trajet")
     verifier_grade(collab, "COLLABORATEUR")
@@ -223,14 +314,29 @@ def modifier_trajet(
 
 @router.delete("/trajets/{id_trajet}", response_model=MessageModel, tags=["Collaborateur"])
 def supprimer_trajet(id_trajet: int, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Permet à un collaborateur de supprimer un trajet
+    """
+    Permet à un collaborateur de supprimer un trajet.
+
     Param:
-        id_trajet (int) : l'id du trajet à supprimer
-    Returns:
-        MessageModel : un message de confirmation
+    ------
+    id_trajet: int
+        l'id du trajet à supprimer
+
+    Return:
+    ------
+    MessageModel
+        un message de confirmation
+
     Raises:
-        HTTPException: erreur 400 si des réservations existent encore sur ce trajet
-        HTTPException: erreur 404 si le trajet n'existe pas
+    ------
+    HTTPException
+        erreur 400 si des réservations existent encore sur ce trajet
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si le trajet n'existe pas
     """
     logger.info("Suppression d'un trajet")
     verifier_grade(collab, "COLLABORATEUR")
@@ -246,14 +352,29 @@ def supprimer_trajet(id_trajet: int, collaborateur_service=Depends(get_collabora
 
 @router.post("/gares/importer", response_model=list[GareReponseModel], tags=["Collaborateur"])
 def importer_gares(q: str, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Importe dans notre base les gares trouvées sur l'API SNCF
+    """
+    Importe dans notre base les gares trouvées sur l'API SNCF.
+
     Param:
-        q (str) : texte à rechercher (au moins 2 caractères)
-    Returns:
-        list[GareReponseModel] : les gares importées
+    ------
+    q: str
+        le texte à rechercher (au moins 2 caractères)
+
+    Return:
+    ------
+    list[GareReponseModel]
+        les gares importées
+
     Raises:
-        HTTPException: erreur 400 si le texte est trop court
-        HTTPException: erreur 502 si l'API SNCF est indisponible
+    ------
+    HTTPException
+        erreur 400 si le texte est trop court
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 502 si l'API SNCF est indisponible
     """
     logger.info("Import de gares depuis l'API SNCF")
     verifier_grade(collab, "COLLABORATEUR")
@@ -273,13 +394,27 @@ def importer_gares(q: str, collaborateur_service=Depends(get_collaborateur_servi
     tags=["Collaborateur"],
 )
 def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Permet à un collaborateur de créer un train
+    """
+    Permet à un collaborateur de créer un train.
+
     Param:
-        train: le type, les places en 1re et en 2de classe et le numéro du train
-    Returns:
-        TrainReponseModel : le train créé, avec son id_train
+    ------
+    train: TrainBaseModel
+        le type, les places en 1re et en 2de classe et le numéro du train
+
+    Return:
+    ------
+    TrainReponseModel
+        le train créé, avec son id_train
+
     Raises:
-        HTTPException: erreur 400 si la capacité est incorrecte ou si le numéro existe déjà
+    ------
+    HTTPException
+        erreur 400 si la capacité est incorrecte ou si le numéro existe déjà
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
     """
     logger.info("Création d'un train")
     verifier_grade(collab, "COLLABORATEUR")
@@ -296,15 +431,32 @@ def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collabo
 
 @router.put("/trains/{num_train}", response_model=TrainReponseModel, tags=["Collaborateur"])
 def modifier_capacite(num_train: int, t: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
-    """Permet à un collaborateur de modifier la capacité d'un train
+    """
+    Permet à un collaborateur de modifier la capacité d'un train.
+
     Param:
-        num_train (int) : le numéro du train à modifier
-        t: le train avec ses nouvelles places en 1re et en 2de classe
-    Returns:
-        TrainReponseModel : le train modifié
+    ------
+    num_train: int
+        le numéro du train à modifier
+    t: TrainBaseModel
+        le train avec ses nouvelles places en 1re et en 2de classe
+
+    Return:
+    ------
+    TrainReponseModel
+        le train modifié
+
     Raises:
-        HTTPException: erreur 400 si la capacité est incorrecte
-        HTTPException: erreur 404 si le train n'existe pas
+    ------
+    HTTPException
+        erreur 400 si la capacité est incorrecte ou si elle est inférieure
+        aux places déjà réservées sur les trajets à venir de ce train
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    HTTPException
+        erreur 404 si le train n'existe pas
     """
     logger.info("Modification de la capacité d'un train")
     verifier_grade(collab, "COLLABORATEUR")

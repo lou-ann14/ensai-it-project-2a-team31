@@ -31,55 +31,117 @@ logger = get_logger(__name__)
 
 
 def get_utilisateur_service():
-    """Dependency Injection provider for UtilisateurService."""
+    """
+    Fournit une instance de UtilisateurService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    UtilisateurService
+        une nouvelle instance de UtilisateurService
+    """
     return UtilisateurService()
 
 
 def get_gare_service():
-    """Dependency Injection provider for GareService."""
+    """
+    Fournit une instance de GareService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    GareService
+        une nouvelle instance de GareService
+    """
     return GareService()
 
 
 def get_reservation_service():
-    """Dependency Injection provider for ReservationService."""
+    """
+    Fournit une instance de ReservationService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    ReservationService
+        une nouvelle instance de ReservationService
+    """
     return ReservationService()
 
 
 def get_train_service():
-    """Dependency Injection provider for TrainService."""
+    """
+    Fournit une instance de TrainService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    TrainService
+        une nouvelle instance de TrainService
+    """
     return TrainService()
 
 
 def get_trajet_service():
-    """Dependency Injection provider for TrajetService."""
+    """
+    Fournit une instance de TrajetService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    TrajetService
+        une nouvelle instance de TrajetService
+    """
     return TrajetService()
 
 
 def trouver_client(utilisateur=Depends(verif_token)) -> Utilisateur:
-    """Dépendance FastAPI : renvoie l'utilisateur connecté qui agit en tant que voyageur.
+    """
+    Dépendance FastAPI : renvoie l'utilisateur connecté qui agit en tant que voyageur.
     Grâce à la hiérarchie des grades, un collaborateur ou un administrateur peut aussi réserver.
     L'id vient toujours du token, jamais d'un paramètre de la requête :
     un utilisateur ne peut donc pas agir au nom d'un autre.
+
+    Param:
+    ------
+    utilisateur: Utilisateur
+        l'utilisateur du token (fourni par verif_token)
+
+    Return:
+    ------
+    Utilisateur
+        l'utilisateur connecté
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide (via verif_token)
-        HTTPException: erreur 403 si le grade est inconnu
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si le grade est inconnu
     """
     verifier_grade(utilisateur, "CLIENT")
     return utilisateur
 
 
 def trouver_gare(nom: str, gare_service: GareService) -> Gare:
-    """Retrouve une gare à partir de son nom (insensible à la casse)
+    """
+    Retrouve une gare à partir de son nom (insensible à la casse).
     Le nom exact est prioritaire : « Rennes » désigne Rennes, et non Rennes Beaulieu Chimie.
     Sinon, un début de nom suffit s'il ne correspond qu'à une seule gare.
+
     Param:
-        nom (str) : le nom de la gare, ou son début
-        gare_service (GareService)
-    Returns:
-        Gare : la gare trouvée
+    ------
+    nom: str
+        le nom de la gare, ou son début
+    gare_service: GareService
+        le service utilisé pour rechercher les gares
+
+    Return:
+    ------
+    Gare
+        la gare trouvée
+
     Raises:
-        HTTPException: erreur 400 si le nom est vide ou correspond à plusieurs gares
-        HTTPException: erreur 404 si aucune gare ne correspond
+    ------
+    HTTPException
+        erreur 400 si le nom est vide ou correspond à plusieurs gares
+    HTTPException
+        erreur 404 si aucune gare ne correspond
     """
     nom = nom.strip()
     if not nom:
@@ -109,17 +171,32 @@ def rechercher_trajets(
     gare_service=Depends(get_gare_service),
     utilisateur=Depends(verif_token)
 ):
-    """Recherche les trajets entre deux gares pour un jour donné
+    """
+    Recherche les trajets entre deux gares pour un jour donné.
+
     Param:
-        gare_depart (str) : le nom de la gare de départ
-        gare_arrivee (str) : le nom de la gare d'arrivée
-        date_voyage (date) : le jour du voyage (format AAAA-MM-JJ)
-    Returns:
-        list[TrajetReponseModel] : les trajets triés par heure de départ (liste vide si aucun)
+    ------
+    gare_depart: str
+        le nom de la gare de départ
+    gare_arrivee: str
+        le nom de la gare d'arrivée
+    date_voyage: date
+        le jour du voyage (format AAAA-MM-JJ)
+
+    Return:
+    ------
+    list[TrajetReponseModel]
+        les trajets triés par heure de départ (liste vide si aucun)
+
     Raises:
-        HTTPException: erreur 400 si les deux gares sont identiques ou si un nom est vide
-                       ou correspond à plusieurs gares
-        HTTPException: erreur 404 si aucune gare ne correspond à un nom
+    ------
+    HTTPException
+        erreur 400 si les deux gares sont identiques ou si un nom est vide
+        ou correspond à plusieurs gares
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 404 si aucune gare ne correspond à un nom
     """
     logger.info("Recherche de trajets par un utilisateur")
 
@@ -138,15 +215,27 @@ def voir_places_libres(
     trajet_service=Depends(get_trajet_service),
     utilisateur=Depends(verif_token),
 ):
-    """Liste les numéros de place encore libres sur un trajet, en première et en seconde classe
+    """
+    Liste les numéros de place encore libres sur un trajet, en première et en seconde classe.
+
     Param:
-        id_trajet (int) : l'id du trajet
-    Returns:
-        PlacesLibresModel : la capacité et les places libres de chaque classe
+    ------
+    id_trajet: int
+        l'id du trajet
+
+    Return:
+    ------
+    PlacesLibresModel
+        la capacité et les places libres de chaque classe
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide
-        HTTPException: erreur 400 si le trajet n'a pas de train
-        HTTPException: erreur 404 si le trajet n'existe pas
+    ------
+    HTTPException
+        erreur 400 si le trajet n'a pas de train
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 404 si le trajet n'existe pas
     """
     logger.info("Consultation des places libres d'un trajet")
 
@@ -174,12 +263,25 @@ def rechercher_gares(
     gare_service=Depends(get_gare_service),
     utilisateur=Depends(verif_token)
 ):
-    """Recherche des gares par nom et/ou par ville (autocomplétion)
+    """
+    Recherche des gares par nom et/ou par ville (autocomplétion).
+
     Param:
-        nom (str, optionnel) : début du nom de la gare
-        ville (str, optionnel) : début du nom de la ville
-    Returns:
-        list[GareReponseModel] : les gares correspondantes (liste vide si aucune)
+    ------
+    nom: str | None
+        le début du nom de la gare (optionnel)
+    ville: str | None
+        le début du nom de la ville (optionnel)
+
+    Return:
+    ------
+    list[GareReponseModel]
+        les gares correspondantes (liste vide si aucune)
+
+    Raises:
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
     """
     logger.info("Recherche de gares par un utilisateur")
     return gare_service.rechercher(nom, ville)
@@ -197,17 +299,31 @@ def reserver(
     trajet_service=Depends(get_trajet_service),
     client: Utilisateur = Depends(trouver_client),
 ):
-    """Réserve une place sur un trajet pour le client connecté
+    """
+    Réserve une place sur un trajet pour l'utilisateur connecté.
+
     Param:
-        reservation: l'id du trajet, la classe (1 ou 2) et la place
-                     (optionnelle : sans place, la première place libre est attribuée)
-    Returns:
-        ReservationReponseModel : la réservation créée, avec son client, son trajet et son prix
+    ------
+    reservation: ReservationCreationModel
+        l'id du trajet, la classe (1 ou 2) et la place
+        (optionnelle : sans place, la première place libre est attribuée)
+
+    Return:
+    ------
+    ReservationReponseModel
+        la réservation créée, avec son client, son trajet et son prix
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide
-        HTTPException: erreur 400 si une donnée est invalide, si le trajet est déjà parti,
-                       si le compte n'est pas un compte client ou si la place est déjà prise
-        HTTPException: erreur 404 si le trajet n'existe pas
+    ------
+    HTTPException
+        erreur 400 si une donnée est invalide, si le trajet est déjà parti,
+        si la place est déjà prise ou si la classe est complète
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si le grade est inconnu
+    HTTPException
+        erreur 404 si le trajet n'existe pas
     """
     logger.info("Création d'une réservation")
 
@@ -231,12 +347,20 @@ def voir_historique_reservations(
     reserv_service=Depends(get_reservation_service),
     client: Utilisateur = Depends(trouver_client),
 ):
-    """Affiche toutes les réservations du client connecté (passées et à venir)
-    Returns:
-        list[ReservationReponseModel] : les réservations du client (liste vide si aucune)
+    """
+    Affiche toutes les réservations de l'utilisateur connecté (passées et à venir).
+
+    Return:
+    ------
+    list[ReservationReponseModel]
+        les réservations de l'utilisateur (liste vide si aucune)
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide
-        HTTPException: erreur 400 si le compte n'est pas un compte client
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si le grade est inconnu
     """
     logger.info("Consultation de l'historique des réservations")
 
@@ -249,16 +373,30 @@ def annuler_reservation(
     reserv_service=Depends(get_reservation_service),
     client: Utilisateur = Depends(trouver_client),
 ):
-    """Annule une réservation du client connecté
+    """
+    Annule une réservation de l'utilisateur connecté.
+
     Param:
-        id_reservation (int) : l'id de la réservation à annuler
-    Returns:
-        MessageModel : un message de confirmation
+    ------
+    id_reservation: int
+        l'id de la réservation à annuler
+
+    Return:
+    ------
+    MessageModel
+        un message de confirmation
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide
-        HTTPException: erreur 400 si le compte n'est pas un compte client, si la réservation
-                       appartient à un autre client ou si le trajet est déjà parti
-        HTTPException: erreur 404 si la réservation n'existe pas
+    ------
+    HTTPException
+        erreur 400 si la réservation appartient à un autre utilisateur
+        ou si le trajet est déjà parti
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si le grade est inconnu
+    HTTPException
+        erreur 404 si la réservation n'existe pas
     """
     logger.info("Annulation d'une réservation")
 
@@ -279,13 +417,23 @@ def annuler_reservation(
     tags=["Utilisateur"],
 )
 def creer_compte(compte: CompteCreationModel, utilisateur_service=Depends(get_utilisateur_service)):
-    """Crée un compte client
+    """
+    Crée un compte client.
+
     Param:
-        compte: le nom d'utilisateur et le mot de passe
-    Returns:
-        UtilisateurReponseModel : le compte créé, avec l'id généré par la base (sans le mot de passe)
+    ------
+    compte: CompteCreationModel
+        le nom d'utilisateur et le mot de passe
+
+    Return:
+    ------
+    UtilisateurReponseModel
+        le compte créé, avec l'id généré par la base (sans le mot de passe)
+
     Raises:
-        HTTPException: erreur 400 si une donnée est invalide ou si le nom est déjà pris
+    ------
+    HTTPException
+        erreur 400 si une donnée est invalide ou si le nom est déjà pris
     """
     logger.info("Création d'un compte")
 
@@ -306,15 +454,26 @@ def changer_mot_de_passe(
     utilisateur_service=Depends(get_utilisateur_service),
     utilisateur=Depends(verif_token),
 ):
-    """Change le mot de passe de l'utilisateur connecté (quel que soit son grade)
+    """
+    Change le mot de passe de l'utilisateur connecté (quel que soit son grade).
+
     Param:
-        demande: l'ancien mot de passe (pour confirmer l'identité) et le nouveau
-    Returns:
-        MessageModel : un message de confirmation
+    ------
+    demande: MotDePasseModificationModel
+        l'ancien mot de passe (pour confirmer l'identité) et le nouveau
+
+    Return:
+    ------
+    MessageModel
+        un message de confirmation
+
     Raises:
-        HTTPException: erreur 401 si le token est manquant ou invalide
-        HTTPException: erreur 400 si l'ancien mot de passe est incorrect
-                       ou si le nouveau mot de passe est vide
+    ------
+    HTTPException
+        erreur 400 si l'ancien mot de passe est incorrect
+        ou si le nouveau mot de passe est vide
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
     """
     logger.info("Changement de mot de passe")
 
@@ -330,13 +489,25 @@ def changer_mot_de_passe(
 
 @router.get("/trains/{num_train}", response_model=TrainReponseModel, tags=["Utilisateur"])
 def trouver_train(num_train: int, train_service=Depends(get_train_service), utilisateur=Depends(verif_token)):
-    """Trouve un train à l'aide de son numéro
+    """
+    Trouve un train à l'aide de son numéro.
+
     Param:
-        num_train (int)
-    Returns:
-        TrainReponseModel : le train trouvé
+    ------
+    num_train: int
+        le numéro du train
+
+    Return:
+    ------
+    TrainReponseModel
+        le train trouvé
+
     Raises:
-        HTTPException: erreur 404 si le train n'est pas trouvé
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 404 si le train n'est pas trouvé
     """
     logger.info("Recherche d'un train par un utilisateur")
 
