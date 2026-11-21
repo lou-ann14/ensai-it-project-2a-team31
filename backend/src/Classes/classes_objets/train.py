@@ -34,4 +34,6 @@ class Train:
         self.id_train = id_train
 
     def __str__(self):
+        """Représentation string d'un train.
+        """
         return f"Le train numéro {self.num_train} dispose de {self.places_premieres} places en première classe et {self.places_secondes} en seconde classe, c'est un train {self.type_train}"

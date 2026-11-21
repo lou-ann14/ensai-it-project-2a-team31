@@ -9,10 +9,14 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
-def initialize_logs(name: str):
-    """Initialize logging from a configuration file"""
+def initialize_logs(nom: str):
+    """Initialise le logging d'après un fichier de configuration
+        Param:
+        ------
+        nom (str): le nom associé aux logs créer
+    """
 
-    # Create the logs folder at project root if it doesn't exist
+    # Créer le dossier de logs à la racine du projet si ce dernier n'existe pas déjà
     logs_dir = Path(__file__).resolve().parents[2] / "logs"
     logs_dir.mkdir(exist_ok=True)
 
@@ -23,19 +27,23 @@ def initialize_logs(name: str):
         logging.config.dictConfig(config)
 
         logging.info("-" * 50)
-        logging.info(f"Starting {name}                           ")
+        logging.info(f"Starting {nom}                           ")
         logging.info("-" * 50)
 
 
-def get_logger(module_name: str, max_size: int = 25):
+def get_logger(nom_module: str, taille_max: int = 25):
     """
-    Returns a logger with a shortened name based on the module path.
-    If the path exceeds max_size, it uses initials for the prefix parts.
+    Renvoie un logger, avec son nom raccourci selon le chemin du module.
+    Si le chemin dépasse une certaine taille, on utilise les initiales en guise de préfixe.
+    Param:
+    ------
+    nom_module (str); le nom du module
+    taille_max (int = 25): la taille maximale du chemin
     """
-    if len(module_name) <= max_size:
-        return logging.getLogger(module_name)
+    if len(nom_module) <= taille_max:
+        return logging.getLogger(nom_module)
 
-    parts = module_name.split(".")
+    parts = nom_module.split(".")
     short_prefix = [p[0] for p in parts[:-1]]
     short_name = ".".join(short_prefix + [parts[-1]])
 
@@ -43,33 +51,29 @@ def get_logger(module_name: str, max_size: int = 25):
 
 
 class LogIndentation:
-    """For indenting logs when entering a new method"""
+    """Pour indenter les logs à chaque nouvelle méthode"""
 
     current_indentation = 0
     indentation_size = 2
 
     @classmethod
     def increase_indentation(cls):
-        """Increase indentation"""
+        """Augmenter l'indentation"""
         cls.current_indentation += 1
 
     @classmethod
     def decrease_indentation(cls):
-        """Decrease indentation"""
+        """Diminuer l'indentation"""
         cls.current_indentation -= 1
 
     @classmethod
     def get_indentation(cls):
-        """Get the current indentation"""
+        """Obtenir l'indentation actuelle"""
         return " " * cls.indentation_size * cls.current_indentation
 
 
 def log(func):
-    """Decorator to log method calls and their outputs.
-
-    When applied to a method, it logs:
-    - the method call with parameter values
-    - the return value of the method
+    """Décorateur pour ajouter les appels et sorties des méthodes aux logs.
     """
 
     SENSITIVE_KEYWORDS = {
@@ -93,7 +97,7 @@ def log(func):
         LogIndentation.increase_indentation()
         indentation = LogIndentation.get_indentation()
 
-        # Retrieve method parameters
+        # Récupération des paramètres de la méthode
         method_name = func.__name__
         param_names = func.__code__.co_varnames[1 : func.__code__.co_argcount]
         args_list = []
@@ -117,12 +121,12 @@ def log(func):
 
         args_tuple = tuple(args_list)
 
-        # Log method entry
+        # Ajout des entrées aux logs
         logger.info(f"{indentation}{method_name}{args_tuple} - START")
         result = func(*args, **kwargs)
         logger.info(f"{indentation}{method_name}{args_tuple} - END")
 
-        # Shorten long output for readability
+        # Raccourci les sorties trop longues pour plus de lisibilité
         if isinstance(result, list):
             result_str = str([str(item) for item in result[:3]])
             result_str += f" ... ({len(result)} elements)"
@@ -146,8 +150,8 @@ def log(func):
 class LogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """
-        Middleware to log HTTP requests and responses.
-        It captures the method, path, status code, and error details.
+        Middleware permettant d'enregistrer les requêtes et les réponses HTTP.
+        Il enregistre la méthode, le chemin d'accès, le code d'état et les détails de l'erreur.
         """
 
         method = request.method

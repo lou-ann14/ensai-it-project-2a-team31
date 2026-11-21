@@ -29,4 +29,6 @@ class Gare:
         self.id_sncf = id_sncf
 
     def __str__(self):
+        """Représentation string d'une gare.
+        """
         return f"La gare {self.nom} ({self.id_gare}) se situe à {self.ville}"

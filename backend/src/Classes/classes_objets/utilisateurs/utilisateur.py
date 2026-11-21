@@ -8,7 +8,7 @@ class Utilisateur:
     nom_utilisateur: str
         nom de l'utilisateur (15 caractères maximum)
     grade: str
-        niveau d'habilitation de l'utilisateur
+        niveau d'habilitation de l'utilisateur ("CLIENT", COLLABORATEUR", "ADMIN")
     id: int | None = None
         identifiant de l'utilisateur (None tant qu'il n'est pas enregistré en base)
     """
@@ -32,4 +32,6 @@ class Utilisateur:
         self.token = token_acces
 
     def __str__(self):
+        """Représentation string d'un utilisateur.
+        """
         return f"L'utilisateur {self.nom_utilisateur} (#{self.id}) est un {self.grade}"

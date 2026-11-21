@@ -68,5 +68,7 @@ class Trajet:
         return self.train.num_train if self.train else None
 
     def __str__(self):
+        """Représentation string d'un trajet.
+        """
         id_train = self.train.id_train if self.train else None
         return f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
