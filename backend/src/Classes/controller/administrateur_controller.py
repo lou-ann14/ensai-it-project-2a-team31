@@ -12,7 +12,14 @@ logger = get_logger(__name__)
 
 
 def get_administrateur_service():
-    """Dependency Injection provider for AdministrateurService."""
+    """
+    Fournit une instance de AdministrateurService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    AdministrateurService
+        une nouvelle instance de AdministrateurService
+    """
     return AdministrateurService()
 
 
@@ -23,15 +30,31 @@ def rechercher_compte(
     administrateur_service=Depends(get_administrateur_service),
     admin=Depends(verif_token)
 ):
-    """Recherche un compte par identifiant ou par nom d'utilisateur
+    """
+    Recherche un compte par identifiant ou par nom d'utilisateur (réservé aux administrateurs).
+
     Param:
-        id_utilisateur (int, optionnel)
-        nom_utilisateur (str, optionnel)
-    Returns:
-        UtilisateurReponseModel : l'utilisateur trouvé
+    ------
+    id_utilisateur: int | None
+        l'identifiant du compte recherché (optionnel)
+    nom_utilisateur: str | None
+        le nom d'utilisateur du compte recherché (optionnel)
+
+    Return:
+    ------
+    UtilisateurReponseModel
+        l'utilisateur trouvé
+
     Raises:
-        HTTPException: erreur 400 si aucun critère n'est renseigné
-        HTTPException: erreur 404 si l'utilisateur n'est pas trouvé
+    ------
+    HTTPException
+        erreur 400 si aucun critère n'est renseigné
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade ADMIN
+    HTTPException
+        erreur 404 si l'utilisateur n'est pas trouvé
     """
     logger.info("Recherche d'un compte")
 
@@ -58,15 +81,31 @@ def modifier_grade(
     administrateur_service=Depends(get_administrateur_service),
     admin=Depends(verif_token),
 ):
-    """Modifie le niveau d'habilitation d'un utilisateur (CLIENT, COLLABORATEUR ou ADMIN)
+    """
+    Modifie le niveau d'habilitation d'un utilisateur (CLIENT, COLLABORATEUR ou ADMIN).
+    Réservé aux administrateurs.
+
     Param:
-        id_utilisateur (int)
-        nouveau_grade (str)
-    Returns:
-        UtilisateurReponseModel : l'utilisateur avec son nouveau rôle
+    ------
+    id_utilisateur: int
+        l'identifiant de l'utilisateur à modifier
+    nouveau_grade: str
+        le nouveau grade : CLIENT, COLLABORATEUR ou ADMIN
+
+    Return:
+    ------
+    UtilisateurReponseModel
+        l'utilisateur avec son nouveau grade
+
     Raises:
-        HTTPException: erreur 400 si le rôle est invalide, si l'utilisateur n'existe pas
-                       ou si c'est un administrateur
+    ------
+    HTTPException
+        erreur 400 si le grade est invalide, si l'utilisateur n'existe pas
+        ou si c'est un administrateur
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade ADMIN
     """
     logger.info("Modification du rôle d'un utilisateur")
     verifier_grade(admin, "ADMIN")

@@ -99,7 +99,7 @@ class TrajetService:
         Raises:
         ------
         ValueError
-            si le trajet n'existe pas, si une donnée est invalide (dont une date de départ passée),
+            si le trajet n'existe pas ou est déjà parti, si une donnée est invalide (dont une date de départ passée),
             si la ligne n'existe pas, si un autre trajet existe déjà sur cette ligne à cette heure
             de départ, si l'API SNCF ne trouve aucun itinéraire entre les deux gares,
             ou si le trajet a des réservations et que la modification changerait sa ligne
@@ -112,6 +112,9 @@ class TrajetService:
         ancien = self.trajet_dao.trouver_par_id(id_trajet)
         if ancien is None:
             raise ValueError(f"Le trajet #{id_trajet} n'existe pas.")
+        # Un trajet déjà parti appartient à l'historique des clients : il n'est plus modifiable
+        if ancien.heure_depart <= datetime.now(ancien.heure_depart.tzinfo):
+            raise ValueError("Ce trajet est déjà parti : il ne peut plus être modifié.")
 
         id_ligne = trajet.ligne.id_ligne if trajet.ligne else None
         id_train = trajet.train.id_train if trajet.train else None

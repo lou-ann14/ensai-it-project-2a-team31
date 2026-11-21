@@ -24,7 +24,7 @@ def hash_password(mdp: str, salt: str = "") -> str:
 NIVEAUX_GRADE = {"CLIENT": 1, "COLLABORATEUR": 2, "ADMIN": 3}
 
 
-def a_le_grade(utilisateur, grade_minimum: str) -> bool:
+def _a_le_grade(utilisateur, grade_minimum: str) -> bool:
     """Indique si l'utilisateur a au moins le grade demandé.
     Param:
         utilisateur: l'utilisateur connecté (objet ayant un attribut grade)
@@ -40,7 +40,7 @@ def verifier_grade(utilisateur, grade_minimum: str) -> None:
     Raises:
         HTTPException: 403 error si le grade est insuffisant.
     """
-    if not a_le_grade(utilisateur, grade_minimum):
+    if not _a_le_grade(utilisateur, grade_minimum):
         raise HTTPException(
             status_code=403,
             detail=f"Vous n'avez pas le niveau d'habilitation requis ({grade_minimum} ou supérieur).",

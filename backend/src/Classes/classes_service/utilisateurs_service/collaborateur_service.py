@@ -183,9 +183,11 @@ class CollaborateurService:
         Raises:
         ------
         ValueError
-            si une donnée est invalide, si la ligne ou le train n'existe pas,
-            si un autre trajet existe déjà sur cette ligne à cette heure de départ
-            ou si l'API SNCF ne trouve aucun itinéraire entre les deux gares
+            si le trajet est déjà parti, si une donnée est invalide, si la ligne ou le train n'existe pas,
+            si un autre trajet existe déjà sur cette ligne à cette heure de départ,
+            si l'API SNCF ne trouve aucun itinéraire entre les deux gares,
+            ou si le trajet a des réservations et que la modification changerait sa ligne
+            ou lui donnerait un train trop petit pour les places déjà vendues
         requests.RequestException
             si l'API SNCF est indisponible
         """

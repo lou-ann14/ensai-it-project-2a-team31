@@ -11,19 +11,37 @@ logger = get_logger(__name__)
 
 
 def get_uti_service():
-    """Dependency provider."""
+    """
+    Fournit une instance de UtilisateurService (injection de dépendance FastAPI).
+
+    Return:
+    ------
+    UtilisateurService
+        une nouvelle instance de UtilisateurService
+    """
     return UtilisateurService()
 
 
 @router.post("/", tags=["Login"])
 def login(utilisateur: CompteCreationModel, service=Depends(get_uti_service)):
-    """Authentifie un utilisateur.
+    """
+    Authentifie un utilisateur et lui attribue un nouveau token d'accès.
+
     Param:
-        utilisateur: nom et mot de passe
-    Returns:
-        dict: contient l'id de l'utilisateur, son nom, son grade et son token d'accès
+    ------
+    utilisateur: CompteCreationModel
+        le nom d'utilisateur et le mot de passe
+
+    Return:
+    ------
+    dict
+        l'id de l'utilisateur, son nom, son grade et son token d'accès
+
     Raises:
-        HTTPException: 401 error si les paramètres sont faux ou que l'utilisateur n'existe pas."""
+    ------
+    HTTPException
+        erreur 401 si le nom ou le mot de passe est incorrect
+    """
     logger.info("Login")
     uti = service.login(utilisateur.nom_utilisateur, utilisateur.mdp)
     if uti:

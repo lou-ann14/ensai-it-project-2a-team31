@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
-from src.utils.securite import a_le_grade, verifier_grade
+from src.utils.securite import _a_le_grade, verifier_grade
 
 # Hiérarchie des grades : CLIENT < COLLABORATEUR < ADMIN
 
@@ -24,7 +24,7 @@ from src.utils.securite import a_le_grade, verifier_grade
 )
 def test_a_le_grade(grade, minimum, attendu):
     """Chaque grade a les droits des grades inférieurs, pas ceux des grades supérieurs"""
-    assert a_le_grade(MagicMock(grade=grade), minimum) is attendu
+    assert _a_le_grade(MagicMock(grade=grade), minimum) is attendu
 
 
 def test_verifier_grade_autorise():

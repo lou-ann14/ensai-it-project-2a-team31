@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -396,7 +396,7 @@ def test_creer_doublon_sans_appeler_api(mocks):
 
 def test_modifier_recalcule_arrivee_et_temps(mocks):
     """Modifier l'heure de départ met à jour l'arrivée et le temps de trajet"""
-    mocks.dao.trouver_par_id.return_value = MagicMock()
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
     mocks.dao.modifier.return_value = True
     mocks.api.duree_trajet.return_value = 3600
     trajet = Trajet(DEPART, DEPART, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
@@ -726,12 +726,26 @@ def test_creer_date_passee_refusee(mocks):
 
 def test_modifier_date_passee_refusee(mocks):
     """Nouvelle date dans le passé : ValueError, rien n'est modifié"""
-    mocks.dao.trouver_par_id.return_value = MagicMock()
+    mocks.dao.trouver_par_id.return_value = ancien_trajet()
     passe = datetime(2025, 1, 10, 8, 30)
     trajet = Trajet(passe, passe, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
 
     with pytest.raises(ValueError, match="dans le futur"):
         TrajetService().modifier(1, trajet)
+    mocks.dao.modifier.assert_not_called()
+
+
+def test_modifier_trajet_deja_parti_refuse(mocks):
+    """Le trajet est parti hier : on ne peut pas le reprogrammer, même vers une date future"""
+    hier = datetime.now() - timedelta(days=1)
+    mocks.dao.trouver_par_id.return_value = Trajet(
+        hier, hier, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0, id_trajet=1
+    )
+    trajet = Trajet(DEPART, DEPART, faire_ligne(), Train("TGV", 100, 300, 8541, id_train=1), 40.0)
+
+    with pytest.raises(ValueError, match="déjà parti"):
+        TrajetService().modifier(1, trajet)
+    mocks.api.duree_trajet.assert_not_called()
     mocks.dao.modifier.assert_not_called()
 
 
