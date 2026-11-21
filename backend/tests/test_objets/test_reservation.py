@@ -7,11 +7,11 @@ from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
 
 def creer_client():
-    return Client("0000", "jaimelestrains", id=4)
+    return Utilisateur("0000", "jaimelestrains", grade= "CLIENT", id=4)
 
 
 def creer_trajet():
@@ -80,6 +80,6 @@ class TestReservation:
         reservation = Reservation(client, trajet, "67", 1, 200.0, id_reservation=22)
 
         assert str(reservation) == (
-            f"La réservation #22 du client #{client} pour le trajet #{trajet}, "
+            f"La réservation #22 du client #{client.id} pour le trajet #{trajet}, "
             "en 1 à la place 67 a coûté 200.0 euros"
         )

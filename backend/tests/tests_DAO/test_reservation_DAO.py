@@ -5,7 +5,6 @@ from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.reservation_DAO import ReservationDAO
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_objets.utilisateurs.client import Client
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
 # données préenregistrées (équivalent d'une bdd)
@@ -84,7 +83,7 @@ def creer_nouvelle_reservation():
     Une fonction plutôt qu'une variable : creer modifie l'objet (il lui donne un id),
     chaque test a donc besoin de sa propre réservation.
     """
-    client = Client(id=id_client_sans_reservation, mdp="hainedestrains", nom_utilisateur="vraifan2train")
+    client = Utilisateur(id=id_client_sans_reservation, mdp="hainedestrains", nom_utilisateur="vraifan2train", grade = "CLIENT")
     trajet = MagicMock(spec=Trajet, id_trajet=id_trajet_paris_lyon) #Le trajet est un MagicMock / creer n'utilise que trajet.id_trajet
     return Reservation(
         id_reservation=None,

@@ -8,11 +8,11 @@ from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.reservation import Reservation
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
-from src.Classes.classes_objets.utilisateurs.client import Client
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 from src.Classes.classes_service.reservations_service import ReservationService
 
 # données préenregistrées
-client_fan2train = Client("jaimelestrains", "fan2train", id=1)
+client_fan2train = Utilisateur("jaimelestrains", "fan2train",grade = "CLIENT", id=1)
 
 gare_matabiau = Gare("Matabiau", "Toulouse", "stop_area:SNCF:87611004", 1)
 gare_montparnasse = Gare("Montparnasse", "Paris", "stop_area:SNCF:87391003", 3)
