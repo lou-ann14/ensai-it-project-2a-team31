@@ -2,11 +2,13 @@ from psycopg2.errors import ForeignKeyViolation
 from src.Classes.classes_DAO.ligne_DAO import LigneDAO
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
+from src.utils.log_utils import log
 
 
 class LigneService:
     """Classe qui gère les opérations métier sur les lignes"""
 
+    @log
     def creer(self, gare_depart: Gare, gare_arrivee: Gare, id_collaborateur: int | None = None) -> Ligne:
         """
         Méthode servant à créer une ligne.
@@ -43,6 +45,7 @@ class LigneService:
         except ForeignKeyViolation:
             raise ValueError(f"Le collaborateur #{id_collaborateur} n'existe pas.")
 
+    @log
     def rechercher(self, gare_depart: Gare, gare_arrivee: Gare) -> Ligne | None:
         """
         Méthode servant à rechercher la ligne reliant deux gares.
@@ -63,6 +66,7 @@ class LigneService:
             return None
         return LigneDAO().rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee)
 
+    @log
     def trouver_par_id(self, id_ligne: int) -> Ligne | None:
         """
         Méthode servant à récupérer une ligne par son identifiant.
@@ -79,6 +83,7 @@ class LigneService:
         """
         return LigneDAO().trouver_par_id(id_ligne)
 
+    @log
     def modifier(self, ligne: Ligne) -> bool:
         """
         Méthode servant à modifier les gares d'une ligne.
@@ -114,6 +119,7 @@ class LigneService:
 
         return LigneDAO().modifier(ligne)
 
+    @log
     def supprimer(self, id_ligne: int) -> bool:
         """
         Méthode servant à supprimer une ligne.

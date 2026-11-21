@@ -68,6 +68,7 @@ class UtilisateurService:
             nom (str): le nom de l'utilisateur recherché.
             id_utilisateur (int): l'id de l'utilisateur recherché.
         Returns:
+            res (Utilisateur) : l'utilisateur recherché.
 
         """
         res = None
@@ -82,10 +83,29 @@ class UtilisateurService:
 
     @log
     def modifier(self, utilisateur: Utilisateur):
+        """Méthode permettant de modifier les informations d'un utilisateur.
+        Param:
+        ------
+            utilisateur (Utilisateur) : l'objet utilisateur avec les nouveaux changements.
+        Return:
+        -------
+            utilisateur (Utilisateur) : l'utilisateur modifié.
+        """
         return utilisateur if UtilisateurDAO().modifier(utilisateur) else None
     
     @log
     def login(self, nom: str, mdp: str):
+        """Méthode permettant à un utilisateur de se connecter à son compte.
+        Param:
+        ------
+            nom (str): le nom de l'utilisateur.
+            mdp (str): le mot de passe de l'utilisateur.
+        Returns:
+        -------
+            utilisateur(Utilisateur): renvoie les caractéristiques de l'utilisateur et son token associé.
+                Renvoie None si le mot de passe ou le nom sont incorrects.
+            
+        """
         utilisateur = UtilisateurDAO().login(nom=nom, mdp=hash_password(mdp, nom))
         if utilisateur:
             utilisateur.token=secrets.token_urlsafe(32)

@@ -1,5 +1,6 @@
 from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.gare import Gare
+from src.utils.log_utils import log
 from src.utils.sncf_client import SncfClient
 
 
@@ -9,6 +10,7 @@ class GareService:
     def __init__(self):
         self.gare_dao = GareDAO()
 
+    @log
     def rechercher(self, nom: str | None, ville: str | None) -> list[Gare]:
         """
         Recherche des gares par nom et/ou par ville.
@@ -30,9 +32,16 @@ class GareService:
         ville = ville.strip() if ville else None
         return self.gare_dao.rechercher(nom=nom or None, ville=ville or None)
 
+    @log
     def importer(self, texte: str) -> list[Gare]:
-        """Cherche des gares sur l'API SNCF et les enregistre dans notre base.
-
+        """Cherche des gares sur l'API SNCF et les enregistre dans notre base de données,
+        à partir d'un texte de recherche (nom, ou début de nom).
+        Param:
+        ------
+            texte (str): le texte de la recherche.
+        Return:
+        -------
+            gares (list[Gare]): la liste des gares trouvées
         Raises:
         ------
         ValueError

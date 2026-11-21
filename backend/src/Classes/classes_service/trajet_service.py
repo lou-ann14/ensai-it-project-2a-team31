@@ -297,7 +297,19 @@ class TrajetService:
         return self.trajet_dao.trouver_par_id(id_trajet)
 
     def _verifier_donnees(self, id_ligne, id_train, heure_depart, tarif_base) -> None:
-        """Vérifie la validité des données d'un trajet (lève ValueError sinon)."""
+        """Vérifie la validité des données d'un trajet (lève ValueError sinon).
+        Param:
+        ------
+            id_ligne: (int): l'id de la ligne concernée.
+            id_train: (int): l'id du train concerné.
+            heure_départ(datetime): l'heure de départ du trajet.
+            tarif_base (int): le tarif de base du trajet.
+        Raises:
+        ------
+            ValueError : si un id est manquant, si la date de départ est déjà passée ou si le tarif de base est négatif.
+            TypeError : si heure_départ est au mauvais format
+        
+        """
         if id_ligne is None or id_train is None:
             raise ValueError("La ligne et le train sont obligatoires.")
         if not isinstance(heure_depart, datetime):
@@ -317,6 +329,12 @@ class TrajetService:
         - prendre un train trop petit : même règle que pour la capacité d'un train
           (nombre de réservations ou plus grand numéro de place réservé, par classe).
         Changer seulement l'horaire ou le tarif reste possible.
+
+        Param:
+        ------
+            ancien((Trajet): le trajet qu'il faut peut-être modifier.
+            nouvelle_ligne (Ligne): la ligne du trajet.
+            nouveau_train (Train): le nouveau train pour ce trajet.
 
         Raises:
         ------
@@ -347,7 +365,20 @@ class TrajetService:
                 )
 
     def _calculer_duree(self, ligne, heure_depart: datetime) -> int:
-        """Demande à l'API SNCF la durée du trajet sur cette ligne, en secondes (lève ValueError si aucune)."""
+        """Demande à l'API SNCF la durée du trajet sur cette ligne, en secondes (lève ValueError si aucune).
+        Param:
+        ------
+            ligne (Ligne): la ligne concernée.
+            heure_depart (datetime): l'heure de départ du trajet.
+        Return:
+        -------
+            duree(datetime): la durée du trajet
+        Raises:
+        -------
+            ValueError: si les gares du trajet n'appartiennent pas à la SNCF,
+            ou si aucun itinéraire n'est trouvé entre les deux gares.
+        
+        """
         id_sncf_depart = ligne.gare_depart.id_sncf
         id_sncf_arrivee = ligne.gare_arrivee.id_sncf
         if not id_sncf_depart or not id_sncf_arrivee:
@@ -364,14 +395,30 @@ class TrajetService:
         return duree
 
     def _verifier_ligne(self, id_ligne: int):
-        """Vérifie que la ligne existe et la renvoie (lève ValueError sinon)."""
+        """Vérifie que la ligne existe et la renvoie (lève ValueError sinon).
+        Param:
+        ------
+            id_ligne (int): l'id de la ligne à vérifier.
+        Return:
+        -------
+            ligne(Ligne): la ligne vérifiée.
+        Raises:
+        -------
+            ValueError: si la ligne n'exsite pas dans la base de données.
+        """
         ligne = LigneDAO().trouver_par_id(id_ligne)
         if ligne is None:
             raise ValueError(f"La ligne #{id_ligne} n'existe pas : un trajet doit se faire sur une ligne existante.")
         return ligne
 
     def _trajet_similaire_existe(self, ligne, heure_depart: datetime, id_trajet_ignore: int | None = None) -> bool:
-        """Indique si un trajet existe déjà sur cette ligne avec exactement cette heure de départ."""
+        """Indique si un trajet existe déjà sur cette ligne avec exactement la même heure de départ.
+        Param:
+        ------
+            ligne (Ligne): la ligne concernée.
+            heure_depart (datetime): l'heure de départ
+            id_trajet_ignore (int, optionel): un trajet potentiel à ignorer dans la recherche.
+        """
         trajets_du_jour = self.trajet_dao.rechercher(ligne.gare_depart, ligne.gare_arrivee, heure_depart)
         return any(
             trajet.heure_depart == heure_depart and trajet.id_trajet != id_trajet_ignore

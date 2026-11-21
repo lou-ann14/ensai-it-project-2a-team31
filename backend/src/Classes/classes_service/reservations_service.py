@@ -93,6 +93,10 @@ class ReservationService:
     def _attribuer_place(trajet: Trajet, classe: int) -> str:
         """
         Attribue au client la première place libre de la classe choisie (place la plus petite).
+        Param:
+        ------
+            trajet (Trajet): le trajet sélectionné.
+            classe (int): le type de place choisie (1 = 1re classe, 2 = 2nd classe).
 
         Return:
         ------
@@ -117,6 +121,12 @@ class ReservationService:
         Une place est un numéro entre 1 et la capacité de la classe dans le train du trajet :
         avec la contrainte UNIQUE (id_trajet, classe, place) de la base, aucune surréservation
         n'est donc possible.
+        
+        Param:
+        ------
+            trajet (Trajet): le trajet sélectionné.
+            place (str): le numéro de la place.
+            classe (int): le type de place choisie (1 = 1re classe, 2 = 2nd classe).
 
         Return:
         ------
