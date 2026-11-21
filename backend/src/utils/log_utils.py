@@ -27,7 +27,7 @@ def initialize_logs(nom: str):
         logging.config.dictConfig(config)
 
         logging.info("-" * 50)
-        logging.info(f"Starting {nom}                           ")
+        logging.info(f"Lancement {nom}                           ")
         logging.info("-" * 50)
 
 

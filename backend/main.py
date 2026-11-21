@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from src.Classes.controller import (
@@ -36,7 +36,7 @@ app.add_middleware(LogMiddleware)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """
-    Intercepts Pydantic 422 errors to log them.
+    Intercepte les erreurs Pydantic 422 pour les ajouter aux logs.
     """
     body = await request.body()
     body_str = body.decode() if body else "empty body"
@@ -83,4 +83,4 @@ if __name__ == "__main__":
         port=int(os.getenv("UVICORN_PORT", "5000")),
     )
 
-    logger.info("Webservice stopped")
+    logger.info("Arrêt du Webservice")
