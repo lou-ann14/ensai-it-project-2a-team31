@@ -16,6 +16,7 @@ class Reset_bdd(metaclass=Singleton):
     def demarrer(self):
         init_chemin_bdd = self.base_path / "backend" / "data" / "init_bdd.sql"
         admin = self.base_path / "backend" / "data" / "admin.sql"
+        donnees_demo = self.base_path / "backend" / "data" / "donnees_demo.sql"
         dotenv.load_dotenv()
 
         schema = os.environ["POSTGRES_SCHEMA"]
@@ -27,6 +28,8 @@ class Reset_bdd(metaclass=Singleton):
                 init_bdd_as_string = init_fichier_bdd.read()
             with open(admin, encoding="utf-8") as fichier_admin:
                 admin_str = fichier_admin.read()
+            with open(donnees_demo, encoding="utf-8") as fichier_demo:
+                demo_str = fichier_demo.read()
         except FileNotFoundError as e:
             logger.error( f"Erreur de chemin : impossible de trouver le fichier {e.filename}")
             raise
@@ -35,6 +38,7 @@ class Reset_bdd(metaclass=Singleton):
                     cursor.execute(create_schema)
                     cursor.execute(init_bdd_as_string)
                     cursor.execute(admin_str)
+                    cursor.execute(demo_str)
         except Exception as e:
             logger.info(e)
             raise

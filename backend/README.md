@@ -28,7 +28,8 @@ For more information, see the [main README](../README.md).
    uv sync --project backend
    ```
 
-3. First launch only: initialize the database (creates the tables and the test accounts).
+3. First launch only: initialize the database (creates the tables, the test accounts and
+   some demo data).
    **Warning: this deletes everything in the schema.**
 
    ```bash
@@ -100,6 +101,7 @@ Error codes: `400` invalid data or business rule not respected, `401` not logged
 | `uv.lock`             | Pins the exact version of each dependency (the frontend has its own) |
 | `data/init_bdd.sql`   | Creates the tables                                              |
 | `data/admin.sql`      | Creates the three test accounts                                 |
+| `data/donnees_demo.sql` | Adds demo data (stations, lines, trains, journeys, bookings)  |
 | `__init__.py`         | Marks a folder as a Python package                              |
 
 ## ⚒️ Development toolkit
@@ -125,7 +127,7 @@ uv run --with pytest --with httpx2 --with pytest-cov python -m pytest -q --cov=s
 ```
 
 The database and the SNCF API are mocked, so the tests do not need any connection.
-There are 416 tests (85 % coverage), split by layer:
+There are 419 tests (87 % coverage), split by layer:
 
 | Folder                           | What is tested                           |
 |----------------------------------|------------------------------------------|

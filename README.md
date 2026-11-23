@@ -51,7 +51,7 @@ uv sync --project backend
 uv sync --project frontend   # only for the web interface
 ```
 
-Initialize the database (creates the tables and the test accounts, **deletes the schema if it exists**):
+Initialize the database (creates the tables, the test accounts and some demo data, **deletes the schema if it exists**):
 
 ```bash
 cd backend
@@ -81,12 +81,29 @@ On Onyxia, open ports 5000 / 8501 from the **Ports** tab of VS Code.
 | `collaborateur` | `456` | COLLABORATEUR |
 | `client` | `789` | CLIENT |
 
+### Demo data
+
+Stations, lines, trains, journeys and bookings are loaded when the database is initialized
+(`backend/data/donnees_demo.sql`). Dates are relative to that day, so there are always upcoming
+journeys. Examples: Rennes → Nantes has several journeys (one almost full), Rennes → Le Mans has
+none, and `client` has past and upcoming bookings.
+
+| Line id | Line | | Train number | Seats (1st / 2nd) |
+|---|---|---|---|---|
+| 1 | Rennes → Nantes | | 8501 (TGV) | 100 / 300 |
+| 2 | Nantes → Rennes | | 8502 (TGV) | 120 / 350 |
+| 3 | Rennes → Paris | | 5710 (TER) | 20 / 80 |
+| 4 | Paris → Rennes | | 5720 (TER) | 2 / 4 |
+| 5 | Nantes → Paris | | 5730 (TER) | 20 / 80 |
+| 6 | Paris → Bordeaux | | | |
+| 7 | Rennes → Le Mans | | | |
+
 ### Using the API (Swagger)
 
 1. `POST /login/` with a test account, then copy the `token_acces` you get back.
 2. On the other routes, paste this token in the **`x-auth-token`** field.
 3. Typical flow:
-   - **collaborator**: `POST /collaborateur/gares/importer?q=Rennes` (then `Nantes`) → `POST /collaborateur/trains`
+   - **collaborator**: `POST /collaborateur/gares/importer?q=Brest` (then `Quimper`) → `POST /collaborateur/trains`
      → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`
    - **client**: `GET /utilisateur/trajets` (remaining seats, price details) → `GET /utilisateur/trajets/{id}/places`
      (free seats) → `POST /utilisateur/reservations`
@@ -120,7 +137,7 @@ cd backend
 uv run --with pytest --with httpx python -m pytest -q
 ```
 
-416 tests, **85 % code coverage**. The database and the SNCF API are mocked (no connection
+419 tests, **87 % code coverage**. The database and the SNCF API are mocked (no connection
 needed). The full flow was also checked by hand on PostgreSQL with the real SNCF API.
 
 | Folder | What is tested |
@@ -137,7 +154,7 @@ needed). The full flow was also checked by hand on PostgreSQL with the real SNCF
 ```
 backend/
 ├── main.py                      # FastAPI application
-├── data/                        # init_bdd.sql (tables), admin.sql (test accounts)
+├── data/                        # init_bdd.sql (tables), admin.sql (test accounts), donnees_demo.sql (demo data)
 └── src/
     ├── Classes/
     │   ├── controller/          # HTTP routes: check the role, turn errors into HTTP codes
