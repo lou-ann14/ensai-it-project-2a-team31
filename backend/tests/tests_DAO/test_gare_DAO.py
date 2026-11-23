@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.Classes.classes_DAO.gare_DAO import GareDAO
 from src.Classes.classes_objets.gare import Gare
