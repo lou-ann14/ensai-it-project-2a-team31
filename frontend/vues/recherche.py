@@ -1,5 +1,3 @@
-from datetime import date
-
 import streamlit as st
 
 import api
@@ -29,7 +27,10 @@ with st.form("recherche"):
     with c2:
         arrivee = commun.choisir_gare("Gare d'arrivée", gares, "rech_arrivee")
     with c3:
-        jour = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
+        jour = st.date_input(
+            "Date (facultatif)", value=None, format="DD/MM/YYYY",
+            help="Sans date, tous les trajets à venir sont affichés.",
+        )
     lancer = st.form_submit_button("Rechercher", type="primary", icon=":material/search:")
 
 if lancer:
@@ -54,6 +55,8 @@ if not resultats:
     st.stop()
 
 trajets = resultats["trajets"]
+# Sans date choisie, les trajets peuvent être de jours différents : le jour est alors affiché
+sans_date = resultats["jour"] is None
 
 
 def duree_panneau(minutes: int | None) -> str:
@@ -72,11 +75,13 @@ def places_panneau(places: int | None) -> str:
 
 style.panneau_departs(
     f"{resultats['depart']['nom']} → {resultats['arrivee']['nom']}",
-    colonnes=[("DÉPART", 5, False), ("ARRIVÉE", 5, False), ("DURÉE", 5, False),
+    colonnes=([("DATE", 5, False)] if sans_date else [])
+           + [("DÉPART", 5, False), ("ARRIVÉE", 5, False), ("DURÉE", 5, False),
               ("TRAIN", 5, False), ("2DE CL.", 8, True), ("1RE CL.", 8, True),
               ("PL. 2DE", 7, True), ("PL. 1RE", 7, True)],
     lignes=[
-        [
+        ([commun.date_heure(t["heure_depart"])[:5]] if sans_date else [])
+        + [
             commun.heure(t["heure_depart"]),
             commun.heure(t["heure_arrivee"]),
             duree_panneau(t.get("temps_trajet")),
@@ -88,14 +93,17 @@ style.panneau_departs(
         ]
         for t in trajets
     ],
-    message_vide="AUCUN TRAIN CE JOUR",
+    message_vide="AUCUN TRAIN À VENIR" if sans_date else "AUCUN TRAIN CE JOUR",
 )
-st.caption(f"{commun.jour(resultats['jour']).capitalize()} · {len(trajets)} trajet(s)")
+periode = "Tous les trajets à venir" if sans_date else commun.jour(resultats["jour"]).capitalize()
+st.caption(f"{periode} · {len(trajets)} trajet(s)")
 
 
 def libelle_trajet(t: dict) -> str:
+    """Ex. « 08:30 → 09:47 · train 8541 », précédé du jour si la recherche est sans date."""
+    depart = commun.date_heure(t["heure_depart"]) if sans_date else commun.heure(t["heure_depart"])
     return (
-        f"{commun.heure(t['heure_depart'])} → {commun.heure(t['heure_arrivee'])}"
+        f"{depart} → {commun.heure(t['heure_arrivee'])}"
         + (f" · train {t['num_train']}" if t.get("num_train") else "")
     )
 

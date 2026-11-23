@@ -166,13 +166,13 @@ def trouver_gare(nom: str, gare_service: GareService) -> Gare:
 def rechercher_trajets(
     gare_depart: str,
     gare_arrivee: str,
-    date_voyage: date,
+    date_voyage: date | None = None,
     trajet_service=Depends(get_trajet_service),
     gare_service=Depends(get_gare_service),
     utilisateur=Depends(verif_token)
 ):
     """
-    Recherche les trajets entre deux gares pour un jour donné.
+    Recherche les trajets entre deux gares, pour un jour donné ou, sans date, tous les trajets à venir.
 
     Param:
     ------
@@ -180,8 +180,8 @@ def rechercher_trajets(
         le nom de la gare de départ
     gare_arrivee: str
         le nom de la gare d'arrivée
-    date_voyage: date
-        le jour du voyage (format AAAA-MM-JJ)
+    date_voyage: date | None
+        le jour du voyage (format AAAA-MM-JJ), facultatif
 
     Return:
     ------

@@ -630,10 +630,20 @@ def test_rechercher_gares_identiques():
         TrajetService().rechercher(gare_rennes, gare_rennes, heure_depart)
 
 
-def test_rechercher_date_manquante():
-    """Pas de date : ValueError"""
-    with pytest.raises(ValueError, match="date"):
-        TrajetService().rechercher(gare_rennes, gare_nantes, None)
+def test_rechercher_sans_date():
+    """Pas de date : le service demande au DAO les trajets à venir"""
+    # GIVEN
+    service = TrajetService()
+    service.trajet_dao.rechercher = MagicMock(return_value=[trajet_test])
+
+    # WHEN
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {}
+        res = service.rechercher(gare_rennes, gare_nantes)
+
+    # THEN
+    service.trajet_dao.rechercher.assert_called_once_with(gare_depart=gare_rennes, gare_arrivee=gare_nantes, date=None)
+    assert res == [trajet_test]
 
 
 # tests trouver_par_id

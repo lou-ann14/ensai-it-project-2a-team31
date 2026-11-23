@@ -87,8 +87,11 @@ def rechercher_gares(token: str, nom: str | None = None, ville: str | None = Non
     return _appeler("GET", "/utilisateur/gares", token, params=params)
 
 
-def rechercher_trajets(token: str, gare_depart: str, gare_arrivee: str, date_voyage: date) -> list[dict]:
-    params = {"gare_depart": gare_depart, "gare_arrivee": gare_arrivee, "date_voyage": _iso(date_voyage)}
+def rechercher_trajets(token: str, gare_depart: str, gare_arrivee: str, date_voyage: date | None = None) -> list[dict]:
+    """Trajets entre deux gares, un jour donné ou, sans date, tous les trajets à venir."""
+    params = {"gare_depart": gare_depart, "gare_arrivee": gare_arrivee}
+    if date_voyage is not None:
+        params["date_voyage"] = _iso(date_voyage)
     return _appeler("GET", "/utilisateur/trajets", token, params=params)
 
 

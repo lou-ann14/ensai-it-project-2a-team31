@@ -218,9 +218,9 @@ class TrajetDAO:
         return nb_lignes_supprimees > 0
 
     @log
-    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime) -> list[Trajet]:
+    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime | None = None) -> list[Trajet]:
         """
-        Recherche les trajets entre deux gares à une date donnée.
+        Recherche les trajets entre deux gares, à une date donnée ou, sans date, tous les trajets à venir.
 
         Param:
         ------
@@ -228,8 +228,9 @@ class TrajetDAO:
             la gare de départ
         gare_arrivee: Gare
             la gare d'arrivée
-        date: datetime
-            la date recherchée (seul le jour est pris en compte)
+        date: datetime | None
+            la date recherchée (seul le jour est pris en compte),
+            ou None pour les trajets qui ne sont pas encore partis
 
         Return:
         ------
@@ -242,13 +243,19 @@ class TrajetDAO:
             en cas d'erreur lors de l'accès à la base de données
             (l'erreur est écrite dans les logs puis relancée)
         """
+        if date is None:
+            filtre_date = "   AND t.heure_depart > %(date)s                       "
+            date = datetime.now()
+        else:
+            filtre_date = "   AND t.heure_depart::date = %(date)s::date           "
+
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
                     SELECT_TRAJET +
                     " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
                     "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
-                    "   AND t.heure_depart::date = %(date)s::date              "
+                    + filtre_date +
                     " ORDER BY t.heure_depart                                  ",
                     {
                         "id_gare_depart": gare_depart.id_gare,

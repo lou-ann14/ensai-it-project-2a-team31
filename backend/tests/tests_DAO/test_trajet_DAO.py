@@ -238,7 +238,22 @@ def test_rechercher_parametres(mock_db):
     requete, parametres = cursor.execute.call_args.args
 
     assert "ORDER BY t.heure_depart" in requete
+    assert "t.heure_depart::date = %(date)s::date" in requete
     assert parametres == {"id_gare_depart": 1, "id_gare_arrivee": 3, "date": date}
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_rechercher_sans_date(mock_db):
+    """Pas de date : seuls les trajets qui partent après maintenant sont demandés"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+    avant = datetime.now()
+    TrajetDAO().rechercher(gare_matabiau, gare_montparnasse)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "t.heure_depart > %(date)s" in requete
+    assert "ORDER BY t.heure_depart" in requete
+    assert avant <= parametres["date"] <= datetime.now()
 
 
 # Tests trouver_par_id

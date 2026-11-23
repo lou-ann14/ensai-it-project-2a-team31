@@ -163,7 +163,9 @@ class TrajetService:
             raise ValueError("Impossible de supprimer un trajet qui a des réservations.")
 
     @log
-    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date_voyage: datetime | date) -> list[Trajet]:
+    def rechercher(
+        self, gare_depart: Gare, gare_arrivee: Gare, date_voyage: datetime | date | None = None
+    ) -> list[Trajet]:
         """
         Méthode servant à rechercher des trajets disponibles.
 
@@ -173,8 +175,9 @@ class TrajetService:
             l'objet Gare de départ
         gare_arrivee: Gare
             l'objet Gare d'arrivée
-        date_voyage: datetime | date
-            la date de voyage souhaitée (seul le jour est pris en compte)
+        date_voyage: datetime | date | None
+            la date de voyage souhaitée (seul le jour est pris en compte),
+            ou None pour obtenir tous les trajets à venir
 
         Return:
         ------
@@ -184,14 +187,12 @@ class TrajetService:
         Raises:
         ------
         ValueError
-            si une gare ou la date est manquante, ou si les deux gares sont identiques
+            si une gare est manquante ou si les deux gares sont identiques
         """
         if gare_depart is None or gare_arrivee is None:
             raise ValueError("La gare de départ et la gare d'arrivée sont obligatoires.")
         if gare_depart.id_gare == gare_arrivee.id_gare:
             raise ValueError("La gare de départ et la gare d'arrivée doivent être différentes.")
-        if date_voyage is None:
-            raise ValueError("La date de voyage est obligatoire.")
 
         trajets = self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
         return self.ajouter_detail_prix(self.ajouter_places_restantes(trajets))

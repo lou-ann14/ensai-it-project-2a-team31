@@ -2,9 +2,11 @@ from datetime import date
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.testclient import TestClient
 from src.Classes.controller import collaborateur_controller, utilisateur_controller
 from src.Classes.controller.utilisateur_controller import trouver_gare
+from src.utils.securite import verif_token
 
 # Les services sont simulés : ni la base ni l'API SNCF ne sont appelées.
 
@@ -93,6 +95,22 @@ def test_rechercher_trajets_par_nom():
     utilisateur_controller.rechercher_trajets("Rennes", "Nantes", jour, trajets, service_gares(), MagicMock())
 
     trajets.rechercher.assert_called_once_with(RENNES, NANTES, jour)
+
+
+def test_rechercher_trajets_sans_date():
+    """La date est facultative dans l'URL : la route transmet None au service"""
+    trajets = MagicMock()
+    trajets.rechercher.return_value = []
+    app = FastAPI()
+    app.include_router(utilisateur_controller.router)
+    app.dependency_overrides[utilisateur_controller.get_trajet_service] = lambda: trajets
+    app.dependency_overrides[utilisateur_controller.get_gare_service] = service_gares
+    app.dependency_overrides[verif_token] = lambda: MagicMock()
+
+    reponse = TestClient(app).get("/trajets", params={"gare_depart": "Rennes", "gare_arrivee": "Nantes"})
+
+    assert reponse.status_code == 200
+    trajets.rechercher.assert_called_once_with(RENNES, NANTES, None)
 
 
 def test_rechercher_trajets_gare_inconnue():
