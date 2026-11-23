@@ -14,7 +14,7 @@ def mask_value(clé, valeur):
     Param:
         clé (str): Le nom de la variable d'environnement.
         valeur (str): La véritable valeur de la variable d'environnement.
-    Returns:
+    Return:
         str: Le string ("*******") si la clé contient un mot clé sensible, 
             autrement la valeur originelle.
     """
@@ -29,8 +29,8 @@ def display_values(inclure_prefix=None, exclure_prefix=None):
     """
     Ajoute aux logs toute les variables d'environnement en filtrant et masquant les valeurs sensibles.
     Param:
-        inclure_prefix (str, optionel): Seule les clés avec ce préfixe seront loggées, si le préfixe est donné.
-        exclure_prefix (str, optionel): Seules les clés sans ce préfixe seront loggées, si le préfixe est donné.
+        inclure_prefix (str, optionnel): Seule les clés avec ce préfixe seront loggées, si le préfixe est donné.
+        exclure_prefix (str, optionnel): Seules les clés sans ce préfixe seront loggées, si le préfixe est donné.
             prefix will be skipped.
     """
     for key, value in dotenv.dotenv_values().items():

@@ -3,14 +3,6 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class LigneCreationModel(BaseModel):
-    """Données envoyées par un collaborateur pour créer une ligne."""
-
-    gare_depart_id: int
-    gare_arrivee_id: int
-    id_collaborateur: int
-
-
 class LigneCreeeModel(BaseModel):
     """Réponse renvoyée après la création d'une ligne."""
 
@@ -34,13 +26,6 @@ class TrajetCreeModel(BaseModel):
     id_trajet: int
     heure_arrivee: datetime
     temps_trajet: int  # en minutes
-
-
-class LigneModificationModel(BaseModel):
-    """Nouvelles gares d'une ligne."""
-
-    gare_depart_id: int
-    gare_arrivee_id: int
 
 
 class LigneModifieeModel(LigneCreeeModel):

@@ -7,7 +7,7 @@ from src.Classes.classes_objets.train import Train
 class Trajet:
     """Modélise la classe Trajet, qui permet de gérer les différentes caracteristiques des trajets.
 
-    Params
+    Param:
     ------
     heure_depart: datetime
         Heure de départ du trajet

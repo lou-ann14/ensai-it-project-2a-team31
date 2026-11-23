@@ -5,7 +5,7 @@ from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 class Reservation:
     """Modélise la classe Réservation, qui permet de gérer les réservations des clients.
 
-    Params
+    Param:
     ------
     client: Utilisateur
         Utilisateur qui a réservé (client, ou collaborateur et administrateur,

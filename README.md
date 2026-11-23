@@ -128,7 +128,7 @@ needed). The full flow was also checked by hand on PostgreSQL with the real SNCF
 | `tests/test_objets` | business classes, SNCF API client, roles |
 | `tests/tests_DAO` | SQL queries (mocked cursor) |
 | `tests/tests_service` | business rules |
-| `tests/test_controller_optionel` | HTTP routes (status codes, security) |
+| `tests/test_controller_optionnel` | HTTP routes (status codes, security) |
 
 ---
 

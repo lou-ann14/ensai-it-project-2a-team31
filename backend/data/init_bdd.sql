@@ -9,7 +9,7 @@ CREATE TABLE gares(
 
 CREATE TABLE utilisateurs(
     id SERIAL PRIMARY KEY,
-    nom_utilisateur VARCHAR(256) NOT NULL UNIQUE,  -- deux comptes ne peuvent pas avoir le même nom
+    nom_utilisateur VARCHAR(15) NOT NULL UNIQUE,  -- deux comptes ne peuvent pas avoir le même nom
     mdp VARCHAR(256) NOT NULL,
     grade VARCHAR(256) NOT NULL,
     date_inscription DATE DEFAULT CURRENT_DATE,     -- renseignée aussi pour les comptes de test

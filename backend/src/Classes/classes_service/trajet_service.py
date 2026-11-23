@@ -417,7 +417,7 @@ class TrajetService:
         ------
             ligne (Ligne): la ligne concernée.
             heure_depart (datetime): l'heure de départ
-            id_trajet_ignore (int, optionel): un trajet potentiel à ignorer dans la recherche.
+            id_trajet_ignore (int, optionnel): un trajet potentiel à ignorer dans la recherche.
         """
         trajets_du_jour = self.trajet_dao.rechercher(ligne.gare_depart, ligne.gare_arrivee, heure_depart)
         return any(

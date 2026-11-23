@@ -1,7 +1,7 @@
 class Gare:
     """Classe Gare : gère les différentes caractéristiques des gares
 
-    Params
+    Param:
     ------
     nom: str
         Nom de la gare
