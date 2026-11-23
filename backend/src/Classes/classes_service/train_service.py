@@ -6,10 +6,25 @@ from src.utils.log_utils import log
 
 
 class TrainService:
+    """Classe qui gère les opérations métier sur les trains"""
 
     @staticmethod
     def _verifier_capacite(places_premieres: int, places_secondes: int) -> None:
-        """Vérifie que les nombres de places sont positifs ou nuls (lève ValueError sinon)."""
+        """
+        Vérifie que les nombres de places sont positifs ou nuls.
+
+        Param:
+        ------
+        places_premieres: int
+            le nombre de places en première classe
+        places_secondes: int
+            le nombre de places en seconde classe
+
+        Raises:
+        ------
+        ValueError
+            si un nombre de places est négatif
+        """
         if places_premieres < 0 or places_secondes < 0:
             raise ValueError("capacité incorrecte, le nombre de places doit être positif ou nul")
 
@@ -26,7 +41,7 @@ class TrainService:
             le nombre de places en première classe disponibles au départ
         places_secondes: int
             le nombre de places en seconde classe disponibles au départ
-        num_train
+        num_train: int
             le numéro du train
 
         Return:

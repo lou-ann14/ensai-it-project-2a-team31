@@ -13,7 +13,19 @@ st.caption(
 
 
 def champs_trajet(prefixe: str):
-    """Champs communs à la création et à la modification. Renvoie les valeurs saisies."""
+    """
+    Champs communs à la création et à la modification.
+
+    Param:
+    ------
+    prefixe: str
+        le début des clés Streamlit des champs
+
+    Return:
+    ------
+    tuple[int, int, datetime, float]
+        l'id de la ligne, le numéro du train, la date de départ et le tarif
+    """
     c1, c2 = st.columns(2)
     id_ligne = c1.number_input("Identifiant de la ligne", min_value=1, step=1, key=f"{prefixe}_ligne")
     num_train = c2.number_input("Numéro du train", min_value=0, step=1, key=f"{prefixe}_train")
@@ -27,10 +39,31 @@ def champs_trajet(prefixe: str):
 
 
 def id_train_depuis_num(num_train: int) -> int:
+    """
+    Cherche l'id d'un train à partir de son numéro.
+
+    Param:
+    ------
+    num_train: int
+        le numéro du train
+
+    Return:
+    ------
+    int
+        l'id du train
+    """
     return api.trouver_train(commun.token(), num_train)["id_train"]
 
 
 def afficher_resultat(reponse: dict):
+    """
+    Affiche le message après la création ou la modification d'un trajet.
+
+    Param:
+    ------
+    reponse: dict
+        la réponse de l'API
+    """
     st.success(
         f"{reponse['message']} : trajet #{reponse['id_trajet']}, arrivée "
         f"{commun.date_heure(reponse['heure_arrivee'])} ({commun.duree(reponse['temps_trajet'])})."

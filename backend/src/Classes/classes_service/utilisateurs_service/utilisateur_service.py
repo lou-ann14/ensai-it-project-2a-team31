@@ -8,6 +8,7 @@ from src.utils.securite import hash_password
 
 
 class UtilisateurService:
+    """Classe qui gère les comptes : création, connexion, mot de passe et grade"""
 
     @log
     def creer_compte(self, nom : str, mdp: str) -> Utilisateur | None:

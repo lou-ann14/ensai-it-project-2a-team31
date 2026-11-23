@@ -16,6 +16,7 @@ class TrajetService:
     """Classe qui gère les opérations métier sur les trajets"""
 
     def __init__(self):
+        """Crée le DAO utilisé par le service."""
         self.trajet_dao = TrajetDAO()
 
     @log
@@ -298,18 +299,27 @@ class TrajetService:
         return self.trajet_dao.trouver_par_id(id_trajet)
 
     def _verifier_donnees(self, id_ligne, id_train, heure_depart, tarif_base) -> None:
-        """Vérifie la validité des données d'un trajet (lève ValueError sinon).
+        """
+        Vérifie que les données d'un trajet sont valides.
+
         Param:
         ------
-            id_ligne: (int): l'id de la ligne concernée.
-            id_train: (int): l'id du train concerné.
-            heure_départ(datetime): l'heure de départ du trajet.
-            tarif_base (int): le tarif de base du trajet.
+        id_ligne: int
+            l'id de la ligne
+        id_train: int
+            l'id du train
+        heure_depart: datetime
+            la date et l'heure de départ
+        tarif_base: float
+            le prix de base du trajet
+
         Raises:
         ------
-            ValueError : si un id est manquant, si la date de départ est déjà passée ou si le tarif de base est négatif.
-            TypeError : si heure_départ est au mauvais format
-        
+        ValueError
+            si un id est manquant, si la date de départ est déjà passée
+            ou si le tarif de base est manquant ou négatif
+        TypeError
+            si l'heure de départ n'est pas une date avec heure
         """
         if id_ligne is None or id_train is None:
             raise ValueError("La ligne et le train sont obligatoires.")
@@ -333,7 +343,7 @@ class TrajetService:
 
         Param:
         ------
-            ancien((Trajet): le trajet qu'il faut peut-être modifier.
+            ancien (Trajet): le trajet qu'il faut peut-être modifier.
             nouvelle_ligne (Ligne): la ligne du trajet.
             nouveau_train (Train): le nouveau train pour ce trajet.
 
@@ -366,19 +376,28 @@ class TrajetService:
                 )
 
     def _calculer_duree(self, ligne, heure_depart: datetime) -> int:
-        """Demande à l'API SNCF la durée du trajet sur cette ligne, en secondes (lève ValueError si aucune).
+        """
+        Demande à l'API SNCF la durée du trajet sur cette ligne.
+
         Param:
         ------
-            ligne (Ligne): la ligne concernée.
-            heure_depart (datetime): l'heure de départ du trajet.
+        ligne: Ligne
+            la ligne concernée
+        heure_depart: datetime
+            la date et l'heure de départ
+
         Return:
-        -------
-            duree(datetime): la durée du trajet
+        ------
+        int
+            la durée du trajet, en secondes
+
         Raises:
-        -------
-            ValueError: si les gares du trajet n'appartiennent pas à la SNCF,
-            ou si aucun itinéraire n'est trouvé entre les deux gares.
-        
+        ------
+        ValueError
+            si les gares de la ligne ne viennent pas de l'API SNCF
+            ou si aucun itinéraire n'est trouvé entre les deux gares
+        requests.RequestException
+            si l'API SNCF est indisponible
         """
         id_sncf_depart = ligne.gare_depart.id_sncf
         id_sncf_arrivee = ligne.gare_arrivee.id_sncf
@@ -413,12 +432,22 @@ class TrajetService:
         return ligne
 
     def _trajet_similaire_existe(self, ligne, heure_depart: datetime, id_trajet_ignore: int | None = None) -> bool:
-        """Indique si un trajet existe déjà sur cette ligne avec exactement la même heure de départ.
+        """
+        Indique si un trajet existe déjà sur cette ligne avec exactement la même heure de départ.
+
         Param:
         ------
-            ligne (Ligne): la ligne concernée.
-            heure_depart (datetime): l'heure de départ
-            id_trajet_ignore (int, optionnel): un trajet potentiel à ignorer dans la recherche.
+        ligne: Ligne
+            la ligne concernée
+        heure_depart: datetime
+            la date et l'heure de départ
+        id_trajet_ignore: int | None
+            l'id d'un trajet à ne pas prendre en compte (celui que l'on modifie)
+
+        Return:
+        ------
+        bool
+            True si un tel trajet existe, False sinon
         """
         trajets_du_jour = self.trajet_dao.rechercher(ligne.gare_depart, ligne.gare_arrivee, heure_depart)
         return any(

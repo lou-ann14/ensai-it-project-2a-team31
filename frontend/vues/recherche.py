@@ -60,6 +60,19 @@ sans_date = resultats["jour"] is None
 
 
 def duree_panneau(minutes: int | None) -> str:
+    """
+    Écrit une durée pour le panneau.
+
+    Param:
+    ------
+    minutes: int | None
+        la durée en minutes, ou None si elle est inconnue
+
+    Return:
+    ------
+    str
+        la durée, ou des tirets si elle est inconnue
+    """
     if minutes is None:
         return "--"
     h, m = divmod(minutes, 60)
@@ -67,7 +80,19 @@ def duree_panneau(minutes: int | None) -> str:
 
 
 def places_panneau(places: int | None) -> str:
-    """F5 : places restantes dans une classe (COMPLET à 0, -- si inconnues)."""
+    """
+    F5 : écrit le nombre de places restantes dans une classe.
+
+    Param:
+    ------
+    places: int | None
+        le nombre de places, ou None s'il est inconnu
+
+    Return:
+    ------
+    str
+        le nombre de places, COMPLET s'il n'y en a plus, ou des tirets s'il est inconnu
+    """
     if places is None:
         return "--"
     return "COMPLET" if places == 0 else str(places)
@@ -100,7 +125,19 @@ st.caption(f"{periode} · {len(trajets)} trajet(s)")
 
 
 def libelle_trajet(t: dict) -> str:
-    """Ex. « 08:30 → 09:47 · train 8541 », précédé du jour si la recherche est sans date."""
+    """
+    Texte d'un trajet dans le choix du train (le jour est ajouté si la recherche est sans date).
+
+    Param:
+    ------
+    t: dict
+        le trajet
+
+    Return:
+    ------
+    str
+        les horaires et le numéro du train
+    """
     depart = commun.date_heure(t["heure_depart"]) if sans_date else commun.heure(t["heure_depart"])
     return (
         f"{depart} → {commun.heure(t['heure_arrivee'])}"

@@ -10,6 +10,14 @@ rechercher, creer, capacite = st.tabs(["Rechercher", "Créer", "Modifier la capa
 
 
 def afficher_train(train: dict):
+    """
+    Affiche les informations d'un train.
+
+    Param:
+    ------
+    train: dict
+        le train
+    """
     with st.container(border=True):
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Numéro", train["num_train"])

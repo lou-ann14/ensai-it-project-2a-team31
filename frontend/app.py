@@ -17,6 +17,7 @@ style.appliquer()
 
 
 def page_connexion():
+    """Page affichée sans être connecté : connexion et inscription."""
     style.titre_panneau("CONCURRENT SNCF", "PROCHAIN DÉPART · VOTRE VOYAGE")
 
     colonne, texte = st.columns([1, 1], gap="large")
@@ -68,7 +69,14 @@ def page_connexion():
 
 
 def entete(utilisateur: dict) -> None:
-    """Bandeau de gare : marque à gauche, carte du voyageur et déconnexion à droite."""
+    """
+    Bandeau de gare : marque à gauche, carte du voyageur et déconnexion à droite.
+
+    Param:
+    ------
+    utilisateur: dict
+        l'utilisateur connecté
+    """
     grade = (utilisateur.get("grade") or "").capitalize()
     with st.container(key="entete"):
         gauche, droite, bouton = st.columns([5, 3, 1.4], vertical_alignment="center")
@@ -84,7 +92,16 @@ def entete(utilisateur: dict) -> None:
 
 
 def ligne_navigation(arrets: list[tuple[str, st.Page]], courante) -> None:
-    """Menu dessiné comme une ligne de train : chaque page est un arrêt."""
+    """
+    Menu dessiné comme une ligne de train : chaque page est un arrêt.
+
+    Param:
+    ------
+    arrets: list[tuple[str, st.Page]]
+        les pages du menu, avec le nom de leur groupe
+    courante: st.Page
+        la page affichée
+    """
     with st.container(key="ligne"):
         colonnes = st.columns(len(arrets), gap=None)
         for i, (colonne, (groupe, page)) in enumerate(zip(colonnes, arrets)):

@@ -8,6 +8,7 @@ class GareService:
     """Classe qui gère les opérations métier sur les gares"""
 
     def __init__(self):
+        """Crée le DAO utilisé par le service."""
         self.gare_dao = GareDAO()
 
     @log

@@ -10,10 +10,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 
 def initialize_logs(nom: str):
-    """Initialise le logging d'après un fichier de configuration
-        Param:
-        ------
-        nom (str): le nom associé aux logs créer
+    """
+    Initialise le logging d'après un fichier de configuration.
+
+    Param:
+    ------
+    nom: str
+        le nom associé aux logs créés
     """
 
     # Créer le dossier de logs à la racine du projet si ce dernier n'existe pas déjà
@@ -35,10 +38,18 @@ def get_logger(nom_module: str, taille_max: int = 25):
     """
     Renvoie un logger, avec son nom raccourci selon le chemin du module.
     Si le chemin dépasse une certaine taille, on utilise les initiales en guise de préfixe.
+
     Param:
     ------
-    nom_module (str); le nom du module
-    taille_max (int = 25): la taille maximale du chemin
+    nom_module: str
+        le nom du module
+    taille_max: int
+        la taille maximale du chemin
+
+    Return:
+    ------
+    logging.Logger
+        le logger du module
     """
     if len(nom_module) <= taille_max:
         return logging.getLogger(nom_module)
@@ -68,12 +79,30 @@ class LogIndentation:
 
     @classmethod
     def get_indentation(cls):
-        """Obtenir l'indentation actuelle"""
+        """
+        Obtenir l'indentation actuelle.
+
+        Return:
+        ------
+        str
+            les espaces à mettre devant le message
+        """
         return " " * cls.indentation_size * cls.current_indentation
 
 
 def log(func):
-    """Décorateur pour ajouter les appels et sorties des méthodes aux logs.
+    """
+    Décorateur pour ajouter les appels et sorties des méthodes aux logs.
+
+    Param:
+    ------
+    func: Callable
+        la méthode à suivre dans les logs
+
+    Return:
+    ------
+    Callable
+        la méthode décorée
     """
 
     SENSITIVE_KEYWORDS = {
@@ -89,6 +118,21 @@ def log(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        """
+        Appelle la méthode et écrit dans les logs ses paramètres (mots de passe et tokens masqués) et son résultat.
+
+        Param:
+        ------
+        args: tuple
+            les paramètres de la méthode
+        kwargs: dict
+            les paramètres nommés de la méthode
+
+        Return:
+        ------
+        Any
+            le résultat de la méthode
+        """
         if args and hasattr(args[0], "__class__"):
             logger = get_logger(f"{args[0].__class__.__module__}")
         else:
@@ -148,10 +192,28 @@ def log(func):
 
 
 class LogMiddleware(BaseHTTPMiddleware):
+    """Middleware qui écrit chaque requête HTTP dans les logs."""
     async def dispatch(self, request: Request, call_next):
         """
         Middleware permettant d'enregistrer les requêtes et les réponses HTTP.
         Il enregistre la méthode, le chemin d'accès, le code d'état et les détails de l'erreur.
+
+        Param:
+        ------
+        request: Request
+            la requête reçue
+        call_next: Callable
+            la fonction qui traite la requête
+
+        Return:
+        ------
+        Response
+            la réponse à la requête
+
+        Raises:
+        ------
+        Exception
+            si le traitement de la requête échoue (l'erreur est écrite dans les logs puis relancée)
         """
 
         method = request.method

@@ -18,10 +18,18 @@ class Reservation:
         Classe dans laquelle le client se trouve
     prix: float
         prix de la réservation
-    id_réservation: int | None = None
+    id_reservation: int | None = None
         id de la réservation dans la BDD
     """
     def __init__(self, client: Utilisateur, trajet: Trajet, place: str, classe: int, prix: float, id_reservation: int | None = None):
+        """
+        Crée une réservation après avoir vérifié le type des paramètres.
+
+        Raises:
+        ------
+        TypeError
+            si un paramètre n'a pas le bon type
+        """
         if id_reservation is not None and not isinstance(id_reservation, int):
             raise TypeError("L'identifiant de la réservation doit être un entier.")
         if not isinstance(client, Utilisateur):
@@ -43,6 +51,12 @@ class Reservation:
         self.prix = prix
 
     def __str__(self):
-        """Représentation string d'une réservation.
+        """
+        Représentation string d'une réservation.
+
+        Return:
+        ------
+        str
+            la description affichée
         """
         return f"La réservation #{self.id_reservation} du client #{self.client.id} pour le trajet #{self.trajet}, en {self.classe} à la place {self.place} a coûté {self.prix} euros"

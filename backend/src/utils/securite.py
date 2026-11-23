@@ -28,7 +28,7 @@ NIVEAUX_GRADE = {"CLIENT": 1, "COLLABORATEUR": 2, "ADMIN": 3}
 def _a_le_grade(utilisateur, grade_minimum: str) -> bool:
     """Indique si l'utilisateur a au moins le grade demandé.
     Param:
-        utilisateur: l'utilisateur connecté (objet ayant un attribut grade)
+        utilisateur (Utilisateur): l'utilisateur connecté
         grade_minimum (str): "CLIENT", "COLLABORATEUR" ou "ADMIN"
     Return:
         bool: True si son grade est égal ou supérieur au grade demandé
@@ -37,9 +37,20 @@ def _a_le_grade(utilisateur, grade_minimum: str) -> bool:
 
 
 def verifier_grade(utilisateur, grade_minimum: str) -> None:
-    """Refuse l'action si l'utilisateur n'a pas au moins le grade demandé.
+    """
+    Refuse l'action si l'utilisateur n'a pas au moins le grade demandé.
+
+    Param:
+    ------
+    utilisateur: Utilisateur
+        l'utilisateur connecté
+    grade_minimum: str
+        le grade minimum (CLIENT, COLLABORATEUR ou ADMIN)
+
     Raises:
-        HTTPException: 403 error si le grade est insuffisant.
+    ------
+    HTTPException
+        erreur 403 si le grade est insuffisant
     """
     if not _a_le_grade(utilisateur, grade_minimum):
         raise HTTPException(

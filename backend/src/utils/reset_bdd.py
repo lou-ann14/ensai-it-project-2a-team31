@@ -9,11 +9,28 @@ from src.utils.singleton import Singleton
 logger = get_logger(__name__)
 
 class Reset_bdd(metaclass=Singleton):
+    """Réinitialise la base de données."""
     def __init__(self):
+        """Retrouve la racine du projet, pour pouvoir lire les fichiers SQL."""
         self.base_path = Path(__file__).resolve().parent.parent.parent.parent
 
     @log
     def demarrer(self):
+        """
+        Supprime puis recrée le schéma, les tables, les comptes de test et les données de démonstration.
+
+        Return:
+        ------
+        bool
+            True si la réinitialisation a réussi
+
+        Raises:
+        ------
+        FileNotFoundError
+            si un fichier SQL est introuvable
+        psycopg2.Error
+            si une requête échoue (la base reste alors dans son état précédent)
+        """
         init_chemin_bdd = self.base_path / "backend" / "data" / "init_bdd.sql"
         admin = self.base_path / "backend" / "data" / "admin.sql"
         donnees_demo = self.base_path / "backend" / "data" / "donnees_demo.sql"
