@@ -132,4 +132,4 @@ There are 416 tests (85 % coverage), split by layer:
 | `tests/test_objets`              | business objects, SNCF client, roles     |
 | `tests/tests_DAO`                | SQL queries                              |
 | `tests/tests_service`            | business rules                           |
-| `tests/test_controller_optionel` | HTTP routes (status codes, security)     |
+| `tests/test_controller_optionnel` | HTTP routes (status codes, security)     |

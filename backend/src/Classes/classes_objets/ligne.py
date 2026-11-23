@@ -4,7 +4,7 @@ from src.Classes.classes_objets.gare import Gare
 class Ligne:
     """Modélise la classe Ligne, qui permet de gérer les différentes caracteristiques des lignes.
 
-    Params
+    Param:
     ------
     gare_depart: Gare
         Gare de départ de la ligne

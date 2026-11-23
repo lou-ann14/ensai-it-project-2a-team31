@@ -13,11 +13,14 @@ class UtilisateurService:
     def creer_compte(self, nom : str, mdp: str) -> Utilisateur | None:
         """Créer un compte utilisateur
         Param:
+        ------
             nom (str): nom d'utilisateur
             mdp (str): mot de passe
-        Returns:
+        Return:
+        -------
             Utilisateur créer ou None sinon.
         Raises:
+        -------
             ValueError: si le nom d'utilisateur est déjà pris (contrainte UNIQUE de la base,
                 qui protège aussi contre deux inscriptions simultanées avec le même nom)
         """
@@ -38,13 +41,16 @@ class UtilisateurService:
     def changer_mdp(self, id_utilisateur: int, ancien_mdp: str, nouveau_mdp: str) -> bool:
         """Change le mot de passe d'un utilisateur après avoir vérifié l'ancien
         Param:
+        ------
             id_utilisateur (int): l'id de l'utilisateur.
             ancien_mdp (str): le mot de passe actuel, en clair.
             nouveau_mdp (str): le nouveau mot de passe, en clair.
-        Returns:
+        Return:
+        -------
             True si le mot de passe a été changé, False si l'utilisateur n'existe pas
             ou si l'ancien mot de passe est incorrect.
         Raises:
+        -------
             ValueError: si le nouveau mot de passe est vide.
         """
         if not nouveau_mdp or not nouveau_mdp.strip():
@@ -65,9 +71,11 @@ class UtilisateurService:
     def rechercher(self, nom: str | None = None, id_utilisateur: int | None = None) -> Utilisateur | None:
         """Recherche un utilisateur à l'aide de son id ou de son nom
         Param:
+        ------
             nom (str): le nom de l'utilisateur recherché.
             id_utilisateur (int): l'id de l'utilisateur recherché.
-        Returns:
+        Return:
+        -------
             res (Utilisateur) : l'utilisateur recherché.
 
         """
@@ -100,7 +108,7 @@ class UtilisateurService:
         ------
             nom (str): le nom de l'utilisateur.
             mdp (str): le mot de passe de l'utilisateur.
-        Returns:
+        Return:
         -------
             utilisateur(Utilisateur): renvoie les caractéristiques de l'utilisateur et son token associé.
                 Renvoie None si le mot de passe ou le nom sont incorrects.

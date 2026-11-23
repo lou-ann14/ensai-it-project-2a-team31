@@ -2,7 +2,7 @@ class Train:
     """Modélise la classe Train, qui permet de gérer les différentes caracteristiques des trains
     comme le nombre de place ou l'identifiant du train.
 
-    Params
+    Param:
     ------
     type_train: str
         Chaîne de caractère décrivant le type du train

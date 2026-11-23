@@ -223,7 +223,7 @@ fonctionnalités (préférez la qualité, quite à laisser de côté une des
 fonctionnalités) ».
 
 Quant-aux fonctionnalités, 5 sont obligatoires, tandis que les autres
-sont optionelles, nous laissant le choix libre sur d’autres
+sont optionnelles, nous laissant le choix libre sur d’autres
 fonctionnalités à coder. Nous les avons spécifiés précédemment. Celles
 obligatoires nous resteignent davantage dans la création des classes
 objet. Par exemple avec la classe Client, Collaborateur et

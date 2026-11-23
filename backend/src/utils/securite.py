@@ -2,6 +2,7 @@ import hashlib
 
 from fastapi import Header, HTTPException
 from src.Classes.classes_DAO.utilisateur_DAO import UtilisateurDAO
+from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
 
 
 def hash_password(mdp: str, salt: str = "") -> str:
@@ -10,7 +11,7 @@ def hash_password(mdp: str, salt: str = "") -> str:
         mdp (str): Le mot de passe à hasher
         salt (str, optional): Un string ajouté au mot de passe avant de hasher
             pour se protéger contre les attaques rainbow table.
-    Returns:
+    Return:
         str: hash string résultant du hashage
     """
     password_bytes = mdp.encode("utf-8") + salt.encode("utf-8")
@@ -28,8 +29,8 @@ def _a_le_grade(utilisateur, grade_minimum: str) -> bool:
     """Indique si l'utilisateur a au moins le grade demandé.
     Param:
         utilisateur: l'utilisateur connecté (objet ayant un attribut grade)
-        grade_minimum (str): CLIENT, COLLABORATEUR ou ADMIN
-    Returns:
+        grade_minimum (str): "CLIENT", "COLLABORATEUR" ou "ADMIN"
+    Return:
         bool: True si son grade est égal ou supérieur au grade demandé
     """
     return NIVEAUX_GRADE.get(utilisateur.grade, 0) >= NIVEAUX_GRADE[grade_minimum]
@@ -47,15 +48,15 @@ def verifier_grade(utilisateur, grade_minimum: str) -> None:
         )
 
 
-def verif_token(x_auth_token=Header(None)) -> UtilisateurDAO:
+def verif_token(x_auth_token=Header(None)) -> Utilisateur:
     """Vérifie l'authentification d'un utilisateur via un token donné.
 
     Cette fonction vérifie si un token est présent dans les arguments d'une fonction
     et valide le token à l'aide de la base de données.
     Param:
-        x_auth_token (str, otpionnel): Le token extrait depuis le 'X-AUth-Token' dans le header HTTP. 
+        x_auth_token (str, otpionel): Le token extrait depuis le 'X-AUth-Token' dans le header HTTP. 
             None par défaut.
-    Returns:
+    Return:
         L'utilisateur avec le bon token.
     Raises:
         HTTPException: 401 error if the token is missing.
