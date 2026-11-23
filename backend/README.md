@@ -115,13 +115,13 @@ which makes it easier to follow the data through the services.
 From the `backend/` folder:
 
 ```bash
-uv run --with pytest --with httpx python -m pytest -q
+uv run --with pytest --with httpx2 python -m pytest -q
 ```
 
 With the code coverage:
 
 ```bash
-uv run --with pytest --with httpx --with pytest-cov python -m pytest -q --cov=src
+uv run --with pytest --with httpx2 --with pytest-cov python -m pytest -q --cov=src
 ```
 
 The database and the SNCF API are mocked, so the tests do not need any connection.

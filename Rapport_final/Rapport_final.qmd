@@ -1,5 +1,108 @@
 ---
-title: "Rapport_final"
-format: html
+format:
+  pdf:
+    fontsize: "11pt"
+    include-in-header: 
+      text: |
+        \usepackage{graphicx}
+    geometry:
+      - top=30mm
+      - left=25mm
+      - right=25mm
+      - bottom=30mm
+execute:
+  echo: false
+  warning: false
+editor: 
+  markdown: 
+    wrap: 72
+lang: fr
 ---
 
+\begin{titlepage}
+\centering
+
+
+% Logo
+\includegraphics[width=7cm]{ensai-logo.png}\par
+
+\vspace{1.5cm}
+
+% Titre principal
+{\Huge Rapport final - Projet informatique \par}
+\vspace{0.5cm}
+{\Large 2A \par}
+
+\vspace{1.5cm}
+
+% Sous-titre / Nom de l'application
+{\LARGE \textbf{Concurrent SNCF} \par}
+
+\vspace{1cm}
+
+% Bloc Étudiants (aligné à gauche)
+\begin{flushleft}
+\large
+\textbf{Étudiants :}\\
+Adam BENAMER\\
+Satya KREMER\\
+Nathan TIATIA\\
+Laurine LEROY\\
+Lou-Ann CLEMENT\\
+Nour NSIRI
+\end{flushleft}
+
+\vspace{0.05cm}
+
+% Bloc Encadrant 
+\begin{flushright}
+\large
+\textbf{Encadrant pédagogique :}\\
+KEVIN LEROY
+\end{flushright}
+
+
+\vfill
+
+% Année universitaire
+{\normalsize Année universitaire 2026--2027 \par}
+
+\end{titlepage}
+\tableofcontents
+\newpage
+
+# Introduction
+
+Dans un monde exigeant une grande mobilité des personnes et des biens, se déplacer est devenu un enjeu majeur pour tous et toutes. Cependant, ces déplacements viennent souvent à l’encontre de préoccupations environnementales grandissantes. En effet, les trajets en avion ou même en voiture sont extrêmement polluants : il est donc pertinent de se pencher sur une de leurs alternatives la plus verte, c’est-à-dire le train. En effet, le train est une industrie inestimable pour faire face aux enjeux climatiques de notre monde. Ainsi, il est tout aussi nécessaire d’avoir des services qui font fonctionner la concurrence, afin de permettre aux utilisateurs des chemins de fer d’avoir la meilleure expérience possible. C’est pour cette raison que la création d’un concurrent à la SNCF s’impose comme un sujet particulièrement important, et demandant un traitement attentif et complet.
+
+Afin d’accomplir cela, nous avons développé une application qui vise à mettre en place le plus grand nombre possible de fonctionnalités proposées par la SNCF : ce rapport vise donc à expliquer dans le détail comment cette application a été conçue, structurée et codée par notre équipe. Nous verrons dans un premier temps le contexte de l’application et le cahier des charges dressé, ainsi que l'organisation de travail mise en place au sein de l'équipe. Puis nous nous pencherons sur la modélisation de notre application et son architecture générale. Nous nous intéresserons ensuite à l'implémentation, notamment par le biais de diagramme de classes, afin d’expliciter les différentes couches de code mises en place et leurs interactions. Nous verronns aussi à cette occasion les outils utilisés et les tests mis en place dans une démarche d'assurance-qualité. Enfin, lors d'une dernière partie de prise de recul nous verrons les possibles modifications à notre application selon différents scénarios.
+
+# I. Présentation du projet
+
+## Cahier des charges et fonctionnalités de l'application
+
+Au cours de ce semestre, nous avons donc développé une application qui cherche à approcher au mieux les fonctionnalités proposées par la SNCF. Celles-ci sont constituées de cinq fonctionnalités de base et deux fonctionnalités optionnelles. Ces fonctionnalités utilisent parmi les données transmises par l’API SNCF les gares, lignes, trajets et prix présents dans la base de données. La récupération, l’exploitation et la transmission à notre base de données de ces données SNCF seront explicités lors de l’explication des couches de code.
+
+La première fonctionnalité est une fonctionnalité de gestion des comptes utilisateurs, afin d’avoir les différents niveaux d’habilitation nécessaires à l’application. Ceux-ci sont au nombre de trois : les administrateurs sont les seuls à pouvoir changer le niveau d’habilitation d’autres comptes, mais ont accès à toutes les autres fonctionnalités accessibles aux deux autres catégories de compte, les collaborateurs et les clients. Tandis que les collaborateurs peuvent créer des lignes et trajets, les clients ne peuvent que rechercher ces lignes et trajets, et réserver les trajets disponibles.
+
+La deuxième fonctionnalité demandée est celle de gestion des lignes d’exploitation. Cela est effectué par les comptes collaborateurs, en utilisant l’API externe de la SNCF. Pour faire cela, les collaborateurs recherchent d’abord des gares existantes dans la base de données de la SNCF. Cette recherche permet ensuite au collaborateur d’utiliser les gares obtenues pour vérifier l’existence d’une ligne dans la base de données de la SNCF, et de créer ladite ligne.
+
+La troisième fonctionnalité que nous devons implémenter est celle de gestion des trajets proposés. Un trajet se trouve sur une ligne, et possède donc une date et une heure de départ, un nombre de places et un tarif. Le temps de trajet est calculé avec l’API SNCF, tandis que le nombre de places est une variable à ajuster par le collaborateur créant le trajet. En plus de cela, il est important de vérifier qu’un trajet peut bel et bien être effectué entre deux gares, et qu’il existe donc une ligne déjà créée par le compte collaborateur qui permet ce trajet. Enfin, les comptes collaborateurs sont capables de modifier ou bien de supprimer un trajet.
+
+La quatrième fonctionnalité est celle de recherche de trajet : un compte client peut rechercher les trajets créés grâce à la fonctionnalité précédente, en entrant une gare d’arrivée et une gare de départ. A l’issue de cette recherche, toutes les informations nécessaires lors de la création d’un trajet sont visibles par le client, à l’exception du tarif et des places (qui peuvent être néanmoins visibles lors de la réservation d’un trajet).
+
+La cinquième et dernière fonctionnalité est une fonctionnalité de positionnement commercial, laissée libre. Nous avons choisi d’implémenter la tarification transparente : ainsi, lors de la réservation d’un trajet, un client peut voir les différentes composantes du prix total. Nous avons aussi implémenté lors de la réservation la visibilité du nombre de places restantes dans la classe voulue (première ou deuxième).
+
+De plus, nous avons aussi développé les deux fonctionnalités optionnelles proposées par le sujet : celle des classes de voyage, et la fonctionnalité de réservation. Cette dernière permet à un compte client de réserver et annuler une réservation, ainsi que de visualiser ses réservations.
+
+## Organisation de l'équipe
+
+L’organisation du groupe a été prise en charge par Lou-Ann Clement en tant que cheffe de projet, tandis que les questions purement techniques portant sur le code étaient gérées par Satya Kremer, le tech leader du groupe.
+
+Les tâches étaient réparties lors de réunions de travail : lors de la phase d'analyse les diagrammes et parties du rapport ont été attribuées lors de ces réunions, et lors de la partie code plusieurs réunions ont euu lieu pour répartir les tâches. Au début celle-ci se présentaient sous la forme de classes à coder à travers plusieurs couches, et au fur et à mesure de l'avancement du projet ces tâches étaient des erreurs ou corrections remarquées par des membres de l'équipe, et distribuées à tous selon les capacités techniques de chacun. Pour améliorer la communication et la collaboration du groupe en dehors de ces réunions, un groupe Whatsapp a été utilisé régulièrement, ainsi qu'un Google Drive pour centraliser diagrammes et retours du tuteur notamment.;
+
+# II. Modélisation
+
+# III. Implémentation
+
+## Outils utilisés
