@@ -122,10 +122,10 @@ Notre application repose sur quatre couches qui interagissent entre elles : \
 ## 2.2  Diagramme de classes
 Voici plus en détail les classes des différentes couches de la backend :
 
-![Diagramme de classes - Objets métier](images/diagramme_classes_objets_v3.png){fig-align="center" width="80%"}
-Figure : Diagramme de classes - Business Layer MODIF SUPP CLASSE CLIENT
+![Diagramme de classes - Objets métier](images/diagramme_classes_objets_v3.png){fig-align="center" width="100%"}
+Figure : Diagramme de classes - Business Layer
 
-![Diagramme de classes - Service et DAO](images/diag_classes_services_dao_v2(1).png){fig-align="center" width="80%"}
+![Diagramme de classes - Service et DAO](images/diag_classes_services_dao_v2(1).png){fig-align="center" width="110%"}
 Figure : Diagramme de classes - Service Layer et DAO Layer
 
 ### La couche métier
@@ -134,7 +134,7 @@ En premier lieu, les objets métiers modélisent les trains, les gares, les lign
 
 ### Les controllers
 
-Les controllers reçoivent les requêtes HTTP du front end, et les transmettent à la couche service. Ils gèrent aussi l’authentification et la vérification du grade des utilisateurs. Les schémas (dans le dossier `schema`) fixent le format des requêtes utilisateurs et des réponses qui lui sont renvoyées.
+Les controllers reçoivent les requêtes HTTP du front end, et les transmettent à la couche service. Ils gèrent aussi l’authentification et la vérification du grade des utilisateurs. Les schémas (dans le dossier `schema/`) fixent le format des requêtes utilisateurs et des réponses qui lui sont renvoyées.
 
 ### La couche service
 
@@ -163,27 +163,30 @@ La conception de la base de données nous a fait enregistrer les gares dans la b
 ![Diagramme de base de données](images/diagramme_bdd.png){fig-align="center" width="80%"}
 
 Le schéma de notre base de données comporte six tables qui correspondent aux six objets métier définis pour notre application :
-gares : les gares importées depuis l'API SNCF, identifiées en interne par id_gare et rattachées à l'API par id_sncf.
-utilisateurs : les comptes de l'application, avec leur grade (ADMIN, COLLABORATEUR ou CLIENT).
-lignes : une liaison entre une gare de départ et une gare d'arrivée, rattachée au collaborateur qui l'a créée.
-trains : l’objet permettant de faire des trajets, avec sa capacité en première et en seconde classe.
-trajets : un départ programmé sur une ligne, avec un train, des horaires et un tarif de base.
-réservations : réservation d'une place, dans une classe donnée, par un client sur un trajet.
+
+- gares : les gares importées depuis l'API SNCF, identifiées en interne par id_gare et rattachées à l'API par `id_sncf`.
+- utilisateurs : les comptes de l'application, avec leur grade (ADMIN, COLLABORATEUR ou CLIENT).
+- lignes : une liaison entre une gare de départ et une gare d'arrivée, rattachée au collaborateur qui l'a créée.
+- trains : l’objet permettant de faire des trajets, avec sa capacité en première et en seconde classe.
+- trajets : un départ programmé sur une ligne, avec un train, des horaires et un tarif de base.
+- réservations : réservation d'une place, dans une classe donnée, par un client sur un trajet.
+
 Ces tables reprennent les objets métier présentés dans le diagramme de classes. Chaque table correspond à une classe et à une DAO, ce qui rend le passage de la base aux objets direct et facile à suivre.
 
 Nous avons délégué une partie des règles nécessaires à notre application à PostgreSQL lui-même, au moyen de contraintes. Une règle vérifiée par la base s'applique quel que soit le chemin emprunté par la donnée et ne peut pas être contournée par un oubli dans le code.
-Clés primaires (SERIAL) : chaque enregistrement reçoit un identifiant unique généré par la base, que la DAO récupère.
-Clés étrangères : une ligne ne peut relier que des gares qui existent, un trajet ne peut utiliser qu'une ligne et un train existants, et une réservation doit porter sur un client et un trajet réels.
-Contraintes d'unicité (UNIQUE) : Pour les réservations, une même place ne peut pas être réservée deux fois sur un même trajet. Dans le cas où deux clients tenteraient de réserver la même place, la base refuserait la requête la plus tardive. La couche service intercepte alors l'erreur et la transmet à l’utilisateur. Pour ce qui est des utilisateurs, deux comptes ne peuvent pas porter le même nom, ce qui garantit qu'une connexion désigne un seul et unique compte. Un numéro de train et une gare SNCF n'existent qu'une fois dans la base de données..
-Valeurs obligatoires sur les champs qui sont indispensables pour un compte (nom, mot de passe, grade).
+
+- Clés primaires (SERIAL) : chaque enregistrement reçoit un identifiant unique généré par la base, que la DAO récupère.
+- Clés étrangères : une ligne ne peut relier que des gares qui existent, un trajet ne peut utiliser qu'une ligne et un train existants, et une réservation doit porter sur un client et un trajet réels.
+- Contraintes d'unicité (UNIQUE) : Pour les réservations, une même place ne peut pas être réservée deux fois sur un même trajet. Dans le cas où deux clients tenteraient de réserver la même place, la base refuserait la requête la plus tardive. La couche service intercepte alors l'erreur et la transmet à l’utilisateur. Pour ce qui est des utilisateurs, deux comptes ne peuvent pas porter le même nom, ce qui garantit qu'une connexion désigne un seul et unique compte. Un numéro de train et une gare SNCF n'existent qu'une fois dans la base de données..
+- Valeurs obligatoires sur les champs qui sont indispensables pour un compte (nom, mot de passe, grade).
 
 Les clés étrangères imposent un ordre de création. C’est-à-dire qu’une table ne peut faire référence qu'à une autre table qui existe déjà. Pour la conception nous avons donc décidé de créer d'abord les tables qui ne dépendent d'aucune autre (gares, utilisateurs, trains), puis lignes, qui dépend des gares et des utilisateurs, puis trajets, qui dépend des lignes et des trains, et enfin réservations, qui dépend des trajets et des utilisateurs. Cet ordre suit directement les flèches du diagramme de la base de données.
 
 ### Initialisation et réinitialisation de la base
 
-La structure de la base est décrite dans deux code, situés dans le dossier data/ :
-init_bdd.sql crée les six tables avec leurs contraintes.
-admin.sql crée trois comptes pour démontrer les fonctionnalités  par grade (administrateur, collaborateur, client). Leurs mots de passe sont stockés sous forme hachée, comme pour un compte créé depuis l'application.
+La structure de la base est décrite dans deux code, situés dans le dossier `data/` :
+`init_bdd.sql` crée les six tables avec leurs contraintes.
+`admin.sql` crée trois comptes pour démontrer les fonctionnalités  par grade (administrateur, collaborateur, client). Leurs mots de passe sont stockés sous forme hachée, comme pour un compte créé depuis l'application.
 Comme toute la structure est décrite dans ces fichiers, n'importe quel membre de l'équipe peut recréer une base identique à partir de zéro.
 La classe Reset_bdd permet d’automatiser cette réinitialisation. C’est-à-dire qu’elle supprime le schéma de travail, le recrée, puis exécute les deux codes cités précédemment. Cette opération est réservée aux grade d’administrateur, via l'API. La réinitialisation nous aura été utile tout au long du développement du code de l’application. Elle nous permet de partir d'effectuer plusieurs tests manuels, de corriger rapidement une base devenue incohérente et de préparer un environnement propre avant une démonstration.
 
@@ -191,7 +194,7 @@ La classe Reset_bdd permet d’automatiser cette réinitialisation. C’est-à-d
 
 Le code permet de protéger les identifiants de connexion d’un utilisateur. En effet, les informations qui permettent de se connecter à la base de données sont stockées dans un fichier .env, chargé au démarrage du PostgreSQL. Ce fichier est listé dans le .gitignore du projet Python et n'est donc jamais publié sur le Git. De plus, aucun mot de passe de la base de données n'apparaît dans le code source. Les mots de passe ne sont jamais stockés en clair. Ils sont hachés. Ainsi, deux utilisateurs ayant le même mot de passe obtiennent ainsi des mots de passes hachées différents. À la connexion, le mot de passe saisi est haché de la même façon, puis comparé à sa version hachée.
 
-Le code est aussi protégé contre les injections SQL. Toutes les requêtes des DAO sont paramétrées. Cela signifie que les valeurs saisies par l'utilisateur ne sont jamais ajoutées au texte de la requête. Elles sont transmises séparément, par des paramètres comme %(nom)s, et c'est psycopg2 qui se charge de les insérer en échappant les caractères dangereux d’une possible requête SQL non-voulue. Même si un utilisateur saisit du code SQL dans le champ de recherche d'une gare, ce code est traité comme un simple texte et n'est jamais exécuté. 
+Le code est aussi protégé contre les injections SQL. Toutes les requêtes des DAO sont paramétrées. Cela signifie que les valeurs saisies par l'utilisateur ne sont jamais ajoutées au texte de la requête. Elles sont transmises séparément, par des paramètres comme `%(nom)s`, et c'est psycopg2 qui se charge de les insérer en échappant les caractères dangereux d’une possible requête SQL non-voulue. Même si un utilisateur saisit du code SQL dans le champ de recherche d'une gare, ce code est traité comme un simple texte et n'est jamais exécuté. 
 
 
 # III. Implémentation
