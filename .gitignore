@@ -218,5 +218,11 @@ __marimo__/
 .streamlit/secrets.toml
 .Rproj.user
 
+# Journaux du backend (y compris les fichiers datés : backend.log.2026-11-20)
+backend/logs/
+
+# Cache Quarto
+*_cache/
+
 # Liste des bugs (audit local)
 liste_bugs.pdf

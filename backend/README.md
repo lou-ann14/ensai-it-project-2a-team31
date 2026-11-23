@@ -8,7 +8,7 @@ For more information, see the [main README](../README.md).
 
 ## Setup
 
-1. Create a `backend/.env` file:
+1. Copy `backend/.env.example` to `backend/.env` and fill in your own values:
 
    ```env
    POSTGRES_HOST=postgresql-cnpg-<suffixe>
@@ -17,7 +17,7 @@ For more information, see the [main README](../README.md).
    POSTGRES_USER=<username>
    POSTGRES_PASSWORD=<password>
    POSTGRES_SCHEMA=projet
-   SNCF_API_TOKEN<token>
+   SNCF_API_TOKEN=<token>
    ```
 
    This file contains passwords: it is ignored by Git and must never be committed.
@@ -117,13 +117,13 @@ which makes it easier to follow the data through the services.
 From the `backend/` folder:
 
 ```bash
-uv run --with pytest --with httpx2 python -m pytest -q
+uv run python -m pytest -q
 ```
 
 With the code coverage:
 
 ```bash
-uv run --with pytest --with httpx2 --with pytest-cov python -m pytest -q --cov=src
+uv run python -m pytest -q --cov=src
 ```
 
 The database and the SNCF API are mocked, so the tests do not need any connection.
