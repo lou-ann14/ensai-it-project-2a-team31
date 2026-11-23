@@ -65,7 +65,7 @@ def verif_token(x_auth_token=Header(None)) -> Utilisateur:
     Cette fonction vérifie si un token est présent dans les arguments d'une fonction
     et valide le token à l'aide de la base de données.
     Param:
-        x_auth_token (str, otpionel): Le token extrait depuis le 'X-AUth-Token' dans le header HTTP. 
+        x_auth_token (str, otpionel): Le token extrait depuis le 'X-AUth-Token' dans le header HTTP.
             None par défaut.
     Return:
         L'utilisateur avec le bon token.

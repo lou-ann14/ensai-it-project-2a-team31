@@ -121,7 +121,7 @@ class ReservationService:
         Une place est un numéro entre 1 et la capacité de la classe dans le train du trajet :
         avec la contrainte UNIQUE (id_trajet, classe, place) de la base, aucune surréservation
         n'est donc possible.
-        
+
         Param:
         ------
             trajet (Trajet): le trajet sélectionné.

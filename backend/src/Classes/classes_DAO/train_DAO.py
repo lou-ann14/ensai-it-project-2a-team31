@@ -10,6 +10,29 @@ class TrainDAO:
     Classe qui interagit avec la base de données pour les objets de type Train
     """
 
+    @staticmethod
+    def _construire_train(train_bdd: dict) -> Train:
+        """
+        Transforme une ligne de la table trains en objet Train.
+
+        Param:
+        ------
+        train_bdd: dict
+            une ligne renvoyée par le curseur
+
+        Return:
+        ------
+        Train
+            le train
+        """
+        return Train(
+            type_train=train_bdd["type_train"],
+            places_premieres=train_bdd["places_premieres"],
+            places_secondes=train_bdd["places_secondes"],
+            num_train=train_bdd["num_train"],
+            id_train=train_bdd["id_train"],
+        )
+
     @log
     def creer(self, train: Train) -> Train:
         """
@@ -135,15 +158,7 @@ class TrainDAO:
         if train_bdd is None:
             return None
 
-        train = Train(
-                type_train=train_bdd["type_train"],
-                places_premieres=train_bdd["places_premieres"],
-                places_secondes=train_bdd["places_secondes"],
-                num_train=train_bdd["num_train"],
-                id_train=train_bdd["id_train"],
-            )
-
-        return train
+        return self._construire_train(train_bdd)
 
     @log
     def trouver_par_id(self, id_train: int) -> Train | None:
@@ -182,13 +197,37 @@ class TrainDAO:
         if train_bdd is None:
             return None
 
-        return Train(
-            type_train=train_bdd["type_train"],
-            places_premieres=train_bdd["places_premieres"],
-            places_secondes=train_bdd["places_secondes"],
-            num_train=train_bdd["num_train"],
-            id_train=train_bdd["id_train"],
-        )
+        return self._construire_train(train_bdd)
+
+    @log
+    def lister(self) -> list[Train]:
+        """
+        Récupère tous les trains.
+
+        Return:
+        ------
+        list[Train]
+            les trains, triés par numéro (vide si aucun)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT *                          "
+                    "  FROM trains                     "
+                    " ORDER BY num_train               "
+                )
+                trains_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrainDAO.lister : {e}")
+            raise
+
+        return [self._construire_train(train_bdd) for train_bdd in trains_bdd]
 
     @log
     def trouver_id_par_num(self, num_train: int) -> int:

@@ -101,7 +101,7 @@ class UtilisateurService:
             utilisateur (Utilisateur) : l'utilisateur modifié.
         """
         return utilisateur if UtilisateurDAO().modifier(utilisateur) else None
-    
+
     @log
     def login(self, nom: str, mdp: str):
         """Méthode permettant à un utilisateur de se connecter à son compte.
@@ -113,7 +113,7 @@ class UtilisateurService:
         -------
             utilisateur(Utilisateur): renvoie les caractéristiques de l'utilisateur et son token associé.
                 Renvoie None si le mot de passe ou le nom sont incorrects.
-            
+
         """
         utilisateur = UtilisateurDAO().login(nom=nom, mdp=hash_password(mdp, nom))
         if utilisateur:

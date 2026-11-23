@@ -21,7 +21,7 @@ if not gares:
     st.stop()
 
 with st.form("recherche"):
-    c1, c2, c3 = st.columns([2, 2, 1])
+    c1, c2, c3 = st.columns([2, 2, 1.5])
     with c1:
         depart = commun.choisir_gare("Gare de départ", gares, "rech_depart")
     with c2:

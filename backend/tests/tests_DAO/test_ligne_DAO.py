@@ -215,3 +215,39 @@ def test_a_des_trajets_aucun(mock_db):
     cursor.fetchone.return_value = {"existe": False}
 
     assert LigneDAO().a_des_trajets(4) is False
+
+
+# Tests lister
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_lister_ok(mock_db):
+    """Toutes les lignes sont renvoyées, avec leurs gares, dans l'ordre de la base"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = lignes_bdd
+
+    lignes = LigneDAO().lister()
+
+    assert "ORDER BY gd.nom, ga.nom" in cursor.execute.call_args.args[0]
+    assert [ligne.id_ligne for ligne in lignes] == [1, 2, 3, 4, 5]
+    assert lignes[0].gare_depart.nom == "Matabiau"
+    assert lignes[0].gare_arrivee.nom == "Montparnasse"
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_lister_aucune(mock_db):
+    """Aucune ligne en base : liste vide"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+
+    assert LigneDAO().lister() == []
+
+
+@patch("src.Classes.classes_DAO.ligne_DAO.DBConnexion")
+def test_lister_erreur_bdd(mock_db):
+    """Une erreur de la base est relancée"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.execute.side_effect = Exception("connexion perdue")
+
+    with pytest.raises(Exception, match="connexion perdue"):
+        LigneDAO().lister()

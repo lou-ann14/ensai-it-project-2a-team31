@@ -15,7 +15,14 @@ class Train:
     id_train: int | None = None
         id du train dans la BDD
     """
-    def __init__(self, type_train: str, places_premieres: int, places_secondes: int, num_train: int, id_train: int | None = None):
+    def __init__(
+        self,
+        type_train: str,
+        places_premieres: int,
+        places_secondes: int,
+        num_train: int,
+        id_train: int | None = None,
+    ):
         """
         Crée un train après avoir vérifié le type des paramètres.
 
@@ -50,4 +57,7 @@ class Train:
         str
             la description affichée
         """
-        return f"Le train numéro {self.num_train} dispose de {self.places_premieres} places en première classe et {self.places_secondes} en seconde classe, c'est un train {self.type_train}"
+        return (
+            f"Le train numéro {self.num_train} dispose de {self.places_premieres} places en première classe "
+            f"et {self.places_secondes} en seconde classe, c'est un train {self.type_train}"
+        )

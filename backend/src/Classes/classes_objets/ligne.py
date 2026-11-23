@@ -42,4 +42,7 @@ class Ligne:
         str
             la description affichée
         """
-        return f"la gare de depart de la ligne #{self.id_ligne} est : #{self.gare_depart.nom} et la gare d'arrivée est : # {self.gare_arrivee.nom}"
+        return (
+            f"la gare de depart de la ligne #{self.id_ligne} est : #{self.gare_depart.nom} "
+            f"et la gare d'arrivée est : # {self.gare_arrivee.nom}"
+        )

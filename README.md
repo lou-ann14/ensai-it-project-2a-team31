@@ -16,8 +16,8 @@ More details in [backend/README.md](backend/README.md) and [frontend/README.md](
 | | Feature | Who |
 |---|---|---|
 | **F1** | Create an account, log in, change password; the admin changes the role of an account (except other admins) | Everyone / ADMIN |
-| **F2** | Create, edit and delete a line between two stations (stations imported from the SNCF API, autocompletion) | COLLABORATEUR |
-| **F3** | Plan, edit and delete a journey (date, train, price); **travel time computed with the SNCF API** | COLLABORATEUR |
+| **F2** | List, create, edit and delete a line between two stations (stations imported from the SNCF API, autocompletion) | COLLABORATEUR |
+| **F3** | List, plan, edit and delete a journey (date, train, price); **travel time computed with the SNCF API** | COLLABORATEUR |
 | **F4** | Search the journeys between two stations (the date is optional) | Everyone |
 | **F5** | **Remaining seats** in each class and **transparent pricing** (price split: operating cost, network fee, margin, VAT) in the search results | Everyone |
 | **FO1** | Book a seat (given automatically, or picked from the free seats), see past and upcoming bookings, cancel | CLIENT |
@@ -111,7 +111,8 @@ none, and `client` has past and upcoming bookings.
 2. On the other routes, paste this token in the **`x-auth-token`** field.
 3. Typical flow:
    - **collaborator**: `POST /collaborateur/gares/importer?q=Brest` (then `Quimper`) → `POST /collaborateur/trains`
-     → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`
+     → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`. Existing ids are given by
+     `GET /collaborateur/lignes`, `GET /collaborateur/trains` and `GET /collaborateur/trajets`
    - **client**: `GET /utilisateur/trajets` (remaining seats, price details) → `GET /utilisateur/trajets/{id}/places`
      (free seats) → `POST /utilisateur/reservations`
      → `GET /utilisateur/reservations` → `DELETE /utilisateur/reservations/{id}`
@@ -144,7 +145,7 @@ cd backend
 uv run python -m pytest -q
 ```
 
-419 tests, **87 % code coverage**. The database and the SNCF API are mocked (no connection
+446 tests, **87 % code coverage**. The database and the SNCF API are mocked (no connection
 needed). The full flow was also checked by hand on PostgreSQL with the real SNCF API.
 
 | Folder | What is tested |
@@ -152,7 +153,7 @@ needed). The full flow was also checked by hand on PostgreSQL with the real SNCF
 | `tests/test_objets` | business classes, SNCF API client, roles |
 | `tests/tests_DAO` | SQL queries (mocked cursor) |
 | `tests/tests_service` | business rules |
-| `tests/test_controller_optionnel` | HTTP routes (status codes, security) |
+| `tests/test_controller_optionel` | HTTP routes (status codes, security) |
 
 ---
 

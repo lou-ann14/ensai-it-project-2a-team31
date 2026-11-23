@@ -72,7 +72,7 @@ cannot change the role of another admin.
 |----------------------------------------|--------------------------|-------------------------------------------------------------|
 | `/login`, `POST /utilisateur/comptes`  | anyone                   | log in, create an account                                   |
 | `/utilisateur/...`                     | any logged-in user       | search stations and journeys, book, cancel, change password |
-| `/collaborateur/...`                   | COLLABORATEUR and ADMIN  | import stations, manage trains, lines and journeys          |
+| `/collaborateur/...`                   | COLLABORATEUR and ADMIN  | import stations, list and manage trains, lines and journeys |
 | `/admin/...`, `/reset_database`        | ADMIN only               | find an account, change a role, reset the database          |
 
 ## Architecture
@@ -127,11 +127,11 @@ uv run python -m pytest -q --cov=src
 ```
 
 The database and the SNCF API are mocked, so the tests do not need any connection.
-There are 419 tests (87 % coverage), split by layer:
+There are 446 tests (87 % coverage), split by layer:
 
 | Folder                           | What is tested                           |
 |----------------------------------|------------------------------------------|
 | `tests/test_objets`              | business objects, SNCF client, roles     |
 | `tests/tests_DAO`                | SQL queries                              |
 | `tests/tests_service`            | business rules                           |
-| `tests/test_controller_optionnel` | HTTP routes (status codes, security)     |
+| `tests/test_controller_optionel`  | HTTP routes (status codes, security)     |

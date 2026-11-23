@@ -15,7 +15,7 @@ def mask_value(clé, valeur):
         clé (str): Le nom de la variable d'environnement.
         valeur (str): La véritable valeur de la variable d'environnement.
     Return:
-        str: Le string ("*******") si la clé contient un mot clé sensible, 
+        str: Le string ("*******") si la clé contient un mot clé sensible,
             autrement la valeur originelle.
     """
     sensitive_keywords = ["PASSWORD", "SECRET", "KEY", "TOKEN"]

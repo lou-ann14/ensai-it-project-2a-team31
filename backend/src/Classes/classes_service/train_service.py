@@ -108,6 +108,18 @@ class TrainService:
         return train
 
     @log
+    def lister(self) -> list[Train]:
+        """
+        Méthode servant à récupérer tous les trains.
+
+        Return:
+        ------
+        list[Train]
+            les trains, triés par numéro (vide si aucun)
+        """
+        return TrainDAO().lister()
+
+    @log
     def modifier_capacite(self, num_train: int, capacite_premiere: int, capacite_seconde: int):
         """
         Méthode servant à modifier la capacité d'un train existant.
@@ -153,7 +165,9 @@ class TrainService:
                     f"les réservations des trajets à venir de ce train en demandent au moins {requis}."
                 )
 
-        return TrainDAO().modifier_capacite(num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde)
+        return TrainDAO().modifier_capacite(
+            num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde
+        )
 
     @log
     def supprimer(self, num_train: int) -> bool:

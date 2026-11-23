@@ -838,3 +838,20 @@ def test_modifier_trajet_sans_reservation_tout_est_modifiable(mocks, reservation
     mocks.ligne.trouver_par_id.return_value = autre_ligne
 
     assert TrajetService().modifier(1, trajet_reserve(ligne=autre_ligne, train=Train("TER", 1, 1, 9, id_train=3))) is True
+
+
+# tests lister_a_venir
+
+
+def test_lister_a_venir_avec_places_restantes():
+    """Les trajets à venir sont renvoyés avec leurs places restantes"""
+    trajet = Trajet(heure_depart, heure_arrivee, ligne_test, train_test, tarif_base, id_trajet=10)
+    service = TrajetService()
+    service.trajet_dao.lister_a_venir = MagicMock(return_value=[trajet])
+
+    with patch(f"{SERVICE_TRAJET}.ReservationDAO") as reservation_dao:
+        reservation_dao.return_value.compter_par_trajets.return_value = {10: {1: 4, 2: 50}}
+        res = service.lister_a_venir()
+
+    assert res == [trajet]
+    assert (trajet.places_restantes_premiere, trajet.places_restantes_seconde) == (96, 150)

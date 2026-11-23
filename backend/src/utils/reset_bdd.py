@@ -50,7 +50,7 @@ class Reset_bdd(metaclass=Singleton):
         except FileNotFoundError as e:
             logger.error( f"Erreur de chemin : impossible de trouver le fichier {e.filename}")
             raise
-        try:    
+        try:
             with DBConnexion().connexion as connexion, connexion.cursor() as cursor:
                     cursor.execute(create_schema)
                     cursor.execute(init_bdd_as_string)

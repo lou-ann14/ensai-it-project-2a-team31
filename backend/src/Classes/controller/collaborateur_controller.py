@@ -7,9 +7,11 @@ from src.Classes.controller.utilisateur_controller import get_gare_service, trou
 from src.schema.collaborateur_schema import (
     LigneCreeeModel,
     LigneModifieeModel,
+    LigneReponseModel,
     MessageModel,
     TrajetCreationModel,
     TrajetCreeModel,
+    TrajetListeModel,
     TrajetModificationModel,
     TrajetModifieModel,
 )
@@ -33,6 +35,72 @@ def get_collaborateur_service():
         une nouvelle instance de CollaborateurService
     """
     return CollaborateurService()
+
+
+@router.get("/lignes", response_model=list[LigneReponseModel], tags=["Collaborateur"])
+def lister_lignes(collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+    """
+    Permet à un collaborateur de voir toutes les lignes.
+
+    Return:
+    ------
+    list[LigneReponseModel]
+        les lignes, avec leurs gares (liste vide si aucune)
+
+    Raises:
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    """
+    logger.info("Consultation des lignes")
+    verifier_grade(collab, "COLLABORATEUR")
+    return collaborateur_service.lister_lignes()
+
+
+@router.get("/trains", response_model=list[TrainReponseModel], tags=["Collaborateur"])
+def lister_trains(collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+    """
+    Permet à un collaborateur de voir tous les trains.
+
+    Return:
+    ------
+    list[TrainReponseModel]
+        les trains, triés par numéro (liste vide si aucun)
+
+    Raises:
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    """
+    logger.info("Consultation des trains")
+    verifier_grade(collab, "COLLABORATEUR")
+    return collaborateur_service.lister_trains()
+
+
+@router.get("/trajets", response_model=list[TrajetListeModel], tags=["Collaborateur"])
+def lister_trajets(collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+    """
+    Permet à un collaborateur de voir tous les trajets à venir.
+
+    Return:
+    ------
+    list[TrajetListeModel]
+        les trajets à venir, triés par heure de départ (liste vide si aucun)
+
+    Raises:
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'a pas au moins le grade COLLABORATEUR
+    """
+    logger.info("Consultation des trajets")
+    verifier_grade(collab, "COLLABORATEUR")
+    return collaborateur_service.lister_trajets()
 
 
 @router.post(
@@ -100,7 +168,11 @@ def creer_ligne(
     status_code=status.HTTP_201_CREATED,
     tags=["Collaborateur"],
 )
-def creer_trajet(trajet: TrajetCreationModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def creer_trajet(
+    trajet: TrajetCreationModel,
+    collaborateur_service=Depends(get_collaborateur_service),
+    collab=Depends(verif_token),
+):
     """
     Permet à un collaborateur de créer un trajet.
     L'heure d'arrivée et le temps de trajet sont calculés grâce à l'API SNCF.
@@ -208,7 +280,11 @@ def modifier_ligne(
 
 
 @router.delete("/lignes/{id_ligne}", response_model=MessageModel, tags=["Collaborateur"])
-def supprimer_ligne(id_ligne: int, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def supprimer_ligne(
+    id_ligne: int,
+    collaborateur_service=Depends(get_collaborateur_service),
+    collab=Depends(verif_token),
+):
     """
     Permet à un collaborateur de supprimer une ligne.
 
@@ -313,7 +389,11 @@ def modifier_trajet(
 
 
 @router.delete("/trajets/{id_trajet}", response_model=MessageModel, tags=["Collaborateur"])
-def supprimer_trajet(id_trajet: int, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def supprimer_trajet(
+    id_trajet: int,
+    collaborateur_service=Depends(get_collaborateur_service),
+    collab=Depends(verif_token),
+):
     """
     Permet à un collaborateur de supprimer un trajet.
 
@@ -393,7 +473,11 @@ def importer_gares(q: str, collaborateur_service=Depends(get_collaborateur_servi
     status_code=status.HTTP_201_CREATED,
     tags=["Collaborateur"],
 )
-def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def creer_train(
+    train: TrainBaseModel,
+    collaborateur_service=Depends(get_collaborateur_service),
+    collab=Depends(verif_token),
+):
     """
     Permet à un collaborateur de créer un train.
 
@@ -430,7 +514,12 @@ def creer_train(train: TrainBaseModel, collaborateur_service=Depends(get_collabo
 
 
 @router.put("/trains/{num_train}", response_model=TrainReponseModel, tags=["Collaborateur"])
-def modifier_capacite(num_train: int, t: TrainBaseModel, collaborateur_service=Depends(get_collaborateur_service), collab=Depends(verif_token)):
+def modifier_capacite(
+    num_train: int,
+    t: TrainBaseModel,
+    collaborateur_service=Depends(get_collaborateur_service),
+    collab=Depends(verif_token),
+):
     """
     Permet à un collaborateur de modifier la capacité d'un train.
 

@@ -142,3 +142,22 @@ def test_service_modifier_capacite_non_executee():
     with patch(f"{SERVICE}.TrainService") as train_service:
         train_service.return_value.modifier_capacite.return_value = False
         assert CollaborateurService().modifier_capacite(8541, 120, 280) is None
+
+
+# ------------------------------------------------------------- listes
+
+
+@pytest.mark.parametrize(
+    "methode, service, methode_service",
+    [
+        ("lister_lignes", "LigneService", "lister"),
+        ("lister_trains", "TrainService", "lister"),
+        ("lister_trajets", "TrajetService", "lister_a_venir"),
+    ],
+)
+def test_service_lister(methode, service, methode_service):
+    """Chaque liste vient du service concerné"""
+    with patch(f"{SERVICE}.{service}") as mock_service:
+        resultat = getattr(CollaborateurService(), methode)()
+
+    assert resultat is getattr(mock_service.return_value, methode_service).return_value

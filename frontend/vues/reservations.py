@@ -5,7 +5,6 @@ import streamlit as st
 import api
 import commun
 
-
 st.title("Mes réservations")
 
 try:

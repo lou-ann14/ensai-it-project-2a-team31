@@ -210,3 +210,13 @@ def test_supprimer_ligne_avec_trajets(dao):
 
     with pytest.raises(ValueError, match="a des trajets"):
         LigneService().supprimer(1)
+
+
+# Tests lister
+
+
+def test_lister(dao):
+    """Le service renvoie les lignes du DAO"""
+    dao.lister.return_value = [ligne_toulouse_paris, ligne_paris_rennes]
+
+    assert LigneService().lister() == [ligne_toulouse_paris, ligne_paris_rennes]

@@ -326,6 +326,57 @@ def annuler_reservation(token: str, id_reservation: int) -> dict:
 
 # --- Collaborateur -----------------------------------------------------------
 
+def lister_lignes(token: str) -> list[dict]:
+    """
+    Cherche toutes les lignes.
+
+    Param:
+    ------
+    token: str
+        le token de l'utilisateur connecté
+
+    Return:
+    ------
+    list[dict]
+        les lignes, avec leurs gares
+    """
+    return _appeler("GET", "/collaborateur/lignes", token)
+
+
+def lister_trains(token: str) -> list[dict]:
+    """
+    Cherche tous les trains.
+
+    Param:
+    ------
+    token: str
+        le token de l'utilisateur connecté
+
+    Return:
+    ------
+    list[dict]
+        les trains, triés par numéro
+    """
+    return _appeler("GET", "/collaborateur/trains", token)
+
+
+def lister_trajets(token: str) -> list[dict]:
+    """
+    Cherche tous les trajets à venir.
+
+    Param:
+    ------
+    token: str
+        le token de l'utilisateur connecté
+
+    Return:
+    ------
+    list[dict]
+        les trajets, triés par heure de départ
+    """
+    return _appeler("GET", "/collaborateur/trajets", token)
+
+
 def importer_gares(token: str, texte: str) -> list[dict]:
     """
     Cherche des gares dans l'API SNCF et les enregistre dans notre base.

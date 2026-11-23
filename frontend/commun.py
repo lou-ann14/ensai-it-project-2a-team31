@@ -291,6 +291,43 @@ def libelle_classe(classe: int) -> str:
     return "1re classe" if classe == 1 else "2de classe"
 
 
+def libelle_ligne(ligne: dict) -> str:
+    """
+    Donne le texte d'une ligne.
+
+    Param:
+    ------
+    ligne: dict
+        la ligne renvoyée par l'API
+
+    Return:
+    ------
+    str
+        les gares de départ et d'arrivée
+    """
+    return f"{ligne['gare_depart']['nom']} → {ligne['gare_arrivee']['nom']}"
+
+
+def libelle_train(train: dict) -> str:
+    """
+    Donne le texte d'un train.
+
+    Param:
+    ------
+    train: dict
+        le train renvoyé par l'API
+
+    Return:
+    ------
+    str
+        le numéro, le type et les places du train
+    """
+    return (
+        f"n°{train['num_train']} · {train['type_train'] or '—'} · "
+        f"{train['places_premieres']} en 1re, {train['places_secondes']} en 2de"
+    )
+
+
 def afficher_billet(reservation: dict):
     """
     Affiche une réservation sous forme de billet.

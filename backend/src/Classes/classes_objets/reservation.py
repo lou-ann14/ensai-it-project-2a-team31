@@ -21,7 +21,15 @@ class Reservation:
     id_reservation: int | None = None
         id de la réservation dans la BDD
     """
-    def __init__(self, client: Utilisateur, trajet: Trajet, place: str, classe: int, prix: float, id_reservation: int | None = None):
+    def __init__(
+        self,
+        client: Utilisateur,
+        trajet: Trajet,
+        place: str,
+        classe: int,
+        prix: float,
+        id_reservation: int | None = None,
+    ):
         """
         Crée une réservation après avoir vérifié le type des paramètres.
 
@@ -59,4 +67,7 @@ class Reservation:
         str
             la description affichée
         """
-        return f"La réservation #{self.id_reservation} du client #{self.client.id} pour le trajet #{self.trajet}, en {self.classe} à la place {self.place} a coûté {self.prix} euros"
+        return (
+            f"La réservation #{self.id_reservation} du client #{self.client.id} pour le trajet #{self.trajet}, "
+            f"en {self.classe} à la place {self.place} a coûté {self.prix} euros"
+        )

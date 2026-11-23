@@ -198,6 +198,18 @@ class TrajetService:
         trajets = self.trajet_dao.rechercher(gare_depart=gare_depart, gare_arrivee=gare_arrivee, date=date_voyage)
         return self.ajouter_detail_prix(self.ajouter_places_restantes(trajets))
 
+    @log
+    def lister_a_venir(self) -> list[Trajet]:
+        """
+        Méthode servant à récupérer tous les trajets à venir, avec leurs places restantes.
+
+        Return:
+        ------
+        list[Trajet]
+            les trajets à venir, triés par heure de départ (vide si aucun)
+        """
+        return self.ajouter_places_restantes(self.trajet_dao.lister_a_venir())
+
     @staticmethod
     def ajouter_detail_prix(trajets: list[Trajet]) -> list[Trajet]:
         """
@@ -402,7 +414,9 @@ class TrajetService:
         id_sncf_depart = ligne.gare_depart.id_sncf
         id_sncf_arrivee = ligne.gare_arrivee.id_sncf
         if not id_sncf_depart or not id_sncf_arrivee:
-            raise ValueError("Les gares de cette ligne ne viennent pas de l'API SNCF : temps de trajet impossible à calculer.")
+            raise ValueError(
+                "Les gares de cette ligne ne viennent pas de l'API SNCF : temps de trajet impossible à calculer."
+            )
 
         client = SncfClient()
         duree = client.duree_trajet(id_sncf_depart, id_sncf_arrivee, heure_depart)

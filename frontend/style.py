@@ -150,7 +150,8 @@ _CSS = f"""
 .b-heure {{ font: 600 1.75rem 'IBM Plex Mono', monospace; line-height: 1; }}
 .b-gare {{ font-weight: 600; font-size: .95rem; margin-top: .2rem; }}
 .b-droite {{ text-align: right; }}
-.b-voie {{ position: relative; height: 2px; background: repeating-linear-gradient(90deg, {ENCRE} 0 8px, transparent 8px 12px); }}
+.b-voie {{ position: relative; height: 2px;
+           background: repeating-linear-gradient(90deg, {ENCRE} 0 8px, transparent 8px 12px); }}
 .b-voie::before, .b-voie::after {{ content: ""; position: absolute; top: -4px; width: 10px; height: 10px;
                                   border-radius: 50%; background: {ENCRE}; }}
 .b-voie::before {{ left: -2px; }} .b-voie::after {{ right: -2px; }}

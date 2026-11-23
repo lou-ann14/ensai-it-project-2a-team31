@@ -1,6 +1,25 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from src.schema.gare_schema import GareReponseModel
+from src.schema.utilisateur_schema import TrajetReponseModel
+
+
+class LigneReponseModel(BaseModel):
+    """Ligne renvoyée par l'API, avec ses deux gares."""
+
+    # Permet de construire le modèle directement depuis un objet Ligne
+    model_config = ConfigDict(from_attributes=True)
+
+    id_ligne: int
+    gare_depart: GareReponseModel
+    gare_arrivee: GareReponseModel
+
+
+class TrajetListeModel(TrajetReponseModel):
+    """Trajet de la liste du collaborateur, avec la ligne nécessaire pour le modifier."""
+
+    ligne: LigneReponseModel
 
 
 class LigneCreeeModel(BaseModel):

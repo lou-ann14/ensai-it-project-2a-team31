@@ -24,7 +24,16 @@ class Trajet:
     id_trajet: int | None = None
         id du trajet dans la BDD
     """
-    def __init__(self, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train | None, tarif_base: float, id_trajet: int | None = None, temps_trajet: int | None = None):
+    def __init__(
+        self,
+        heure_depart: datetime,
+        heure_arrivee: datetime,
+        ligne: Ligne,
+        train: Train | None,
+        tarif_base: float,
+        id_trajet: int | None = None,
+        temps_trajet: int | None = None,
+    ):
         """
         Crée un trajet après avoir vérifié le type des paramètres.
 
@@ -106,4 +115,7 @@ class Trajet:
             la description affichée
         """
         id_train = self.train.id_train if self.train else None
-        return f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
+        return (
+            f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} "
+            f"au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
+        )

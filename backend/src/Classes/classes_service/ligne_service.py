@@ -84,6 +84,18 @@ class LigneService:
         return LigneDAO().trouver_par_id(id_ligne)
 
     @log
+    def lister(self) -> list[Ligne]:
+        """
+        Méthode servant à récupérer toutes les lignes.
+
+        Return:
+        ------
+        list[Ligne]
+            les lignes, triées par gare de départ puis par gare d'arrivée (vide si aucune)
+        """
+        return LigneDAO().lister()
+
+    @log
     def modifier(self, ligne: Ligne) -> bool:
         """
         Méthode servant à modifier les gares d'une ligne.
