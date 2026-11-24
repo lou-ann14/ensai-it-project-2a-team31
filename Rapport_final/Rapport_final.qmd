@@ -243,9 +243,9 @@ Tous les utilisateurs ont la possibilité de rechercher des gares et des trajets
 
 - Recherche d’une gare
 
-La recherche de gare est la fonctionnalité la plus utilisée dans notre application. En effet, elle est la première étape nécessaire pour plusieurs autres fonctionnalités. Afin de trouver un trajet, un client doit rechercher une gare, de même qu’un collaborateur en prend deux pour crée une ligne. Elle permet aussi d’illustrer les échanges entre l’API SNCF et notre base de données. Dans ce cas, les gares viennent de l'API, mais la recherche ne se fait que dans notre base.
+La recherche de gare est une fonctionnalité clé dans notre application. Nous avons choisi de détailler son implémentation car c'est une fonctionnalité ouverte à tous les profils, et qui permet d'illustrer simplement le fonctionnement des couches et le lien avec notre base de données. 
 
-Au préalable, une gare ne peut être trouvée que si elle a d'abord été importée depuis l'API SNCF par un collaborateur. Au sein de l’API, chaque gare possède un identifiant, un nom, une ville et son identifiant SNCF. L'utilisateur, lui, ne peut pas manipuler ces identifiants. Il saisit tout simplement le début d'un nom de gare ou de ville, par exemple « Lyon » pour obtenir Lyon Part-Dieu, Lyon Perrache et les autres gares lyonnaises.
+Une gare ne peut être trouvée que si elle a été, au préalable, importée depuis l'API SNCF par un collaborateur. Au sein de l’API, chaque gare possède un identifiant, un nom, une ville et son identifiant SNCF. L'utilisateur, lui, ne peut pas manipuler ces identifiants. Il saisit tout simplement le début d'un nom de gare ou de ville, par exemple « Lyon » pour obtenir Lyon Part-Dieu, Lyon Perrache et les autres gares lyonnaises.
 
 ![Diagramme de séquence - Recherche d'une gare](images/Diagramme%20de%20se%CC%81quence_%20rechercher%20une%20gare.png){fig-align="center"}
 
