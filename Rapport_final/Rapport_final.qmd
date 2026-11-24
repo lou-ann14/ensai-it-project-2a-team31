@@ -1,7 +1,9 @@
 ---
 format:
   pdf:
+    toc: false
     fontsize: "12pt"
+    fig-cap-location: bottom
     include-in-header: 
       text: |
         \usepackage{graphicx}
@@ -24,7 +26,7 @@ lang: fr
 
 
 % Logo
-\includegraphics[width=7cm]{images/ensai-logo.png}\par
+\includegraphics[width=6cm]{images/ensai-logo.png}\par
 
 \vspace{1.5cm}
 
@@ -69,6 +71,7 @@ KEVIN LEROY
 
 \end{titlepage}
 \tableofcontents
+\pagenumbering{arabic}
 \newpage
 
 # Introduction
@@ -81,7 +84,7 @@ Afin d’accomplir cela, nous avons développé une application qui vise à mett
 
 # I. Présentation du projet
 
-## Cahier des charges et fonctionnalités de l'application
+## 1.  Cahier des charges et fonctionnalités de l'application
 
 Au cours de ce semestre, nous avons donc développé une application qui cherche à approcher au mieux les fonctionnalités proposées par la SNCF. Celles-ci sont constituées de cinq fonctionnalités de base et deux fonctionnalités optionnelles. Ces fonctionnalités utilisent parmi les données transmises par l’API SNCF les gares, lignes et trajets présents dans la base de données. La récupération, l’exploitation et la transmission à notre base de données de ces données SNCF seront explicités lors de l’explication des couches de code.
 
@@ -97,7 +100,7 @@ La cinquième et dernière fonctionnalité est une fonctionnalité de positionne
 
 De plus, nous avons aussi développé les deux fonctionnalités optionnelles proposées par le sujet : celle des classes de voyage, et la fonctionnalité de réservation. Cette dernière permet à un compte client de réserver et annuler une réservation, ainsi que de visualiser ses réservations.
 
-## Organisation de l'équipe
+## 2.  Organisation de l'équipe
 
 L’organisation du groupe a été prise en charge par Lou-Ann Clement en tant que cheffe de projet, tandis que les questions purement techniques portant sur le code étaient gérées par Satya Kremer, le tech leader du groupe.
 
@@ -110,6 +113,7 @@ Les tâches étaient réparties lors de réunions de travail : lors de la phase 
 ## 1.  Architecture globale
 
 Figure : Arborescence du code
+
 ![Diagramme d'architecture](images/diagramme_architecture(1).png){fig-align="center" width="80%"}
 
 Notre application repose sur quatre couches qui interagissent entre elles : \
@@ -119,14 +123,13 @@ Notre application repose sur quatre couches qui interagissent entre elles : \
 - la couche de persistance : la base de données ; \
 - la couche Webservices : l'API SNCF, composant externe. 
 
-## 2.  Diagramme de classes
+## 2.  Modélisation de la backend
+
 Voici plus en détail les classes des différentes couches de la backend :
 
 ![Diagramme de classes - Objets métier](images/diagramme_classes_objets_v3.png){fig-align="center" width="100%"}
-Figure : Diagramme de classes - Business Layer
 
-![Diagramme de classes - Service et DAO](images/diag_classes_services_dao_v2(1).png){fig-align="center" width="110%"}
-Figure : Diagramme de classes - Service Layer et DAO Layer
+![Diagramme de classes - Services et DAO](images/diag_classes_services_dao_v2(2).png){fig-align="center" width="110%"}
 
 ### La couche métier
 
@@ -207,10 +210,16 @@ Toutes les fonctionnalités reposent avant tout sur l’authentification des uti
 
 - Création de compte
 
-Un nouveau compte est toujours un compte client : c'est le service qui impose le grade, peu importe ce que contient la requête. Le mot de passe n'est jamais stocké en clair : il est haché avec, comme sel, le nom d'utilisateur, ce qui permet de donner des empreintes différentes pour deux utilisateurs ayant le même mot de passe.
+Lors de la création d’un compte, le controller vérifie que le nom et le mot de passe sont bien renseignés et que le nom n'est pas déjà pris. Un nouveau compte est toujours un compte client : c'est `UtilisateurService.creer_compte()` qui impose le grade, peu importe ce que contient la requête. De plus, le mot de passe n'est jamais stocké en clair : il est haché par cette même méthode avec, comme sel, le nom d'utilisateur, ce qui permet de donner des empreintes différentes pour deux utilisateurs ayant le même mot de passe.
+\
+- Changement de mot de passe 
 
+`UtilisateurService.changer_mdp()` exige l’ancien mot de passe. L’empreinte de ce dernier est donc vérifiée avant d’enregistrer la nouvelle empreinte (le nouveau mot de passe haché avec le nom d’utilisateur comme sel).
+\
 - Connexion
+
 `UtilisateurService.login()` compare l'empreinte du mot de passe saisi à celle de la base. Si elles correspondent, le service génère un token aléatoire (`secrets.token_urlsafe(32)`), qui est ensuite enregistré sur l’utilisateur dans la base, puis renvoyé avec l’identifiant, le nom et le grade de l’utilisateur. Une nouvelle connexion remplace le token précédent. 
+
 
 Pour toutes les autres fonctionnalités, l’identité d’un utilisateur est toujours déduite par ce token de connexion. En effet, celui-ci est envoyé dans l’en-tête HTTP par le front end ou le Swagger, puis la dépendance FastAPI `verif_token` retrouve l’utilisateur correspondant via `UtilisateurDAO`. C’est un point de sécurité important car cela implique qu’un client ne peut pas, par exemple, supprimer la réservation d’un autre client. Le controller vérifie ensuite que le grade de l'utilisateur est suffisant pour la fonctionnalité concernée. 
 
@@ -226,26 +235,43 @@ Pour toutes les fonctionnalités, les erreurs levées par les services ou les DA
 
 ## 2. Implémentation des fonctionnalités clés
 
-### Gestion du compte
-
-- Création du compte 
-Lors de la création d’un compte, le controller vérifie que le nom et le mot de passe sont bien renseignés et que le nom n'est pas déjà pris, puis délègue à `UtilisateurService.creer_compte()`, qui impose le grade comme “CLIENT” et hache le mot de passe. 
-
-- Changement de mot de passe 
-`UtilisateurService.changer_mdp()` exige l’ancien mot de passe. L’empreinte de ce dernier est donc vérifiée avant d’enregistrer la nouvelle empreinte (le nouveau mot de passe haché avec le nom d’utilisateur comme sel).
-
+Nous allons désormais détailler les choix d’implémentation des fonctionnalités centrales de notre application.
+Nous avons choisi de détailler davantage certaines fonctionnalités qui étaient caractéristiques de la mobilisation des différentes couches de l'application, ou pour mettre en valeur les spécificités d'une fonctionnalité.
 
 ### Recherche sur l’application
 
 Tous les utilisateurs ont la possibilité de rechercher des gares et des trajets sur l’application, après connexion.
 
 - Recherche d’une gare
-La recherche d’une gare est basée sur l’autocomplétion : `GareService.rechercher()` interroge `GareDAO` par début de nom ou de ville, qui renvoie les gares correspondantes de enregistrées dans la base de données. Comme l’autocomplétion nécessite de faire cet appel à chaque saisie, c’est ce qui a motivé notre choix d’utiliser les gares importées préalablement dans notre base, plutôt que de faire appel à l’API SNCF à chaque lettre. 
+
+La recherche de gare est une fonctionnalité clé dans notre application. Nous avons choisi de détailler son implémentation car c'est une fonctionnalité ouverte à tous les profils, et qui permet d'illustrer simplement le fonctionnement des couches et le lien avec notre base de données. 
+
+Une gare ne peut être trouvée que si elle a été, au préalable, importée depuis l'API SNCF par un collaborateur. Au sein de l’API, chaque gare possède un identifiant, un nom, une ville et son identifiant SNCF. L'utilisateur, lui, ne peut pas manipuler ces identifiants. Il saisit tout simplement le début d'un nom de gare ou de ville, par exemple « Lyon » pour obtenir Lyon Part-Dieu, Lyon Perrache et les autres gares lyonnaises.
+
+![Diagramme de séquence - Recherche d'une gare](images/diagramme_sequence_recherche_gare.png){fig-align="center"}
+
+
+Contrairement à la création d'un trajet, ce diagramme ne fait apparaître ni l'API SNCF ni aucune écriture : la requête descend jusqu'à la base de données par une simple lecture, puis la liste des gares remonte jusqu'à l'interface. La dernière partie du diagramme montre que l'autocomplétion se déroule ensuite entièrement dans l'interface, sans nouvel échange avec le serveur.
+
+Frontend. Dans le frontend, on choisit une gare selon une liste de gares où l’utilisateur peut filtrer par ville ou nom de gare, chaque gare étant affichée avec sa  ville. Comme nous l’avons précisé, pour que cette auto complétion reste fluide avec une interface qui ne sollicite pas le serveur à chaque lettre tapée, elle demande une seule fois la liste complète des gares puis filtre localement à mesure que l'utilisateur écrit. Lorsqu'un collaborateur importe de nouvelles gares, les gares importées apparaissent immédiatement dans les listes. Le Swagger, lui, permet d'appeler directement la route de recherche avec un début de nom ou de ville.
+
+Couche contrôleur. La requête arrive sur la route GET /utilisateur/gares, avec deux paramètres facultatifs : nom et ville. Comme pour la création de trajet, la fonction verif_token lit le token transmis dans l'en-tête X-Auth-Token et retrouve l'utilisateur correspondant en base. Si le token est absent ou non-connu, la requête s'arrête avec le code 401. Ici, peu importe le garde, n’importe qui peut rechercher une gare (client, collaborateur, administrateur). La couche contrôleur transmet seulement les deux critères à GareService, puis renvoie le résultat. Le schéma Pydantic GareReponseModel fixe le format de la réponse avec un identifiant, un nom, une ville et un identifiant SNCF. Une recherche qui n’aboutit à aucun résultat renvoie simplement une liste vide avec le code 200.
+
+Couche service. GareService.rechercher préparent les critères de recherche : les espaces en début et en fin de saisie sont supprimés, et un critère vide est traité comme absent. Dans le cas où aucun critère n'est renseigné, toutes les gares sont renvoyées, ce qui est précisément ce dont l'interface a besoin pour son autocomplétion. Le service n'appelle volontairement pas l'API SNCF à ce stade. Nous avons choisi ici de faire une recherche rapide et qui ne consomme pas de requêtes auprès de l’API, lui permettant ainsi de fonctionner même si l’API SNCF est indisponible.  
+
+Couche DAO. GareDAO.rechercher exécute une seule requête SQL sur la table gares. Chaque critère est facultatif puisqu' une même requête couvre la recherche par nom, par ville, par les deux, ou sans critère. La comparaison utilise les requêtes de formes ILIKE, insensible à la casse. Ainsi, taper « paris » ou « PAR » donne le même résultat. Les gares sont triées par nom pour que cela soit davantage lisible pour l’utilisateur. Comme toutes nos requêtes, celle-ci est paramétrée et protège contre les injections SQL comme nous l’expliquerons plus loin. Enfin, le DAO transforme chaque résultat en objet Gare. Chacune de ces gares vérifiant que les inputs sont les bons, ce qui garantit la cohérence des objets dans l'application.
+
+Base de données. Les gares sont ajoutées par un collaborateur, depuis la page « Gares » du frontend, qui appelle la route POST /collaborateur/gares/importer. Le contrôleur vérifie le grade de l’utilisateur, et si ce dernier n’est pas collaborateur, renvoie une erreur 403. GareService.importer exige au moins deux caractères de recherche (renvoie une erreur 400 sinon), pour éviter des listes de gares trop importantes. Le service appelle alors l’API SNCF. Pour chaque résultat, l’API renvoie le nom de la gare, son identifiant SNCF et sa commune. Chaque gare est ensuite enregistrée par GareDAO.creer_ou_mettre_a_jour, qui s'appuie sur la contrainte d'unicité de l'identifiant SNCF. C’est-à-dire qu’une gare ne peut pas être un doublon, si les informations sont nouvelles, alors la grâce se met à jour. Par exemple, importer deux fois la gare de Massy-Palaiseau ne crée aucun doublon. Si l'API est indisponible, l'erreur remonte jusqu'à la couche contrôleur, qui renvoie 502. Avec cet identifiant SNCF, conservé en base, l’API et ses endpoints permettent ensuite de calculer la durée d’un trajet lors de sa création.
+
+La recherche renvoie la liste des gares correspondantes, triée par nom, avec le code 200. Chaque erreur est traitée par la couche la plus proche de sa cause : 401 pour un utilisateur non connecté, 403 pour un import tenté par un client, 400 pour une saisie trop courte lors d’un import, 404 pour une gare introuvable lors d'une recherche de trajets, et 502 lorsque l'API SNCF ne répond pas pendant un import.
+
+[tableau des situations ?????]
+
+Ce cheminement permet de montrer un choix de conception important: séparer ce qui alimente les données de ce qui permet de les consulter. L'API SNCF n'est sollicitée qu'au moment de l'import par un collaborateur. Toutes les recherches se font ensuite avec notre base. L'application reste ainsi rapide et peu dépendante d'un service externe, et l'autocomplétion fonctionne même lorsque l'API est indisponible. Enfin, chaque couche garde son rôle : l'interface gère l'ergonomie de la saisie, le contrôleur l'authentification, le service la préparation des critères et le DAO la requête SQL.
 
 - Recherche d’un trajet
 Pour rechercher un trajet, l’utilisateur doit renseigner deux gares (le jour est optionnel). La méthode `trouver_gare()` dans le controller utilisateur fait appel à `GareService.rechercher()` qui appelle la DAO, afin de renvoyer le trajet correspondantdans la base de données. 
 
-- Consultation train ?
 
 
 ### Gestion des réservation
@@ -254,9 +280,19 @@ Tous les utilisateurs peuvent réserver une place pour un trajet choisi, annuler
 
 - Réserver une place
 
+L'utilisateur choisit un trajet, une classe et, s'il le souhaite, un numéro de place. Après avoir vérifié que la classe est valide et que le trajet n'est pas déjà parti, `ReservationService.creer()` détermine la place :
+
+- Sans numéro, `_attribuer_place()` retient la première place libre renvoyée par `TrajetService.places_libres()` ;
+
+- Avec un numéro, `_verifier_place()` contrôle que la classe n'est pas complète et que le numéro ne dépasse pas sa capacité. 
+
+Les places restantes ne sont pas stockées : elles sont recalculées à partir de la capacité du train et des réservations existantes, ce qui évite d'avoir un compteur à tenir à jour. Le prix est calculé par le module tarification (tarif de base, multiplié par 1,5 en première classe), puis enregistré avec la réservation : une modification ultérieure du tarif ne change donc pas le prix d'un billet déjà réservé. \
+Enfin, une contrainte d'unicité en base sur le trajet, la classe et la place garantit qu'une même place ne peut pas être réservée deux fois, même si deux clients la demandent presque simultanément. Dans ce cas, le second reçoit une erreur 400 s'il avait choisi sa place ; sinon, le service lui en attribue une autre.
+
+
 - Annuler une réservation
 La méthode `ReservationService.annuler()` vérifie à la fois que la réservation existe, qu’elle appartient bien au client connecté, et que le trajet n'est pas déjà parti. 
-
+\
 - Consulter l’historique de ses réservations
 
 
@@ -276,10 +312,10 @@ Le collaborateur doit saisir deux gares contenues dans notre base de données po
 Nous avons décidé de présenter l’implémentation de cette fonctionnalité de manière détaillée, puisqu’elle est centrale dans notre application et permet d’illustrer la combinaison entre la base de données et l’API SNCF.
 Cette fonctionnalité fait intervenir la base de données, en lecture comme en écriture, l'API SNCF et toutes les couches de l'application. C'est la seule qui combine des données internes et un service externe pour produire une nouvelle donnée.
 
-Préalable. Un trajet s'appuie sur des éléments qui existent déjà : des gares importées depuis l'API SNCF, avec leur identifiant SNCF, une ligne qui relie deux de ces gares, et un train avec ses capacités en première et en seconde classe. Le collaborateur ne saisit donc que quatre informations : la ligne, le train, la date et l'heure de départ, et le tarif de base. L'heure d'arrivée et la durée du trajet ne sont pas saisies. Elles sont calculées par l'application, ce qui évite qu'un collaborateur enregistre un horaire incohérent.
+Un trajet s'appuie sur des éléments qui existent déjà : des gares importées depuis l'API SNCF, avec leur identifiant SNCF, une ligne qui relie deux de ces gares, et un train avec ses capacités en première et en seconde classe. Le collaborateur ne saisit donc que quatre informations : la ligne, le train, la date et l'heure de départ, et le tarif de base. L'heure d'arrivée et la durée du trajet ne sont pas saisies. Elles sont calculées par l'application, ce qui évite qu'un collaborateur enregistre un horaire incohérent.
 
-![Diagramme de séquence - Création d'un trajet](images/Diagramme%20de%20se%CC%81quence_%20cre%CC%81ation%20de%20trajet.png){fig-align="center"}
-Figure : diagramme de séquence de la création d'un trajet
+![Diagramme de séquence - Création d'un trajet](images/diagramme_sequence_creer_trajet.png){fig-align="center"}
+
 
 Couche contrôleur. Le formulaire envoie une requête POST /collaborateur/trajets. Avant même d'entrer dans notre code, FastAPI valide le corps de la requête avec le schéma Pydantic TrajetCreationModel : les identifiants doivent être des entiers, l'heure de départ une date avec heure et le tarif un nombre. Une donnée mal formée, par exemple un tarif écrit en lettres, est rejetée automatiquement avec le code 422, sans qu'aucune ligne de notre code ne s'exécute. La fonction verif_token lit ensuite le token transmis afin de retrouver l'utilisateur qui s’est connecté à la base. Dans le cas où le token est absent ou invalide, on arrête la requête avece le code 401. Enfin, le contrôleur vérifie que cet utilisateur a au moins le grade collaborateur. Etant donné que les grades sont hiérarchiques, un administrateur peut donc aussi créer un trajet, tout comme un collaborateur. Un client, qui donc n’aurait pas un grade suffisant, recevrait un code erreur 403. 
 
@@ -305,7 +341,7 @@ Cette possibilité de recherche peut permettre à l’administrateur de consulte
 L’administrateur peut renseigner un nouveau grade pour un utilisateur (CLIENT, COLLABORATEUR ou ADMINISTRATEUR). `AdministrateurService.gerer_habilitation()` refuse un grade invalide, un compte inexistant, et toute modification du grade d'un administrateur. De cette façon, un administrateur ne peut pas “dégrader” un autre administrateur.
 
 
-## 3.3  Tests
+## 3.  Tests
 
 Nos tests servent à vérifier que chaque fonctionnalité respecte les contraintes définies dans le dossier d’analyse tout en détectant les problèmes du code lorsque celui-ci évolue. Comme nous l’avons expliqué, l'application est organisée en différentes couches, nous avons testé chaque couche de manière isolée. La bibliothèque MagicMock nous permet, comme dans le cas des tests DAO, de simuler les dépendances nécessaires à la réalisation des tests. Ce qui nous permet de localiser les erreurs dans une couche précise lorsque le test échoue sans confondre une erreur dans une requête SQL avec une erreur de code.
 
@@ -318,7 +354,7 @@ Pour les DAO, le problème était que faire un test nécessite d’utiliser une 
 Le projet compte un total de 416 tests, qui passent tous. La couverture de test du code est de 85% du code. Les services métier (trajets, lignes, trains, gares, réservations, tarification), qui sont au cœur de la logique de notre application, sont couverts entre 98 % et 100 %, de même que le client de l'API SNCF et les schémas Pydantic. Les services liés aux utilisateurs sont moins couverts (84 % pour les collaborateurs, 69 % pour les utilisateurs). Les modules les moins couverts sont la partie administrateur (environ 40 %) et les utilitaires d'infrastructure (réinitialisation de la base, lecture des variables d'environnement, autour de 30 %). Ces derniers dépendent fortement de l'environnement d'exécution et ont surtout été validés par la pratique.
 
 
-## 3.4  Outils utilisés
+## 4.  Outils utilisés
 
 Le code a été entièrement écrit en Python, à l'exception de la frontend qui a été codée en Javascript à l'aide d'IA génératives. Pour la base de données, nous avons eu recours au service PostGreSQL. Enfin, nous avons utilisé tout au long de ce projet un repository Github en tant qu'outil de versionnage de notre code.
 
@@ -328,4 +364,62 @@ Dans ce code Python, nous avons notamment eu recours à de nombreuses bibliothè
 
 Nous allons à présent voir les possibles modifications qu’il faudrait apporter à notre code selon différents scénarios – que cela soit pour apporter de nouvelles fonctionnalités à l’application ou bien pour changer de source de données.
 
+
 En effet, la question se pose de savoir si notre application deviendrait complètement inutile si l’API SNCF, notre source de données externes, devait disparaître. En réalité, d’autres sources de données similaires existent, même si celles-ci ne portent pas sur les voies ferrées du territoire français. Plusieurs alternatives existent donc : l’API Navitia.io, dont l’API SNCF est un sous-service, peut notamment donner l’accès à d’autres transports publics, comme ceux de l’Île de France par exemple. D’autres services ressemblant à l’API SNCF existent aussi à l’étranger. Si nous devions donc remplacer l’API SNCF par certaines de ces alternatives, nous n’aurions que certaines couches à modifier. En effet, notre application a été structurée pour que ces modifications ne soient que minimes. Les couches affectées sont donc les couches service, qui interagissent avec les APIs externes, et qui devront donc avoir des requêtes modifiées selon les spécificités de l’API utilisée. Des modifications peuvent aussi avoir lieu dans la couche DAO en lien avec les noms de données utilisées par l’API. De plus, les tokens devront être modifiés, mais la grande majorité de l’application ne serait ainsi pas affectée si l’API SNCF devait disparaître.
+
+
+La question se pose ensuite de savoir quelles fonctionnalités nous pourrions rajouter à notre code et comment nous ferions ces modifications. Une première fonctionnalité à rajouter pourrait être une fonctionnalité de correspondances, par exemple avec d’autres transports publics. De nouveau, les données de l’API Navitia pourrait nous être utile car recensant de nombreux réseaux de transports publics sur le territoire français. Pour faire cela, nous pourrions remplacer l’API SNCF par Navitia, avec les modifications proposées précédemment, et nous devrions alors sûrement ajouter une nouvelle fonction qui peut utiliser les fonctions natives de l’API Navitia.
+
+
+Une autre fonctionnalité à rajouter pourrait être celle des prix dynamiques, remplaçant les prix transparents. En effet, la décomposition des prix serait à supprimer, dans une optique d’éviter la frustration des clients devant des prix gonflés par une forte demande. Nous devrions sûrement ensuite ajouter des modifications à la couche service, qui devrait alors contenir une classe service visant à calculer cette tarification dynamique. Il est aussi possible de modifier la base de données et donc les couches DAO pour ajouter une nouvelle colonne prix payé calculé à partir du prix plancher.
+
+
+Enfin, nous avons aussi pensé à l’ajout d’une carte de réduction. Nous pensons que les modifications à faire ressemblent à celles de l’hypothèse de modification précédente pour ce qui est des prix réduits, mais nous devrions sûrement aussi rajouter une nouvelle classe CarteReduction à travers toutes les couches, qui pourrait alors interagir avec les utilisateurs et les réservations. La base de données devrait aussi s’adapter pour contenir les informations de la carte de réduction.
+
+
+# Annexes
+
+## Annexe 1 : Arborescence du code
+
+![Arborescence du code](images/arborescence.png){fig-align="center"}
+
+## Annexe 2 : Liste des endpoints
+
+
+| Méthode | Route | Rôle |
+|---------|-------|------|
+| GET | `/` | Redirige vers `/docs` |
+| GET | `/reset_database` | Remet la base à zéro (admin) |
+| POST | `/login/` | Connexion, renvoie un token |
+| GET | `/admin/utilisateurs` | Cherche un compte |
+| PUT | `/admin/utilisateurs/{id_utilisateur}/grade` | Change le grade d'un utilisateur |
+| GET | `/collaborateur/lignes` | Liste les lignes |
+| POST | `/collaborateur/lignes` | Crée une ligne |
+| PUT | `/collaborateur/lignes/{id_ligne}` | Modifie une ligne |
+| DELETE | `/collaborateur/lignes/{id_ligne}` | Supprime une ligne |
+| GET | `/collaborateur/trains` | Liste les trains |
+| POST | `/collaborateur/trains` | Crée un train |
+| PUT | `/collaborateur/trains/{num_train}` | Modifie la capacité d'un train |
+| GET | `/collaborateur/trajets` | Liste les trajets à venir |
+| POST | `/collaborateur/trajets` | Crée un trajet |
+| PUT | `/collaborateur/trajets/{id_trajet}` | Modifie un trajet |
+| DELETE | `/collaborateur/trajets/{id_trajet}` | Supprime un trajet |
+| POST | `/collaborateur/gares/importer` | Ajoute à la base des gares venant de l'API SNCF |
+| POST | `/utilisateur/comptes` | Crée un compte client |
+| PUT | `/utilisateur/mot-de-passe` | Change le mot de passe |
+| GET | `/utilisateur/gares` | Cherche des gares |
+| GET | `/utilisateur/trajets` | Cherche des trajets |
+| GET | `/utilisateur/trajets/{id_trajet}/places` | Montre les places libres |
+| GET | `/utilisateur/trains/{num_train}` | Trouve un train |
+| POST | `/utilisateur/reservations` | Crée une réservation |
+| GET | `/utilisateur/reservations` | Montre l'historique des réservations |
+| DELETE | `/utilisateur/reservations/{id_reservation}` | Annule une réservation |
+
+## Annexe 3 : Répartition des tests unitaires
+| Couche | Dossier | Nb de tests | Ce qui est vérifié | Ce qui est simulé |
+|--------|---------|-------------|--------------------|-------------------|
+| Objets métier | `test_objets` | 50 | Validation des attributs, affichage, vérification des grades, client SNCF | Réponses de l'API SNCF (`requests.get`) |
+| DAO | `tests_DAO` | 107 | Requêtes SQL, conversion des résultats en objets, erreurs de la base | Connexion à la base (`DBConnexion`) et curseur |
+| Services | `tests_service` | 202 | Règles métier : trajet déjà parti, nom déjà pris, places disponibles, hachage du mot de passe | Classes DAO, client SNCF |
+| Contrôleurs | `test_controller_optionel` | 87 | Codes HTTP, droits d'accès selon le rôle | Token, services |
+| **Total** | | **446** | | |
