@@ -280,9 +280,19 @@ Tous les utilisateurs peuvent réserver une place pour un trajet choisi, annuler
 
 - Réserver une place
 
+L'utilisateur choisit un trajet, une classe et, s'il le souhaite, un numéro de place. Après avoir vérifié que la classe est valide et que le trajet n'est pas déjà parti, `ReservationService.creer()` détermine la place :
+
+- Sans numéro, `_attribuer_place()` retient la première place libre renvoyée par `TrajetService.places_libres()` ;
+
+- Avec un numéro, `_verifier_place()` contrôle que la classe n'est pas complète et que le numéro ne dépasse pas sa capacité. 
+
+Les places restantes ne sont pas stockées : elles sont recalculées à partir de la capacité du train et des réservations existantes, ce qui évite d'avoir un compteur à tenir à jour. Le prix est calculé par le module tarification (tarif de base, multiplié par 1,5 en première classe), puis enregistré avec la réservation : une modification ultérieure du tarif ne change donc pas le prix d'un billet déjà réservé. \
+Enfin, une contrainte d'unicité en base sur le trajet, la classe et la place garantit qu'une même place ne peut pas être réservée deux fois, même si deux clients la demandent presque simultanément. Dans ce cas, le second reçoit une erreur 400 s'il avait choisi sa place ; sinon, le service lui en attribue une autre.
+
+
 - Annuler une réservation
 La méthode `ReservationService.annuler()` vérifie à la fois que la réservation existe, qu’elle appartient bien au client connecté, et que le trajet n'est pas déjà parti. 
-
+\
 - Consulter l’historique de ses réservations
 
 
