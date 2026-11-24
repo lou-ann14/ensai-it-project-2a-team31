@@ -1,7 +1,9 @@
 ---
 format:
   pdf:
+    toc: false
     fontsize: "12pt"
+    fig-cap-location: bottom
     include-in-header: 
       text: |
         \usepackage{graphicx}
@@ -24,7 +26,7 @@ lang: fr
 
 
 % Logo
-\includegraphics[width=7cm]{images/ensai-logo.png}\par
+\includegraphics[width=6cm]{images/ensai-logo.png}\par
 
 \vspace{1.5cm}
 
@@ -69,6 +71,7 @@ KEVIN LEROY
 
 \end{titlepage}
 \tableofcontents
+\pagenumbering{arabic}
 \newpage
 
 # Introduction
@@ -81,7 +84,7 @@ Afin d’accomplir cela, nous avons développé une application qui vise à mett
 
 # I. Présentation du projet
 
-## Cahier des charges et fonctionnalités de l'application
+## 1.  Cahier des charges et fonctionnalités de l'application
 
 Au cours de ce semestre, nous avons donc développé une application qui cherche à approcher au mieux les fonctionnalités proposées par la SNCF. Celles-ci sont constituées de cinq fonctionnalités de base et deux fonctionnalités optionnelles. Ces fonctionnalités utilisent parmi les données transmises par l’API SNCF les gares, lignes, trajets et prix présents dans la base de données. La récupération, l’exploitation et la transmission à notre base de données de ces données SNCF seront explicités lors de l’explication des couches de code.
 
@@ -97,7 +100,7 @@ La cinquième et dernière fonctionnalité est une fonctionnalité de positionne
 
 De plus, nous avons aussi développé les deux fonctionnalités optionnelles proposées par le sujet : celle des classes de voyage, et la fonctionnalité de réservation. Cette dernière permet à un compte client de réserver et annuler une réservation, ainsi que de visualiser ses réservations.
 
-## Organisation de l'équipe
+## 2.  Organisation de l'équipe
 
 L’organisation du groupe a été prise en charge par Lou-Ann Clement en tant que cheffe de projet, tandis que les questions purement techniques portant sur le code étaient gérées par Satya Kremer, le tech leader du groupe.
 
@@ -110,6 +113,7 @@ Les tâches étaient réparties lors de réunions de travail : lors de la phase 
 ## 1.  Architecture globale
 
 Figure : Arborescence du code
+
 ![Diagramme d'architecture](images/diagramme_architecture(1).png){fig-align="center" width="80%"}
 
 Notre application repose sur quatre couches qui interagissent entre elles : \
@@ -123,10 +127,8 @@ Notre application repose sur quatre couches qui interagissent entre elles : \
 Voici plus en détail les classes des différentes couches de la backend :
 
 ![Diagramme de classes - Objets métier](images/diagramme_classes_objets_v3.png){fig-align="center" width="100%"}
-Figure : Diagramme de classes - Business Layer
 
-![Diagramme de classes - Service et DAO](images/diag_classes_services_dao_v2(1).png){fig-align="center" width="110%"}
-Figure : Diagramme de classes - Service Layer et DAO Layer
+![Diagramme de classes - Services et DAO](images/diag_classes_services_dao_v2(2).png){fig-align="center" width="110%"}
 
 ### La couche métier
 
@@ -245,7 +247,8 @@ La recherche de gare est la fonctionnalité la plus utilisée dans notre applica
 
 Au préalable, une gare ne peut être trouvée que si elle a d'abord été importée depuis l'API SNCF par un collaborateur. Au sein de l’API, chaque gare possède un identifiant, un nom, une ville et son identifiant SNCF. L'utilisateur, lui, ne peut pas manipuler ces identifiants. Il saisit tout simplement le début d'un nom de gare ou de ville, par exemple « Lyon » pour obtenir Lyon Part-Dieu, Lyon Perrache et les autres gares lyonnaises.
 
-[Figure : diagramme de séquence de la recherche d'une gare]
+![Diagramme de séquence - Recherche d'une gare](images/Diagramme%20de%20se%CC%81quence_%20rechercher%20une%20gare.png){fig-align="center"}
+
 
 Contrairement à la création d'un trajet, ce diagramme ne fait apparaître ni l'API SNCF ni aucune écriture : la requête descend jusqu'à la base de données par une simple lecture, puis la liste des gares remonte jusqu'à l'interface. La dernière partie du diagramme montre que l'autocomplétion se déroule ensuite entièrement dans l'interface, sans nouvel échange avec le serveur.
 
@@ -302,7 +305,7 @@ Cette fonctionnalité fait intervenir la base de données, en lecture comme en �
 Un trajet s'appuie sur des éléments qui existent déjà : des gares importées depuis l'API SNCF, avec leur identifiant SNCF, une ligne qui relie deux de ces gares, et un train avec ses capacités en première et en seconde classe. Le collaborateur ne saisit donc que quatre informations : la ligne, le train, la date et l'heure de départ, et le tarif de base. L'heure d'arrivée et la durée du trajet ne sont pas saisies. Elles sont calculées par l'application, ce qui évite qu'un collaborateur enregistre un horaire incohérent.
 
 ![Diagramme de séquence - Création d'un trajet](images/Diagramme%20de%20se%CC%81quence_%20cre%CC%81ation%20de%20trajet.png){fig-align="center"}
-Figure : diagramme de séquence de la création d'un trajet
+
 
 Couche contrôleur. Le formulaire envoie une requête POST /collaborateur/trajets. Avant même d'entrer dans notre code, FastAPI valide le corps de la requête avec le schéma Pydantic TrajetCreationModel : les identifiants doivent être des entiers, l'heure de départ une date avec heure et le tarif un nombre. Une donnée mal formée, par exemple un tarif écrit en lettres, est rejetée automatiquement avec le code 422, sans qu'aucune ligne de notre code ne s'exécute. La fonction verif_token lit ensuite le token transmis afin de retrouver l'utilisateur qui s’est connecté à la base. Dans le cas où le token est absent ou invalide, on arrête la requête avece le code 401. Enfin, le contrôleur vérifie que cet utilisateur a au moins le grade collaborateur. Etant donné que les grades sont hiérarchiques, un administrateur peut donc aussi créer un trajet, tout comme un collaborateur. Un client, qui donc n’aurait pas un grade suffisant, recevrait un code erreur 403. 
 
@@ -328,7 +331,7 @@ Cette possibilité de recherche peut permettre à l’administrateur de consulte
 L’administrateur peut renseigner un nouveau grade pour un utilisateur (CLIENT, COLLABORATEUR ou ADMINISTRATEUR). `AdministrateurService.gerer_habilitation()` refuse un grade invalide, un compte inexistant, et toute modification du grade d'un administrateur. De cette façon, un administrateur ne peut pas “dégrader” un autre administrateur.
 
 
-## 3.3  Tests
+## 3.  Tests
 
 Nos tests servent à vérifier que chaque fonctionnalité respecte les contraintes définies dans le dossier d’analyse tout en détectant les problèmes du code lorsque celui-ci évolue. Comme nous l’avons expliqué, l'application est organisée en différentes couches, nous avons testé chaque couche de manière isolée. La bibliothèque MagicMock nous permet, comme dans le cas des tests DAO, de simuler les dépendances nécessaires à la réalisation des tests. Ce qui nous permet de localiser les erreurs dans une couche précise lorsque le test échoue sans confondre une erreur dans une requête SQL avec une erreur de code.
 
@@ -341,7 +344,7 @@ Pour les DAO, le problème était que faire un test nécessite d’utiliser une 
 Le projet compte un total de 416 tests, qui passent tous. La couverture de test du code est de 85% du code. Les services métier (trajets, lignes, trains, gares, réservations, tarification), qui sont au cœur de la logique de notre application, sont couverts entre 98 % et 100 %, de même que le client de l'API SNCF et les schémas Pydantic. Les services liés aux utilisateurs sont moins couverts (84 % pour les collaborateurs, 69 % pour les utilisateurs). Les modules les moins couverts sont la partie administrateur (environ 40 %) et les utilitaires d'infrastructure (réinitialisation de la base, lecture des variables d'environnement, autour de 30 %). Ces derniers dépendent fortement de l'environnement d'exécution et ont surtout été validés par la pratique.
 
 
-## 3.4  Outils utilisés
+## 4.  Outils utilisés
 
 Le code a été entièrement écrit en Python, à l'exception de la frontend qui a été codée en Javascript à l'aide d'IA génératives. Pour la base de données, nous avons eu recours au service PostGreSQL. Enfin, nous avons utilisé tout au long de ce projet un repository Github en tant qu'outil de versionnage de notre code.
 
