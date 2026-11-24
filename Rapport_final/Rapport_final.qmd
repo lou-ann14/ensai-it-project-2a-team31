@@ -382,3 +382,44 @@ Enfin, nous avons aussi pensé à l’ajout d’une carte de réduction. Nous pe
 ## Annexe 1 : Arborescence du code
 
 ![Arborescence du code](images/arborescence.png){fig-align="center"}
+
+## Annexe 2 : Liste des endpoints
+
+
+| Méthode | Route | Rôle |
+|---------|-------|------|
+| GET | `/` | Redirige vers `/docs` |
+| GET | `/reset_database` | Remet la base à zéro (admin) |
+| POST | `/login/` | Connexion, renvoie un token |
+| GET | `/admin/utilisateurs` | Cherche un compte |
+| PUT | `/admin/utilisateurs/{id_utilisateur}/grade` | Change le grade d'un utilisateur |
+| GET | `/collaborateur/lignes` | Liste les lignes |
+| POST | `/collaborateur/lignes` | Crée une ligne |
+| PUT | `/collaborateur/lignes/{id_ligne}` | Modifie une ligne |
+| DELETE | `/collaborateur/lignes/{id_ligne}` | Supprime une ligne |
+| GET | `/collaborateur/trains` | Liste les trains |
+| POST | `/collaborateur/trains` | Crée un train |
+| PUT | `/collaborateur/trains/{num_train}` | Modifie la capacité d'un train |
+| GET | `/collaborateur/trajets` | Liste les trajets à venir |
+| POST | `/collaborateur/trajets` | Crée un trajet |
+| PUT | `/collaborateur/trajets/{id_trajet}` | Modifie un trajet |
+| DELETE | `/collaborateur/trajets/{id_trajet}` | Supprime un trajet |
+| POST | `/collaborateur/gares/importer` | Ajoute à la base des gares venant de l'API SNCF |
+| POST | `/utilisateur/comptes` | Crée un compte client |
+| PUT | `/utilisateur/mot-de-passe` | Change le mot de passe |
+| GET | `/utilisateur/gares` | Cherche des gares |
+| GET | `/utilisateur/trajets` | Cherche des trajets |
+| GET | `/utilisateur/trajets/{id_trajet}/places` | Montre les places libres |
+| GET | `/utilisateur/trains/{num_train}` | Trouve un train |
+| POST | `/utilisateur/reservations` | Crée une réservation |
+| GET | `/utilisateur/reservations` | Montre l'historique des réservations |
+| DELETE | `/utilisateur/reservations/{id_reservation}` | Annule une réservation |
+
+## Annexe 3 : Répartition des tests unitaires
+| Couche | Dossier | Nb de tests | Ce qui est vérifié | Ce qui est simulé |
+|--------|---------|-------------|--------------------|-------------------|
+| Objets métier | `test_objets` | 50 | Validation des attributs, affichage, vérification des grades, client SNCF | Réponses de l'API SNCF (`requests.get`) |
+| DAO | `tests_DAO` | 107 | Requêtes SQL, conversion des résultats en objets, erreurs de la base | Connexion à la base (`DBConnexion`) et curseur |
+| Services | `tests_service` | 202 | Règles métier : trajet déjà parti, nom déjà pris, places disponibles, hachage du mot de passe | Classes DAO, client SNCF |
+| Contrôleurs | `test_controller_optionel` | 87 | Codes HTTP, droits d'accès selon le rôle | Token, services |
+| **Total** | | **446** | | |
