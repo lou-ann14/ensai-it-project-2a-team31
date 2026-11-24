@@ -123,7 +123,8 @@ Notre application repose sur quatre couches qui interagissent entre elles : \
 - la couche de persistance : la base de données ; \
 - la couche Webservices : l'API SNCF, composant externe. 
 
-## 2.  Diagramme de classes
+## 2.  Modélisation de la backend
+
 Voici plus en détail les classes des différentes couches de la backend :
 
 ![Diagramme de classes - Objets métier](images/diagramme_classes_objets_v3.png){fig-align="center" width="100%"}
@@ -247,7 +248,7 @@ La recherche de gare est une fonctionnalité clé dans notre application. Nous a
 
 Une gare ne peut être trouvée que si elle a été, au préalable, importée depuis l'API SNCF par un collaborateur. Au sein de l’API, chaque gare possède un identifiant, un nom, une ville et son identifiant SNCF. L'utilisateur, lui, ne peut pas manipuler ces identifiants. Il saisit tout simplement le début d'un nom de gare ou de ville, par exemple « Lyon » pour obtenir Lyon Part-Dieu, Lyon Perrache et les autres gares lyonnaises.
 
-![Diagramme de séquence - Recherche d'une gare](images/Diagramme%20de%20se%CC%81quence_%20rechercher%20une%20gare.png){fig-align="center"}
+![Diagramme de séquence - Recherche d'une gare](images/diagramme_sequence_recherche_gare.png){fig-align="center"}
 
 
 Contrairement à la création d'un trajet, ce diagramme ne fait apparaître ni l'API SNCF ni aucune écriture : la requête descend jusqu'à la base de données par une simple lecture, puis la liste des gares remonte jusqu'à l'interface. La dernière partie du diagramme montre que l'autocomplétion se déroule ensuite entièrement dans l'interface, sans nouvel échange avec le serveur.
@@ -313,7 +314,7 @@ Cette fonctionnalité fait intervenir la base de données, en lecture comme en �
 
 Un trajet s'appuie sur des éléments qui existent déjà : des gares importées depuis l'API SNCF, avec leur identifiant SNCF, une ligne qui relie deux de ces gares, et un train avec ses capacités en première et en seconde classe. Le collaborateur ne saisit donc que quatre informations : la ligne, le train, la date et l'heure de départ, et le tarif de base. L'heure d'arrivée et la durée du trajet ne sont pas saisies. Elles sont calculées par l'application, ce qui évite qu'un collaborateur enregistre un horaire incohérent.
 
-![Diagramme de séquence - Création d'un trajet](images/Diagramme%20de%20se%CC%81quence_%20cre%CC%81ation%20de%20trajet.png){fig-align="center"}
+![Diagramme de séquence - Création d'un trajet](images/diagramme_sequence_creer_trajet.png){fig-align="center"}
 
 
 Couche contrôleur. Le formulaire envoie une requête POST /collaborateur/trajets. Avant même d'entrer dans notre code, FastAPI valide le corps de la requête avec le schéma Pydantic TrajetCreationModel : les identifiants doivent être des entiers, l'heure de départ une date avec heure et le tarif un nombre. Une donnée mal formée, par exemple un tarif écrit en lettres, est rejetée automatiquement avec le code 422, sans qu'aucune ligne de notre code ne s'exécute. La fonction verif_token lit ensuite le token transmis afin de retrouver l'utilisateur qui s’est connecté à la base. Dans le cas où le token est absent ou invalide, on arrête la requête avece le code 401. Enfin, le contrôleur vérifie que cet utilisateur a au moins le grade collaborateur. Etant donné que les grades sont hiérarchiques, un administrateur peut donc aussi créer un trajet, tout comme un collaborateur. Un client, qui donc n’aurait pas un grade suffisant, recevrait un code erreur 403. 
