@@ -7,7 +7,7 @@ from src.Classes.classes_objets.train import Train
 class Trajet:
     """Modélise la classe Trajet, qui permet de gérer les différentes caracteristiques des trajets.
 
-    Params
+    Param:
     ------
     heure_depart: datetime
         Heure de départ du trajet
@@ -24,7 +24,24 @@ class Trajet:
     id_trajet: int | None = None
         id du trajet dans la BDD
     """
-    def __init__(self, heure_depart: datetime, heure_arrivee: datetime, ligne: Ligne, train: Train | None, tarif_base: float, id_trajet: int | None = None, temps_trajet: int | None = None):
+    def __init__(
+        self,
+        heure_depart: datetime,
+        heure_arrivee: datetime,
+        ligne: Ligne,
+        train: Train | None,
+        tarif_base: float,
+        id_trajet: int | None = None,
+        temps_trajet: int | None = None,
+    ):
+        """
+        Crée un trajet après avoir vérifié le type des paramètres.
+
+        Raises:
+        ------
+        TypeError
+            si un paramètre n'a pas le bon type
+        """
         if not isinstance(heure_depart, datetime):
             raise TypeError("L'heure de départ doit être de type datetime.")
         if not isinstance(heure_arrivee, datetime):
@@ -54,21 +71,51 @@ class Trajet:
 
     @property
     def nom_gare_depart(self) -> str:
-        """Nom de la gare de départ (utilisé par l'API pour afficher le trajet)."""
+        """
+        Nom de la gare de départ (utilisé par l'API pour afficher le trajet).
+
+        Return:
+        ------
+        str
+            le nom de la gare de départ
+        """
         return self.ligne.gare_depart.nom
 
     @property
     def nom_gare_arrivee(self) -> str:
-        """Nom de la gare d'arrivée (utilisé par l'API pour afficher le trajet)."""
+        """
+        Nom de la gare d'arrivée (utilisé par l'API pour afficher le trajet).
+
+        Return:
+        ------
+        str
+            le nom de la gare d'arrivée
+        """
         return self.ligne.gare_arrivee.nom
 
     @property
     def num_train(self) -> int | None:
-        """Numéro du train, ou None si aucun train n'est associé."""
+        """
+        Numéro du train utilisé pour le trajet.
+
+        Return:
+        ------
+        int | None
+            le numéro du train, ou None si aucun train n'est associé
+        """
         return self.train.num_train if self.train else None
 
     def __str__(self):
-        """Représentation string d'un trajet.
+        """
+        Représentation string d'un trajet.
+
+        Return:
+        ------
+        str
+            la description affichée
         """
         id_train = self.train.id_train if self.train else None
-        return f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
+        return (
+            f"Le trajet #{self.id_trajet} du train #{id_train} sur la ligne #{self.ligne.id_ligne} "
+            f"au prix initial de {self.tarif_base} euros a pour horaires: {self.horaires}"
+        )

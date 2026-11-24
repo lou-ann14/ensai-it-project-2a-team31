@@ -1,5 +1,3 @@
-from datetime import date
-
 import streamlit as st
 
 import api
@@ -23,13 +21,16 @@ if not gares:
     st.stop()
 
 with st.form("recherche"):
-    c1, c2, c3 = st.columns([2, 2, 1])
+    c1, c2, c3 = st.columns([2, 2, 1.5])
     with c1:
         depart = commun.choisir_gare("Gare de départ", gares, "rech_depart")
     with c2:
         arrivee = commun.choisir_gare("Gare d'arrivée", gares, "rech_arrivee")
     with c3:
-        jour = st.date_input("Date", value=date.today(), format="DD/MM/YYYY")
+        jour = st.date_input(
+            "Date (facultatif)", value=None, format="DD/MM/YYYY",
+            help="Sans date, tous les trajets à venir sont affichés.",
+        )
     lancer = st.form_submit_button("Rechercher", type="primary", icon=":material/search:")
 
 if lancer:
@@ -54,9 +55,24 @@ if not resultats:
     st.stop()
 
 trajets = resultats["trajets"]
+# Sans date choisie, les trajets peuvent être de jours différents : le jour est alors affiché
+sans_date = resultats["jour"] is None
 
 
 def duree_panneau(minutes: int | None) -> str:
+    """
+    Écrit une durée pour le panneau.
+
+    Param:
+    ------
+    minutes: int | None
+        la durée en minutes, ou None si elle est inconnue
+
+    Return:
+    ------
+    str
+        la durée, ou des tirets si elle est inconnue
+    """
     if minutes is None:
         return "--"
     h, m = divmod(minutes, 60)
@@ -64,7 +80,19 @@ def duree_panneau(minutes: int | None) -> str:
 
 
 def places_panneau(places: int | None) -> str:
-    """F5 : places restantes dans une classe (COMPLET à 0, -- si inconnues)."""
+    """
+    F5 : écrit le nombre de places restantes dans une classe.
+
+    Param:
+    ------
+    places: int | None
+        le nombre de places, ou None s'il est inconnu
+
+    Return:
+    ------
+    str
+        le nombre de places, COMPLET s'il n'y en a plus, ou des tirets s'il est inconnu
+    """
     if places is None:
         return "--"
     return "COMPLET" if places == 0 else str(places)
@@ -72,11 +100,13 @@ def places_panneau(places: int | None) -> str:
 
 style.panneau_departs(
     f"{resultats['depart']['nom']} → {resultats['arrivee']['nom']}",
-    colonnes=[("DÉPART", 5, False), ("ARRIVÉE", 5, False), ("DURÉE", 5, False),
+    colonnes=([("DATE", 5, False)] if sans_date else [])
+           + [("DÉPART", 5, False), ("ARRIVÉE", 5, False), ("DURÉE", 5, False),
               ("TRAIN", 5, False), ("2DE CL.", 8, True), ("1RE CL.", 8, True),
               ("PL. 2DE", 7, True), ("PL. 1RE", 7, True)],
     lignes=[
-        [
+        ([commun.date_heure(t["heure_depart"])[:5]] if sans_date else [])
+        + [
             commun.heure(t["heure_depart"]),
             commun.heure(t["heure_arrivee"]),
             duree_panneau(t.get("temps_trajet")),
@@ -88,14 +118,29 @@ style.panneau_departs(
         ]
         for t in trajets
     ],
-    message_vide="AUCUN TRAIN CE JOUR",
+    message_vide="AUCUN TRAIN À VENIR" if sans_date else "AUCUN TRAIN CE JOUR",
 )
-st.caption(f"{commun.jour(resultats['jour']).capitalize()} · {len(trajets)} trajet(s)")
+periode = "Tous les trajets à venir" if sans_date else commun.jour(resultats["jour"]).capitalize()
+st.caption(f"{periode} · {len(trajets)} trajet(s)")
 
 
 def libelle_trajet(t: dict) -> str:
+    """
+    Texte d'un trajet dans le choix du train (le jour est ajouté si la recherche est sans date).
+
+    Param:
+    ------
+    t: dict
+        le trajet
+
+    Return:
+    ------
+    str
+        les horaires et le numéro du train
+    """
+    depart = commun.date_heure(t["heure_depart"]) if sans_date else commun.heure(t["heure_depart"])
     return (
-        f"{commun.heure(t['heure_depart'])} → {commun.heure(t['heure_arrivee'])}"
+        f"{depart} → {commun.heure(t['heure_arrivee'])}"
         + (f" · train {t['num_train']}" if t.get("num_train") else "")
     )
 

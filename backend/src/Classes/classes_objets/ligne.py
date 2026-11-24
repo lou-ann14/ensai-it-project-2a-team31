@@ -4,7 +4,7 @@ from src.Classes.classes_objets.gare import Gare
 class Ligne:
     """Modélise la classe Ligne, qui permet de gérer les différentes caracteristiques des lignes.
 
-    Params
+    Param:
     ------
     gare_depart: Gare
         Gare de départ de la ligne
@@ -14,6 +14,14 @@ class Ligne:
         id de la ligne dans la BDD
     """
     def __init__(self, gare_depart: Gare, gare_arrivee: Gare, id_ligne: int | None = None):
+        """
+        Crée une ligne après avoir vérifié le type des paramètres.
+
+        Raises:
+        ------
+        TypeError
+            si un paramètre n'a pas le bon type
+        """
         if not isinstance(gare_depart, Gare):
             raise TypeError("La gare de départ doit être de type Gare.")
         if not isinstance(gare_arrivee, Gare):
@@ -26,6 +34,15 @@ class Ligne:
         self.gare_arrivee = gare_arrivee
 
     def __str__(self):
-        """Représentation string d'une ligne.
         """
-        return f"la gare de depart de la ligne #{self.id_ligne} est : #{self.gare_depart.nom} et la gare d'arrivée est : # {self.gare_arrivee.nom}"
+        Représentation string d'une ligne.
+
+        Return:
+        ------
+        str
+            la description affichée
+        """
+        return (
+            f"la gare de depart de la ligne #{self.id_ligne} est : #{self.gare_depart.nom} "
+            f"et la gare d'arrivée est : # {self.gare_arrivee.nom}"
+        )

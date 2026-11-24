@@ -5,7 +5,6 @@ import streamlit as st
 import api
 import commun
 
-
 st.title("Mes réservations")
 
 try:
@@ -25,6 +24,14 @@ passees = [r for r in reservations if r not in a_venir]
 
 @st.dialog("Annuler la réservation ?")
 def confirmer_annulation(id_reservation: int):
+    """
+    Demande une confirmation avant d'annuler la réservation.
+
+    Param:
+    ------
+    id_reservation: int
+        l'id de la réservation
+    """
     st.write(f"La réservation #{id_reservation} sera définitivement annulée.")
     c1, c2 = st.columns(2)
     if c1.button("Oui, annuler", type="primary", width="stretch"):
@@ -38,6 +45,16 @@ def confirmer_annulation(id_reservation: int):
 
 
 def carte(reservation: dict, annulable: bool):
+    """
+    Affiche un billet, avec le bouton d'annulation si le trajet est à venir.
+
+    Param:
+    ------
+    reservation: dict
+        la réservation
+    annulable: bool
+        True si elle peut être annulée
+    """
     commun.afficher_billet(reservation)
     if annulable and st.button("Annuler ce billet", key=f"annuler_{reservation['id_reservation']}",
                                icon=":material/cancel:", type="tertiary"):

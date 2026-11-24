@@ -224,7 +224,7 @@ class UtilisateurDAO:
                 token_acces=utilisateur_bdd["token_acces"],
             )
         return utilisateur
-    
+
     @log
     def trouver_par_token(self, token: str) -> Utilisateur | None:
         """
@@ -248,7 +248,7 @@ class UtilisateurDAO:
         """
         if not token:
             return None
-        
+
         res = None
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:

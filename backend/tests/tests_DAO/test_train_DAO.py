@@ -163,3 +163,28 @@ class TestsTrainDAO:
         curseur.rowcount = 0  # aucun train supprimé
 
         assert TrainDAO().supprimer(9999) is False
+
+    # Tests lister
+
+    def test_lister_ok(self, curseur):
+        """Tous les trains sont renvoyés, triés par numéro"""
+        curseur.fetchall.return_value = [train_bdd, {**train_bdd, "id_train": 2, "num_train": 9000}]
+
+        trains = TrainDAO().lister()
+
+        assert "ORDER BY num_train" in curseur.execute.call_args.args[0]
+        assert all(isinstance(train, Train) for train in trains)
+        assert [(train.id_train, train.num_train) for train in trains] == [(1, 8541), (2, 9000)]
+
+    def test_lister_aucun(self, curseur):
+        """Aucun train en base : liste vide"""
+        curseur.fetchall.return_value = []
+
+        assert TrainDAO().lister() == []
+
+    def test_lister_erreur_bdd(self, curseur):
+        """Une erreur de la base est relancée"""
+        curseur.execute.side_effect = Exception("connexion perdue")
+
+        with pytest.raises(Exception, match="connexion perdue"):
+            TrainDAO().lister()

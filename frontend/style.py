@@ -150,7 +150,8 @@ _CSS = f"""
 .b-heure {{ font: 600 1.75rem 'IBM Plex Mono', monospace; line-height: 1; }}
 .b-gare {{ font-weight: 600; font-size: .95rem; margin-top: .2rem; }}
 .b-droite {{ text-align: right; }}
-.b-voie {{ position: relative; height: 2px; background: repeating-linear-gradient(90deg, {ENCRE} 0 8px, transparent 8px 12px); }}
+.b-voie {{ position: relative; height: 2px;
+           background: repeating-linear-gradient(90deg, {ENCRE} 0 8px, transparent 8px 12px); }}
 .b-voie::before, .b-voie::after {{ content: ""; position: absolute; top: -4px; width: 10px; height: 10px;
                                   border-radius: 50%; background: {ENCRE}; }}
 .b-voie::before {{ left: -2px; }} .b-voie::after {{ right: -2px; }}
@@ -189,13 +190,27 @@ def appliquer():
 
 
 def marque() -> str:
-    """Logo et nom du service (HTML), pour le bandeau du haut."""
+    """
+    Logo et nom du service, pour le bandeau du haut.
+
+    Return:
+    ------
+    str
+        le code HTML
+    """
     return ('<div class="marque"><div class="marque-logo">CS</div>'
             '<div class="marque-texte">CONCURRENT SNCF<small>RÉSEAU FERROVIAIRE</small></div></div>')
 
 
 def etapes(liste: list[tuple[str, str]]) -> None:
-    """Liste d'étapes reliées par un rail vertical (page de connexion)."""
+    """
+    Liste d'étapes reliées par un rail vertical (page de connexion).
+
+    Param:
+    ------
+    liste: list[tuple[str, str]]
+        le titre et le texte de chaque étape
+    """
     items = "".join(f"<li><b>{escape(t)}</b><span>{escape(d)}</span></li>" for t, d in liste)
     st.html(f'<ol class="etapes">{items}</ol>')
 
@@ -203,8 +218,24 @@ def etapes(liste: list[tuple[str, str]]) -> None:
 # --- Afficheur à palettes ------------------------------------------------------------
 
 def _palettes(texte: str, rang: int = 0, sel: str = "") -> str:
-    """Transforme un texte en palettes qui défilent puis s'arrêtent sur le bon caractère.
-    Le tirage est déterminé par le texte : la même valeur ne se ré-anime pas à chaque rerun."""
+    """
+    Transforme un texte en palettes qui défilent puis s'arrêtent sur le bon caractère.
+    Le tirage est déterminé par le texte : la même valeur ne se ré-anime pas à chaque rerun.
+
+    Param:
+    ------
+    texte: str
+        le texte à afficher
+    rang: int
+        le numéro de la ligne (les lignes suivantes démarrent plus tard)
+    sel: str
+        un texte qui change le tirage
+
+    Return:
+    ------
+    str
+        le code HTML
+    """
     morceaux = []
     for i, car in enumerate(texte.upper()):
         if car == " ":
@@ -222,7 +253,16 @@ def _palettes(texte: str, rang: int = 0, sel: str = "") -> str:
 
 
 def titre_panneau(texte: str, sous_titre: str = "") -> None:
-    """Grand titre façon afficheur (page de connexion)."""
+    """
+    Grand titre façon afficheur (page de connexion).
+
+    Param:
+    ------
+    texte: str
+        le titre
+    sous_titre: str
+        le texte au-dessus du titre
+    """
     st.html(
         f'<div class="panneau"><div class="panneau-haut"><span>{escape(sous_titre)}</span>'
         f'<span class="horloge">{datetime.now():%H:%M}</span></div>'
@@ -232,10 +272,19 @@ def titre_panneau(texte: str, sous_titre: str = "") -> None:
 
 def panneau_departs(titre: str, colonnes: list[tuple[str, int, bool]], lignes: list[list[str]],
                     message_vide: str = "AUCUN TRAIN") -> None:
-    """Panneau des départs.
+    """
+    Panneau des départs.
 
-    colonnes : (intitulé, largeur en caractères, aligné à droite)
-    lignes   : valeurs texte, dans l'ordre des colonnes
+    Param:
+    ------
+    titre: str
+        le titre du panneau
+    colonnes: list[tuple[str, int, bool]]
+        pour chaque colonne : intitulé, largeur en caractères, aligné à droite ou non
+    lignes: list[list[str]]
+        les valeurs de chaque ligne, dans l'ordre des colonnes
+    message_vide: str
+        le message affiché s'il n'y a aucune ligne
     """
     entete = "".join(f"<th>{escape(nom)}</th>" for nom, _, _ in colonnes)
     corps = []
@@ -260,7 +309,19 @@ def panneau_departs(titre: str, colonnes: list[tuple[str, int, bool]], lignes: l
 # --- Billet ----------------------------------------------------------------------------
 
 def _code_barre(graine: str) -> str:
-    """Faux code-barres déterministe (dégradé CSS)."""
+    """
+    Faux code-barres déterministe (dégradé CSS).
+
+    Param:
+    ------
+    graine: str
+        le texte qui détermine le dessin
+
+    Return:
+    ------
+    str
+        le code HTML
+    """
     hasard = random.Random(graine)
     arrets, x = [], 0
     while x < 100:
@@ -274,7 +335,36 @@ def _code_barre(graine: str) -> str:
 
 def billet(*, id_reservation: int, gare_depart: str, gare_arrivee: str, depart: str, arrivee: str,
            date: str, duree: str, num_train: str, place: str, classe: int, prix: str, passe: bool) -> None:
-    """Affiche une réservation sous forme de billet de train."""
+    """
+    Affiche une réservation sous forme de billet de train.
+
+    Param:
+    ------
+    id_reservation: int
+        l'id de la réservation
+    gare_depart: str
+        le nom de la gare de départ
+    gare_arrivee: str
+        le nom de la gare d'arrivée
+    depart: str
+        l'heure de départ
+    arrivee: str
+        l'heure d'arrivée
+    date: str
+        le jour du voyage
+    duree: str
+        la durée du trajet
+    num_train: str
+        le numéro du train
+    place: str
+        le numéro de la place
+    classe: int
+        1 ou 2
+    prix: str
+        le prix payé
+    passe: bool
+        True si le voyage est déjà effectué
+    """
     e = escape
     classes = "billet" + (" premiere" if classe == 1 else "") + (" passe" if passe else "")
     libelle_classe = "1RE CLASSE" if classe == 1 else "2DE CLASSE"

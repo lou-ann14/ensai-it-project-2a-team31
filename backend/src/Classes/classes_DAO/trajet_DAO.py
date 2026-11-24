@@ -110,9 +110,11 @@ class TrajetDAO:
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee, tarif_base, temps_trajet)                "
-                    "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s, %(tarif_base)s, %(temps_trajet)s)    "
-                    "RETURNING id_trajet                                                                                           ",
+                    "INSERT INTO trajets(id_ligne, id_train, heure_depart, heure_arrivee,      "
+                    "                    tarif_base, temps_trajet)                             "
+                    "VALUES (%(id_ligne)s, %(id_train)s, %(heure_depart)s, %(heure_arrivee)s,  "
+                    "        %(tarif_base)s, %(temps_trajet)s)                                 "
+                    "RETURNING id_trajet                                                       ",
                     {
                         "id_ligne": trajet.ligne.id_ligne,
                         "id_train": trajet.train.id_train if trajet.train else None,
@@ -218,9 +220,9 @@ class TrajetDAO:
         return nb_lignes_supprimees > 0
 
     @log
-    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime) -> list[Trajet]:
+    def rechercher(self, gare_depart: Gare, gare_arrivee: Gare, date: datetime | None = None) -> list[Trajet]:
         """
-        Recherche les trajets entre deux gares à une date donnée.
+        Recherche les trajets entre deux gares, à une date donnée ou, sans date, tous les trajets à venir.
 
         Param:
         ------
@@ -228,8 +230,9 @@ class TrajetDAO:
             la gare de départ
         gare_arrivee: Gare
             la gare d'arrivée
-        date: datetime
-            la date recherchée (seul le jour est pris en compte)
+        date: datetime | None
+            la date recherchée (seul le jour est pris en compte),
+            ou None pour les trajets qui ne sont pas encore partis
 
         Return:
         ------
@@ -242,13 +245,19 @@ class TrajetDAO:
             en cas d'erreur lors de l'accès à la base de données
             (l'erreur est écrite dans les logs puis relancée)
         """
+        if date is None:
+            filtre_date = "   AND t.heure_depart > %(date)s                       "
+            date = datetime.now()
+        else:
+            filtre_date = "   AND t.heure_depart::date = %(date)s::date           "
+
         try:
             with DBConnexion().connexion as connection, connection.cursor() as cursor:
                 cursor.execute(
                     SELECT_TRAJET +
                     " WHERE l.id_gare_depart  = %(id_gare_depart)s             "
                     "   AND l.id_gare_arrivee = %(id_gare_arrivee)s            "
-                    "   AND t.heure_depart::date = %(date)s::date              "
+                    + filtre_date +
                     " ORDER BY t.heure_depart                                  ",
                     {
                         "id_gare_depart": gare_depart.id_gare,
@@ -259,6 +268,37 @@ class TrajetDAO:
                 trajets_bdd = cursor.fetchall()
         except Exception as e:
             logger.error(f"Erreur base de données dans TrajetDAO.rechercher : {e}")
+            raise
+
+        return [self._construire_trajet(trajet_bdd) for trajet_bdd in trajets_bdd]
+
+    @log
+    def lister_a_venir(self) -> list[Trajet]:
+        """
+        Récupère tous les trajets qui ne sont pas encore partis, sur toutes les lignes.
+
+        Return:
+        ------
+        list[Trajet]
+            les trajets à venir, triés par heure de départ (vide si aucun)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    SELECT_TRAJET +
+                    " WHERE t.heure_depart > %(maintenant)s            "
+                    " ORDER BY t.heure_depart, t.id_trajet             ",
+                    {"maintenant": datetime.now()},
+                )
+                trajets_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans TrajetDAO.lister_a_venir : {e}")
             raise
 
         return [self._construire_trajet(trajet_bdd) for trajet_bdd in trajets_bdd]

@@ -19,6 +19,14 @@ class SncfClient:
     """Client pour interroger l'API SNCF (authentification : token en identifiant, mot de passe vide)"""
 
     def __init__(self):
+        """
+        Récupère le token de l'API SNCF dans le fichier .env.
+
+        Raises:
+        ------
+        SncfConfigurationError
+            si le token est absent
+        """
         token = os.getenv("SNCF_API_TOKEN")
         if not token:
             logger.error("SNCF_API_TOKEN manquant dans le fichier .env : l'API SNCF ne peut pas être appelée")
@@ -26,18 +34,48 @@ class SncfClient:
         self.auth = (token, "")
 
     def _get(self, chemin: str, params: dict) -> dict:
-        """Envoie une requête GET à l'API et renvoie le JSON (lève une erreur si le code HTTP n'est pas 2xx)"""
+        """
+        Envoie une requête GET à l'API SNCF.
+
+        Param:
+        ------
+        chemin: str
+            la fin de l'adresse à appeler
+        params: dict
+            les paramètres de la requête
+
+        Return:
+        ------
+        dict
+            le contenu JSON de la réponse
+
+        Raises:
+        ------
+        requests.RequestException
+            si l'API est indisponible ou renvoie un code d'erreur
+        """
         reponse = requests.get(f"{BASE_URL}/{chemin}", params=params, auth=self.auth, timeout=10)
         reponse.raise_for_status()
         return reponse.json()
 
     def rechercher_gares(self, texte: str) -> list[dict]:
-        """Cherche des gares dont le nom correspond au texte.
+        """
+        Cherche des gares dont le nom correspond au texte.
+
+        Param:
+        ------
+        texte: str
+            le texte recherché
 
         Return:
         ------
         list[dict]
-            une liste de dictionnaires {"id_sncf": ..., "nom": ..., "ville": ...}
+            les gares trouvées, avec leur id_sncf, leur nom et leur ville
+
+        Raises:
+        ------
+        requests.RequestException
+            si l'API est indisponible
         """
         donnees = self._get("places", {"type[]": "stop_area", "q": texte})
         gares = []
@@ -54,7 +92,19 @@ class SncfClient:
 
     @staticmethod
     def _trouver_ville(stop_area: dict) -> str | None:
-        """Renvoie le nom de la commune (niveau administratif 8) d'une gare, ou None si absente"""
+        """
+        Cherche la commune (niveau administratif 8) d'une gare.
+
+        Param:
+        ------
+        stop_area: dict
+            la gare renvoyée par l'API SNCF
+
+        Return:
+        ------
+        str | None
+            le nom de la commune, ou None si elle est absente
+        """
         for region in stop_area.get("administrative_regions", []):
             if region.get("level") == 8:
                 return region["name"]

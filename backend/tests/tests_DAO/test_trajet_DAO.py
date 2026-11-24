@@ -238,7 +238,22 @@ def test_rechercher_parametres(mock_db):
     requete, parametres = cursor.execute.call_args.args
 
     assert "ORDER BY t.heure_depart" in requete
+    assert "t.heure_depart::date = %(date)s::date" in requete
     assert parametres == {"id_gare_depart": 1, "id_gare_arrivee": 3, "date": date}
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_rechercher_sans_date(mock_db):
+    """Pas de date : seuls les trajets qui partent après maintenant sont demandés"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+    avant = datetime.now()
+    TrajetDAO().rechercher(gare_matabiau, gare_montparnasse)
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "t.heure_depart > %(date)s" in requete
+    assert "ORDER BY t.heure_depart" in requete
+    assert avant <= parametres["date"] <= datetime.now()
 
 
 # Tests trouver_par_id
@@ -304,3 +319,42 @@ def test_creer_enregistre_temps_trajet(mock_db):
     requete, parametres = cursor.execute.call_args.args
     assert "temps_trajet" in requete
     assert parametres["temps_trajet"] == 81
+
+
+# Tests lister_a_venir
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_lister_a_venir_ok(mock_db):
+    """Seuls les trajets qui partent après maintenant sont demandés, dans l'ordre des départs"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = [trajet_toulouse_paris_matin, trajet_paris_rennes_sans_train]
+    avant = datetime.now()
+
+    trajets = TrajetDAO().lister_a_venir()
+    requete, parametres = cursor.execute.call_args.args
+
+    assert "t.heure_depart > %(maintenant)s" in requete
+    assert "ORDER BY t.heure_depart" in requete
+    assert avant <= parametres["maintenant"] <= datetime.now()
+    assert [trajet.id_trajet for trajet in trajets] == [10, 12]
+    assert trajets[1].train is None
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_lister_a_venir_aucun(mock_db):
+    """Aucun trajet à venir : liste vide"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.fetchall.return_value = []
+
+    assert TrajetDAO().lister_a_venir() == []
+
+
+@patch("src.Classes.classes_DAO.trajet_DAO.DBConnexion")
+def test_lister_a_venir_erreur_bdd(mock_db):
+    """Une erreur de la base est relancée"""
+    cursor = mock_db().connexion.__enter__().cursor().__enter__()
+    cursor.execute.side_effect = Exception("connexion perdue")
+
+    with pytest.raises(Exception, match="connexion perdue"):
+        TrajetDAO().lister_a_venir()

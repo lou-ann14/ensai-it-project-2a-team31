@@ -16,9 +16,9 @@ More details in [backend/README.md](backend/README.md) and [frontend/README.md](
 | | Feature | Who |
 |---|---|---|
 | **F1** | Create an account, log in, change password; the admin changes the role of an account (except other admins) | Everyone / ADMIN |
-| **F2** | Create, edit and delete a line between two stations (stations imported from the SNCF API, autocompletion) | COLLABORATEUR |
-| **F3** | Plan, edit and delete a journey (date, train, price); **travel time computed with the SNCF API** | COLLABORATEUR |
-| **F4** | Search the journeys between two stations on a given day | Everyone |
+| **F2** | List, create, edit and delete a line between two stations (stations imported from the SNCF API, autocompletion) | COLLABORATEUR |
+| **F3** | List, plan, edit and delete a journey (date, train, price); **travel time computed with the SNCF API** | COLLABORATEUR |
+| **F4** | Search the journeys between two stations (the date is optional) | Everyone |
 | **F5** | **Remaining seats** in each class and **transparent pricing** (price split: operating cost, network fee, margin, VAT) in the search results | Everyone |
 | **FO1** | Book a seat (given automatically, or picked from the free seats), see past and upcoming bookings, cancel | CLIENT |
 | **FO2** | Two travel classes: 2nd class (base price) and 1st class (base price × 1.5) | CLIENT |
@@ -32,7 +32,14 @@ client can (including booking), and an admin can do everything a collaborator ca
 
 Requirements: Python 3.13, [uv](https://docs.astral.sh/uv/), a PostgreSQL database and an SNCF API token.
 
-Create a `backend/.env` file (it is ignored by Git, never commit it):
+Copy `backend/.env.example` to `backend/.env` and fill in your own values (`.env` is ignored by Git,
+never commit it):
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+It contains:
 
 ```env
 POSTGRES_HOST=127.0.0.1
@@ -51,7 +58,7 @@ uv sync --project backend
 uv sync --project frontend   # only for the web interface
 ```
 
-Initialize the database (creates the tables and the test accounts, **deletes the schema if it exists**):
+Initialize the database (creates the tables, the test accounts and some demo data, **deletes the schema if it exists**):
 
 ```bash
 cd backend
@@ -81,13 +88,31 @@ On Onyxia, open ports 5000 / 8501 from the **Ports** tab of VS Code.
 | `collaborateur` | `456` | COLLABORATEUR |
 | `client` | `789` | CLIENT |
 
+### Demo data
+
+Stations, lines, trains, journeys and bookings are loaded when the database is initialized
+(`backend/data/donnees_demo.sql`). Dates are relative to that day, so there are always upcoming
+journeys. Examples: Rennes → Nantes has several journeys (one almost full), Rennes → Le Mans has
+none, and `client` has past and upcoming bookings.
+
+| Line id | Line | | Train number | Seats (1st / 2nd) |
+|---|---|---|---|---|
+| 1 | Rennes → Nantes | | 8501 (TGV) | 100 / 300 |
+| 2 | Nantes → Rennes | | 8502 (TGV) | 120 / 350 |
+| 3 | Rennes → Paris | | 5710 (TER) | 20 / 80 |
+| 4 | Paris → Rennes | | 5720 (TER) | 2 / 4 |
+| 5 | Nantes → Paris | | 5730 (TER) | 20 / 80 |
+| 6 | Paris → Bordeaux | | | |
+| 7 | Rennes → Le Mans | | | |
+
 ### Using the API (Swagger)
 
 1. `POST /login/` with a test account, then copy the `token_acces` you get back.
 2. On the other routes, paste this token in the **`x-auth-token`** field.
 3. Typical flow:
-   - **collaborator**: `POST /collaborateur/gares/importer?q=Rennes` (then `Nantes`) → `POST /collaborateur/trains`
-     → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`
+   - **collaborator**: `POST /collaborateur/gares/importer?q=Brest` (then `Quimper`) → `POST /collaborateur/trains`
+     → `POST /collaborateur/lignes` → `POST /collaborateur/trajets`. Existing ids are given by
+     `GET /collaborateur/lignes`, `GET /collaborateur/trains` and `GET /collaborateur/trajets`
    - **client**: `GET /utilisateur/trajets` (remaining seats, price details) → `GET /utilisateur/trajets/{id}/places`
      (free seats) → `POST /utilisateur/reservations`
      → `GET /utilisateur/reservations` → `DELETE /utilisateur/reservations/{id}`
@@ -117,10 +142,10 @@ On Onyxia, open ports 5000 / 8501 from the **Ports** tab of VS Code.
 
 ```bash
 cd backend
-uv run --with pytest --with httpx2 python -m pytest -q
+uv run python -m pytest -q
 ```
 
-416 tests, **85 % code coverage**. The database and the SNCF API are mocked (no connection
+446 tests, **87 % code coverage**. The database and the SNCF API are mocked (no connection
 needed). The full flow was also checked by hand on PostgreSQL with the real SNCF API.
 
 | Folder | What is tested |
@@ -137,7 +162,7 @@ needed). The full flow was also checked by hand on PostgreSQL with the real SNCF
 ```
 backend/
 ├── main.py                      # FastAPI application
-├── data/                        # init_bdd.sql (tables), admin.sql (test accounts)
+├── data/                        # init_bdd.sql (tables), admin.sql (test accounts), donnees_demo.sql (demo data)
 └── src/
     ├── Classes/
     │   ├── controller/          # HTTP routes: check the role, turn errors into HTTP codes

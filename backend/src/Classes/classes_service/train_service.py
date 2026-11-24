@@ -6,10 +6,25 @@ from src.utils.log_utils import log
 
 
 class TrainService:
+    """Classe qui gère les opérations métier sur les trains"""
 
     @staticmethod
     def _verifier_capacite(places_premieres: int, places_secondes: int) -> None:
-        """Vérifie que les nombres de places sont positifs ou nuls (lève ValueError sinon)."""
+        """
+        Vérifie que les nombres de places sont positifs ou nuls.
+
+        Param:
+        ------
+        places_premieres: int
+            le nombre de places en première classe
+        places_secondes: int
+            le nombre de places en seconde classe
+
+        Raises:
+        ------
+        ValueError
+            si un nombre de places est négatif
+        """
         if places_premieres < 0 or places_secondes < 0:
             raise ValueError("capacité incorrecte, le nombre de places doit être positif ou nul")
 
@@ -26,7 +41,7 @@ class TrainService:
             le nombre de places en première classe disponibles au départ
         places_secondes: int
             le nombre de places en seconde classe disponibles au départ
-        num_train
+        num_train: int
             le numéro du train
 
         Return:
@@ -93,6 +108,18 @@ class TrainService:
         return train
 
     @log
+    def lister(self) -> list[Train]:
+        """
+        Méthode servant à récupérer tous les trains.
+
+        Return:
+        ------
+        list[Train]
+            les trains, triés par numéro (vide si aucun)
+        """
+        return TrainDAO().lister()
+
+    @log
     def modifier_capacite(self, num_train: int, capacite_premiere: int, capacite_seconde: int):
         """
         Méthode servant à modifier la capacité d'un train existant.
@@ -138,7 +165,9 @@ class TrainService:
                     f"les réservations des trajets à venir de ce train en demandent au moins {requis}."
                 )
 
-        return TrainDAO().modifier_capacite(num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde)
+        return TrainDAO().modifier_capacite(
+            num_train, capacite_premiere=capacite_premiere, capacite_seconde=capacite_seconde
+        )
 
     @log
     def supprimer(self, num_train: int) -> bool:

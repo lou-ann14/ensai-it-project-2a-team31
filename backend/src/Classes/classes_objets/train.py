@@ -2,7 +2,7 @@ class Train:
     """Modélise la classe Train, qui permet de gérer les différentes caracteristiques des trains
     comme le nombre de place ou l'identifiant du train.
 
-    Params
+    Param:
     ------
     type_train: str
         Chaîne de caractère décrivant le type du train
@@ -15,7 +15,22 @@ class Train:
     id_train: int | None = None
         id du train dans la BDD
     """
-    def __init__(self, type_train: str, places_premieres: int, places_secondes: int, num_train: int, id_train: int | None = None):
+    def __init__(
+        self,
+        type_train: str,
+        places_premieres: int,
+        places_secondes: int,
+        num_train: int,
+        id_train: int | None = None,
+    ):
+        """
+        Crée un train après avoir vérifié le type des paramètres.
+
+        Raises:
+        ------
+        TypeError
+            si un paramètre n'a pas le bon type
+        """
         if id_train is not None and not isinstance(id_train, int):
             raise TypeError("L'identifiant du train doit être un entier.")
         if not isinstance(type_train, str):
@@ -34,6 +49,15 @@ class Train:
         self.id_train = id_train
 
     def __str__(self):
-        """Représentation string d'un train.
         """
-        return f"Le train numéro {self.num_train} dispose de {self.places_premieres} places en première classe et {self.places_secondes} en seconde classe, c'est un train {self.type_train}"
+        Représentation string d'un train.
+
+        Return:
+        ------
+        str
+            la description affichée
+        """
+        return (
+            f"Le train numéro {self.num_train} dispose de {self.places_premieres} places en première classe "
+            f"et {self.places_secondes} en seconde classe, c'est un train {self.type_train}"
+        )

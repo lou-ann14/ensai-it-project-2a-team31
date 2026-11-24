@@ -1,7 +1,7 @@
 class Gare:
     """Classe Gare : gère les différentes caractéristiques des gares
 
-    Params
+    Param:
     ------
     nom: str
         Nom de la gare
@@ -14,6 +14,14 @@ class Gare:
     """
 
     def __init__(self, nom: str, ville: str, id_sncf: str | None = None, id_gare: int | None = None):
+        """
+        Crée une gare après avoir vérifié le type des paramètres.
+
+        Raises:
+        ------
+        TypeError
+            si un paramètre n'a pas le bon type
+        """
         if not isinstance(nom, str):
             raise TypeError("Le nom doit être une chaîne de caractères.")
         if not isinstance(ville, str):
@@ -29,6 +37,12 @@ class Gare:
         self.id_sncf = id_sncf
 
     def __str__(self):
-        """Représentation string d'une gare.
+        """
+        Représentation string d'une gare.
+
+        Return:
+        ------
+        str
+            la description affichée
         """
         return f"La gare {self.nom} ({self.id_gare}) se situe à {self.ville}"

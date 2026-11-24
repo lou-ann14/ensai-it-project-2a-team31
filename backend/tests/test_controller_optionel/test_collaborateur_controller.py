@@ -3,11 +3,16 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.testclient import TestClient
 from src.Classes.controller import administrateur_controller, collaborateur_controller
 from src.Classes.classes_objets.gare import Gare
+from src.Classes.classes_objets.ligne import Ligne
+from src.Classes.classes_objets.train import Train
+from src.Classes.classes_objets.trajet import Trajet
 from src.schema.collaborateur_schema import TrajetCreationModel, TrajetModificationModel
 from src.schema.train_schema import TrainBaseModel
+from src.utils.securite import verif_token
 
 # Tests des routes du collaborateur : le service est remplacé par un MagicMock,
 # on vérifie seulement que le contrôleur renvoie les bons codes HTTP.
@@ -194,4 +199,99 @@ def test_routes_refusees_sans_le_grade_collaborateur(appel):
     with pytest.raises(HTTPException) as erreur:
         appel(service)
     assert erreur.value.status_code == 403
+    assert service.mock_calls == []
+
+
+# --------------------------------------------------------------- listes
+
+
+LIGNE = Ligne(RENNES, NANTES, id_ligne=3)
+TER = Train("TER", 20, 80, 857, id_train=4)
+
+
+@pytest.fixture
+def http():
+    """Renvoie une fonction qui crée un TestClient connecté avec l'utilisateur donné (None : pas connecté)"""
+    service = MagicMock()
+
+    def _http(utilisateur):
+        app = FastAPI()
+        app.include_router(collaborateur_controller.router)
+        app.dependency_overrides[collaborateur_controller.get_collaborateur_service] = lambda: service
+        if utilisateur is not None:
+            app.dependency_overrides[verif_token] = lambda: utilisateur
+        return TestClient(app), service
+
+    return _http
+
+
+def test_lister_lignes(http):
+    """Les lignes sont renvoyées avec leurs deux gares"""
+    client, service = http(COLLAB)
+    service.lister_lignes.return_value = [LIGNE]
+
+    reponse = client.get("/lignes")
+
+    assert reponse.status_code == 200
+    assert reponse.json()[0]["id_ligne"] == 3
+    assert reponse.json()[0]["gare_depart"]["nom"] == "Rennes"
+    assert reponse.json()[0]["gare_arrivee"]["nom"] == "Nantes"
+
+
+def test_lister_trains(http):
+    """Les trains sont renvoyés avec leur id"""
+    client, service = http(COLLAB)
+    service.lister_trains.return_value = [TER]
+
+    reponse = client.get("/trains")
+
+    assert reponse.status_code == 200
+    assert reponse.json() == [
+        {"type_train": "TER", "places_premieres": 20, "places_secondes": 80, "num_train": 857, "id_train": 4}
+    ]
+
+
+def test_lister_trajets(http):
+    """Les trajets sont renvoyés avec leur ligne, même sans train"""
+    client, service = http(COLLAB)
+    service.lister_trajets.return_value = [
+        Trajet(DEPART, DEPART, LIGNE, TER, 20.0, id_trajet=7),
+        Trajet(DEPART, DEPART, LIGNE, None, 20.0, id_trajet=8),
+    ]
+
+    reponse = client.get("/trajets")
+
+    assert reponse.status_code == 200
+    assert [trajet["id_trajet"] for trajet in reponse.json()] == [7, 8]
+    assert reponse.json()[0]["ligne"]["id_ligne"] == 3
+    assert [trajet["num_train"] for trajet in reponse.json()] == [857, None]
+
+
+@pytest.mark.parametrize("chemin", ["/lignes", "/trains", "/trajets"])
+def test_lister_vide(http, chemin):
+    """Rien en base : liste vide"""
+    client, service = http(COLLAB)
+    getattr(service, f"lister_{chemin[1:]}").return_value = []
+
+    reponse = client.get(chemin)
+
+    assert reponse.status_code == 200
+    assert reponse.json() == []
+
+
+@pytest.mark.parametrize("chemin", ["/lignes", "/trains", "/trajets"])
+def test_lister_refuse_pour_un_client(http, chemin):
+    """Compte client : 403, et le service n'est jamais appelé"""
+    client, service = http(CLIENT)
+
+    assert client.get(chemin).status_code == 403
+    assert service.mock_calls == []
+
+
+@pytest.mark.parametrize("chemin", ["/lignes", "/trains", "/trajets"])
+def test_lister_sans_token(http, chemin):
+    """Pas de token : 401"""
+    client, service = http(None)
+
+    assert client.get(chemin).status_code == 401
     assert service.mock_calls == []

@@ -175,6 +175,35 @@ class LigneDAO:
         return self._construire_ligne(ligne_bdd) if ligne_bdd else None
 
     @log
+    def lister(self) -> list[Ligne]:
+        """
+        Récupère toutes les lignes.
+
+        Return:
+        ------
+        list[Ligne]
+            les lignes, triées par gare de départ puis par gare d'arrivée (vide si aucune)
+
+        Raises:
+        ------
+        psycopg2.Error
+            en cas d'erreur lors de l'accès à la base de données
+            (l'erreur est écrite dans les logs puis relancée)
+        """
+        try:
+            with DBConnexion().connexion as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    SELECT_LIGNE +
+                    " ORDER BY gd.nom, ga.nom, l.id_ligne                  "
+                )
+                lignes_bdd = cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Erreur base de données dans LigneDAO.lister : {e}")
+            raise
+
+        return [self._construire_ligne(ligne_bdd) for ligne_bdd in lignes_bdd]
+
+    @log
     def modifier(self, ligne: Ligne) -> bool:
         """
         Met à jour les gares de départ et d'arrivée d'une ligne existante.

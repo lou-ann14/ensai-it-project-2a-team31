@@ -183,3 +183,11 @@ def test_supprimer_train_utilise_par_des_trajets(dao):
 
     with pytest.raises(ValueError, match="des trajets l'utilisent"):
         TrainService().supprimer(8541)
+
+
+def test_lister(dao):
+    """Le service renvoie les trains du DAO"""
+    trains = [Train("TGV", 100, 300, 8541, id_train=1), Train("TER", 20, 80, 857, id_train=2)]
+    dao.lister.return_value = trains
+
+    assert TrainService().lister() == trains

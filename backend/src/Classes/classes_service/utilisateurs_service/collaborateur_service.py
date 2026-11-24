@@ -17,7 +17,26 @@ class CollaborateurService:
 
     @staticmethod
     def _trouver_gares(gare_depart_id: int, gare_arrivee_id: int):
-        """Récupère les deux gares à partir de leur id (lève ValueError si l'une n'existe pas)."""
+        """
+        Récupère les deux gares d'une ligne à partir de leur id.
+
+        Param:
+        ------
+        gare_depart_id: int
+            l'id de la gare de départ
+        gare_arrivee_id: int
+            l'id de la gare d'arrivée
+
+        Return:
+        ------
+        tuple[Gare, Gare]
+            la gare de départ et la gare d'arrivée
+
+        Raises:
+        ------
+        ValueError
+            si l'une des deux gares n'existe pas
+        """
         gare_depart = GareDAO().trouver_par_id(gare_depart_id)
         if gare_depart is None:
             raise ValueError(f"La gare #{gare_depart_id} n'existe pas.")
@@ -25,6 +44,42 @@ class CollaborateurService:
         if gare_arrivee is None:
             raise ValueError(f"La gare #{gare_arrivee_id} n'existe pas.")
         return gare_depart, gare_arrivee
+
+    @log
+    def lister_lignes(self) -> list[Ligne]:
+        """
+        Méthode servant à récupérer toutes les lignes.
+
+        Return:
+        ------
+        list[Ligne]
+            les lignes (vide si aucune)
+        """
+        return LigneService().lister()
+
+    @log
+    def lister_trains(self) -> list[Train]:
+        """
+        Méthode servant à récupérer tous les trains.
+
+        Return:
+        ------
+        list[Train]
+            les trains (vide si aucun)
+        """
+        return TrainService().lister()
+
+    @log
+    def lister_trajets(self) -> list[Trajet]:
+        """
+        Méthode servant à récupérer tous les trajets à venir.
+
+        Return:
+        ------
+        list[Trajet]
+            les trajets à venir, avec leurs places restantes (vide si aucun)
+        """
+        return TrajetService().lister_a_venir()
 
     @log
     def creer_ligne(self, gare_depart_id: int, gare_arrivee_id: int, id_collaborateur: int) -> Ligne:

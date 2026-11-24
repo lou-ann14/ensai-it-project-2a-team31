@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from src.schema.utilisateur_schema import CompteCreationModel
 from src.Classes.classes_service.utilisateurs_service.utilisateur_service import (
     UtilisateurService,
 )
+from src.schema.utilisateur_schema import CompteCreationModel
 from src.utils.log_utils import get_logger
 
 router = APIRouter()

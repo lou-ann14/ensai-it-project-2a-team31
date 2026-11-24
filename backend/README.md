@@ -8,7 +8,7 @@ For more information, see the [main README](../README.md).
 
 ## Setup
 
-1. Create a `backend/.env` file:
+1. Copy `backend/.env.example` to `backend/.env` and fill in your own values:
 
    ```env
    POSTGRES_HOST=postgresql-cnpg-<suffixe>
@@ -17,7 +17,7 @@ For more information, see the [main README](../README.md).
    POSTGRES_USER=<username>
    POSTGRES_PASSWORD=<password>
    POSTGRES_SCHEMA=projet
-   SNCF_API_TOKEN<token>
+   SNCF_API_TOKEN=<token>
    ```
 
    This file contains passwords: it is ignored by Git and must never be committed.
@@ -28,7 +28,8 @@ For more information, see the [main README](../README.md).
    uv sync --project backend
    ```
 
-3. First launch only: initialize the database (creates the tables and the test accounts).
+3. First launch only: initialize the database (creates the tables, the test accounts and
+   some demo data).
    **Warning: this deletes everything in the schema.**
 
    ```bash
@@ -71,7 +72,7 @@ cannot change the role of another admin.
 |----------------------------------------|--------------------------|-------------------------------------------------------------|
 | `/login`, `POST /utilisateur/comptes`  | anyone                   | log in, create an account                                   |
 | `/utilisateur/...`                     | any logged-in user       | search stations and journeys, book, cancel, change password |
-| `/collaborateur/...`                   | COLLABORATEUR and ADMIN  | import stations, manage trains, lines and journeys          |
+| `/collaborateur/...`                   | COLLABORATEUR and ADMIN  | import stations, list and manage trains, lines and journeys |
 | `/admin/...`, `/reset_database`        | ADMIN only               | find an account, change a role, reset the database          |
 
 ## Architecture
@@ -100,6 +101,7 @@ Error codes: `400` invalid data or business rule not respected, `401` not logged
 | `uv.lock`             | Pins the exact version of each dependency (the frontend has its own) |
 | `data/init_bdd.sql`   | Creates the tables                                              |
 | `data/admin.sql`      | Creates the three test accounts                                 |
+| `data/donnees_demo.sql` | Adds demo data (stations, lines, trains, journeys, bookings)  |
 | `__init__.py`         | Marks a folder as a Python package                              |
 
 ## ⚒️ Development toolkit
@@ -115,21 +117,21 @@ which makes it easier to follow the data through the services.
 From the `backend/` folder:
 
 ```bash
-uv run --with pytest --with httpx2 python -m pytest -q
+uv run python -m pytest -q
 ```
 
 With the code coverage:
 
 ```bash
-uv run --with pytest --with httpx2 --with pytest-cov python -m pytest -q --cov=src
+uv run python -m pytest -q --cov=src
 ```
 
 The database and the SNCF API are mocked, so the tests do not need any connection.
-There are 416 tests (85 % coverage), split by layer:
+There are 446 tests (87 % coverage), split by layer:
 
 | Folder                           | What is tested                           |
 |----------------------------------|------------------------------------------|
 | `tests/test_objets`              | business objects, SNCF client, roles     |
 | `tests/tests_DAO`                | SQL queries                              |
 | `tests/tests_service`            | business rules                           |
-| `tests/test_controller_optionel` | HTTP routes (status codes, security)     |
+| `tests/test_controller_optionel`  | HTTP routes (status codes, security)     |

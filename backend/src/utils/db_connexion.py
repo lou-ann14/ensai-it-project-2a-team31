@@ -6,7 +6,7 @@ from src.utils.singleton import Singleton
 
 
 class DBConnexion(metaclass=Singleton):
-    """Gère la connexion à la base de données en implémentant le pattern Singelton.
+    """Gère la connexion à la base de données en implémentant le pattern Singleton.
 
     Cette classe assure qu'une seule connection à la base de données PostgreSQL
     soit ouverte lors de l'utilisation de l'application.
@@ -35,7 +35,7 @@ class DBConnexion(metaclass=Singleton):
     @property
     def connexion(self):
         """Donne accès à la connexion avec la base de données.
-        Returns:
+        Return:
             La connexion établie avec la base de données
         """
         return self.__connexion

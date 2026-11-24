@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class TrainBaseModel(BaseModel):
+    """Informations d'un train (type, places par classe et numéro)."""
 
     type_train: str
     places_premieres: int

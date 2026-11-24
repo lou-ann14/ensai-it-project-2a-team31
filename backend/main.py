@@ -37,6 +37,18 @@ app.add_middleware(LogMiddleware)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """
     Intercepte les erreurs Pydantic 422 pour les ajouter aux logs.
+
+    Param:
+    ------
+    request: Request
+        la requête reçue
+    exc: RequestValidationError
+        l'erreur de validation
+
+    Return:
+    ------
+    JSONResponse
+        la réponse 422, avec le détail des erreurs
     """
     body = await request.body()
     body_str = body.decode() if body else "empty body"
@@ -55,13 +67,39 @@ app.include_router(login_controller.router, prefix="/login", tags=["Login"])
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
-    """Redirige vers la documentation de l'API"""
+    """
+    Redirige vers la documentation de l'API.
+
+    Return:
+    ------
+    RedirectResponse
+        la redirection vers la page /docs
+    """
     return RedirectResponse(url="/docs")
 
 
 @app.get("/reset_database", tags=["BDD"])
 def reset_database(token=Depends(verif_token)):
-    """Réinitialise la base de données (ADMIN uniquement)"""
+    """
+    Réinitialise la base de données (ADMIN uniquement).
+
+    Param:
+    ------
+    token: Utilisateur
+        l'utilisateur connecté, retrouvé grâce à son token
+
+    Return:
+    ------
+    dict
+        un message qui indique le résultat
+
+    Raises:
+    ------
+    HTTPException
+        erreur 401 si le token est manquant ou invalide
+    HTTPException
+        erreur 403 si l'utilisateur n'est pas administrateur
+    """
     # Le grade est vérifié AVANT la réinitialisation : sinon n'importe quel compte connecté
     # pouvait effacer la base (l'erreur n'était levée qu'après coup).
     verifier_grade(token, "ADMIN")
