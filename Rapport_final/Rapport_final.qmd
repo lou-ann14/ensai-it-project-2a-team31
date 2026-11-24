@@ -209,10 +209,16 @@ Toutes les fonctionnalités reposent avant tout sur l’authentification des uti
 
 - Création de compte
 
-Un nouveau compte est toujours un compte client : c'est le service qui impose le grade, peu importe ce que contient la requête. Le mot de passe n'est jamais stocké en clair : il est haché avec, comme sel, le nom d'utilisateur, ce qui permet de donner des empreintes différentes pour deux utilisateurs ayant le même mot de passe.
+Lors de la création d’un compte, le controller vérifie que le nom et le mot de passe sont bien renseignés et que le nom n'est pas déjà pris. Un nouveau compte est toujours un compte client : c'est `UtilisateurService.creer_compte()` qui impose le grade, peu importe ce que contient la requête. De plus, le mot de passe n'est jamais stocké en clair : il est haché par cette même méthode avec, comme sel, le nom d'utilisateur, ce qui permet de donner des empreintes différentes pour deux utilisateurs ayant le même mot de passe.
+\
+- Changement de mot de passe 
 
+`UtilisateurService.changer_mdp()` exige l’ancien mot de passe. L’empreinte de ce dernier est donc vérifiée avant d’enregistrer la nouvelle empreinte (le nouveau mot de passe haché avec le nom d’utilisateur comme sel).
+\
 - Connexion
+
 `UtilisateurService.login()` compare l'empreinte du mot de passe saisi à celle de la base. Si elles correspondent, le service génère un token aléatoire (`secrets.token_urlsafe(32)`), qui est ensuite enregistré sur l’utilisateur dans la base, puis renvoyé avec l’identifiant, le nom et le grade de l’utilisateur. Une nouvelle connexion remplace le token précédent. 
+
 
 Pour toutes les autres fonctionnalités, l’identité d’un utilisateur est toujours déduite par ce token de connexion. En effet, celui-ci est envoyé dans l’en-tête HTTP par le front end ou le Swagger, puis la dépendance FastAPI `verif_token` retrouve l’utilisateur correspondant via `UtilisateurDAO`. C’est un point de sécurité important car cela implique qu’un client ne peut pas, par exemple, supprimer la réservation d’un autre client. Le controller vérifie ensuite que le grade de l'utilisateur est suffisant pour la fonctionnalité concernée. 
 
@@ -228,14 +234,8 @@ Pour toutes les fonctionnalités, les erreurs levées par les services ou les DA
 
 ## 2. Implémentation des fonctionnalités clés
 
-### Gestion du compte
-
-- Création du compte 
-Lors de la création d’un compte, le controller vérifie que le nom et le mot de passe sont bien renseignés et que le nom n'est pas déjà pris, puis délègue à `UtilisateurService.creer_compte()`, qui impose le grade comme “CLIENT” et hache le mot de passe. 
-
-- Changement de mot de passe 
-`UtilisateurService.changer_mdp()` exige l’ancien mot de passe. L’empreinte de ce dernier est donc vérifiée avant d’enregistrer la nouvelle empreinte (le nouveau mot de passe haché avec le nom d’utilisateur comme sel).
-
+Nous allons désormais détailler les choix d’implémentation des fonctionnalités centrales de notre application.
+Nous avons choisi de détailler davantage certaines fonctionnalités qui étaient caractéristiques de la mobilisation des différentes couches de l'application, ou pour mettre en valeur les spécificités d'une fonctionnalité.
 
 ### Recherche sur l’application
 
@@ -271,7 +271,6 @@ Ce cheminement permet de montrer un choix de conception important: séparer ce q
 - Recherche d’un trajet
 Pour rechercher un trajet, l’utilisateur doit renseigner deux gares (le jour est optionnel). La méthode `trouver_gare()` dans le controller utilisateur fait appel à `GareService.rechercher()` qui appelle la DAO, afin de renvoyer le trajet correspondantdans la base de données. 
 
-- Consultation train ?
 
 
 ### Gestion des réservation
@@ -365,3 +364,9 @@ Dans ce code Python, nous avons notamment eu recours à de nombreuses bibliothè
 Nous allons à présent voir les possibles modifications qu’il faudrait apporter à notre code selon différents scénarios – que cela soit pour apporter de nouvelles fonctionnalités à l’application ou bien pour changer de source de données.
 
 En effet, la question se pose de savoir si notre application deviendrait complètement inutile si l’API SNCF, notre source de données externes, devait disparaître. En réalité, d’autres sources de données similaires existent, même si celles-ci ne portent pas sur les voies ferrées du territoire français. Plusieurs alternatives existent donc : l’API Navitia.io, dont l’API SNCF est un sous-service, peut notamment donner l’accès à d’autres transports publics, comme ceux de l’Île de France par exemple. D’autres services ressemblant à l’API SNCF existent aussi à l’étranger. Si nous devions donc remplacer l’API SNCF par certaines de ces alternatives, nous n’aurions que certaines couches à modifier. En effet, notre application a été structurée pour que ces modifications ne soient que minimes. Les couches affectées sont donc les couches service, qui interagissent avec les APIs externes, et qui devront donc avoir des requêtes modifiées selon les spécificités de l’API utilisée. Des modifications peuvent aussi avoir lieu dans la couche DAO en lien avec les noms de données utilisées par l’API. De plus, les tokens devront être modifiés, mais la grande majorité de l’application ne serait ainsi pas affectée si l’API SNCF devait disparaître.
+
+# Annexes
+
+## Annexe 1 : Arborescence du code
+
+![Arborescence du code](images/arborescence.png){fig-align="center"}
