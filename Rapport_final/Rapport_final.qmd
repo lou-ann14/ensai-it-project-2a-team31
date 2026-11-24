@@ -149,8 +149,7 @@ La couche DAO est celle qui interagit avec la base de données. Elle donne accè
 
 ### Les utilitaires (dossier `utils`)
 
-La classe `DBConnexion` dans le fichier `utils/db_connexion.py` est le point d’accès à PostgreSQL pour la base de données . Elle utilise la bibliothèque psycopg2 et lit les informations de connexion à la base de donnée PostgreSQL rangées dans le `.env` (hôte, port, base, utilisateur, mot de passe, schéma). Elle utilise un `Singleton` (`utils/singleton.py`) pour garantir que l'application ne partage qu'une seule connexion à la base. De même, la classe SncfClient sert à configurer une unique connexion à l’API SNCF.
-[autres choses dans utils à mentionner?, securite?]
+La classe `DBConnexion` dans le fichier `utils/db_connexion.py` est le point d’accès à PostgreSQL pour la base de données . Elle utilise la bibliothèque psycopg2 et lit les informations de connexion à la base de donnée PostgreSQL rangées dans le `.env` (hôte, port, base, utilisateur, mot de passe, schéma). Elle utilise un `Singleton` (`utils/singleton.py`) pour garantir que l'application ne partage qu'une seule connexion à la base. De même, la classe SncfClient sert à configurer une unique connexion à l’API SNCF. Les questions de sécurité associées à ces connexions et comptes utilisateurs sont développées dans la suite de ce rapport.
 
 
 ## 3.  Base de données
