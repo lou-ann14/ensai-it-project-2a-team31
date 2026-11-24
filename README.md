@@ -117,7 +117,7 @@ On Onyxia, open ports 5000 / 8501 from the **Ports** tab of VS Code.
 
 ```bash
 cd backend
-uv run --with pytest --with httpx python -m pytest -q
+uv run --with pytest --with httpx2 python -m pytest -q
 ```
 
 416 tests, **85 % code coverage**. The database and the SNCF API are mocked (no connection
