@@ -42,13 +42,13 @@ cp backend/.env.example backend/.env
 It contains:
 
 ```env
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-POSTGRES_DATABASE=projet2a
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=...
-POSTGRES_SCHEMA=projet
-SNCF_API_TOKEN=...
+  POSTGRES_HOST=postgresql-cnpg-<suffixe>
+  POSTGRES_PORT=5432
+  POSTGRES_DATABASE=defaultdb #(by default, change if necessary)
+  POSTGRES_USER=<username>
+  POSTGRES_PASSWORD=<password>
+  POSTGRES_SCHEMA=projet
+  SNCF_API_TOKEN=<token>
 ```
 
 Install the dependencies (from the repository root):
