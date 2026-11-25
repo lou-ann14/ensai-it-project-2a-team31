@@ -76,7 +76,7 @@ format:
         \widowpenalty=10000 \clubpenalty=10000
         % Deux points apres les sous-sous-titres (absents de la table des matieres)
         \makeatletter
-        \newcommand{\deuxpoints}[1]{\ifstr{#1}{subsubsection}{ :}{\ifstr{#1}{paragraph}{ :}{}}}
+        \newcommand{\deuxpoints}[1]{\ifstrequal{#1}{subsubsection}{ :}{\ifstrequal{#1}{paragraph}{ :}{}}}
         \renewcommand{\sectionlinesformat}[4]{\@hangfrom{\hskip #2#3}{#4\deuxpoints{#1}}}
         \makeatother
         % Sous-partie : titre suivi de deux points, puis texte en retrait a la ligne
@@ -183,12 +183,6 @@ Année universitaire 2026--2027
 
 Dans un monde exigeant une grande mobilité des personnes et des biens, se déplacer est devenu un enjeu majeur pour tous et toutes. Cependant, ces déplacements viennent souvent à l'encontre de préoccupations environnementales grandissantes. En effet, les trajets en avion ou même en voiture sont extrêmement polluants : il est donc pertinent de se pencher sur l'une de leurs alternatives les plus vertes, c'est-à-dire le train, une industrie inestimable pour faire face aux enjeux climatiques de notre monde. Ainsi, il est tout aussi nécessaire d'avoir des services qui font fonctionner la concurrence, afin de permettre aux utilisateurs des chemins de fer d'avoir la meilleure expérience possible. C'est pour cette raison que la création d'un concurrent à la SNCF s'impose comme un sujet particulièrement important, et demandant un traitement attentif et complet.
 
-Ce travail a été réalisé dans le cadre du projet informatique de deuxième année de l'ENSAI, encadré par Kévin Leroy. Le sujet nous place dans le rôle de développeurs pour une nouvelle société de transport ferroviaire qui exploite le réseau SNCF. Cette société a besoin d'une application qui réponde aux attentes de chacun de ses utilisateurs :
-
-- **les collaborateurs** de son service commercial doivent organiser l'offre de la compagnie, c'est-à-dire créer et faire évoluer ses lignes, ses trains et ses trajets à partir des données de la SNCF ;
-- **les clients** souhaitent trouver un trajet et réserver leur place facilement. Ils ont aussi besoin de prix clairs : à la SNCF, ceux-ci varient selon la demande et la date de réservation, sans que le client sache toujours à quoi correspond le montant affiché ;
-- **les administrateurs** doivent gérer les comptes et contrôler les droits de chacun.
-
 Une question se pose alors : **comment concevoir une application fiable et sécurisée, qui permette à une compagnie ferroviaire de gérer son offre et à ses clients de réserver un trajet à un prix clair, en s'appuyant sur les données de la SNCF sans en dépendre entièrement ?**
 
 Pour y répondre, notre objectif est de fournir au service commercial une API lui permettant de gérer ses lignes et ses trajets, et aux clients de les rechercher et de les réserver. Afin d'accomplir cela, nous avons développé une application qui met en place l'ensemble des fonctionnalités du sujet, avec comme positionnement commercial la tarification transparente.
@@ -200,6 +194,12 @@ Ce rapport vise à expliquer dans le détail comment cette application a été c
 # I. Présentation du projet
 
 ## 1.  Cahier des charges et fonctionnalités de l'application
+
+Le sujet nous place dans le rôle de développeurs pour une nouvelle société de transport ferroviaire qui exploite le réseau SNCF. Cette société a besoin d'une application qui réponde aux attentes de chacun de ses utilisateurs :
+
+- **les collaborateurs** de son service commercial doivent organiser l'offre de la compagnie, c'est-à-dire créer et faire évoluer ses lignes, ses trains et ses trajets à partir des données de la SNCF ;
+- **les clients** souhaitent trouver un trajet et réserver leur place facilement. Ils ont aussi besoin de prix clairs : à la SNCF, ceux-ci varient selon la demande et la date de réservation, sans que le client sache toujours à quoi correspond le montant affiché ;
+- **les administrateurs** doivent gérer les comptes et contrôler les droits de chacun.
 
 Au cours de ce semestre, nous avons donc développé une application proposant les cinq fonctionnalités de base et les deux fonctionnalités optionnelles prévues par le sujet. L’API SNCF nous fournit les gares et les temps de trajet ; les lignes, les trains, les trajets, les prix et les réservations sont propres à notre application. La récupération, l'exploitation et l'enregistrement de ces données SNCF seront présentés avec les couches de code.
 
@@ -799,13 +799,84 @@ Dans ce code, nous avons aussi eu recours à de nombreuses bibliothèques, dont 
 
 Ce projet nous a permis de développer une application complète pour une compagnie ferroviaire concurrente de la SNCF. Les cinq fonctionnalités de base et les deux fonctionnalités optionnelles du sujet sont implémentées : gestion des comptes, des lignes et des trajets, recherche, tarification transparente, places restantes, réservation et classes de voyage. Clients, collaborateurs et administrateurs disposent ainsi chacun des services dont ils ont besoin.
 
-Nous pouvons donc répondre à la question posée en introduction. Les collaborateurs gèrent l'offre de la compagnie à partir des gares de la SNCF, et les clients connaissent, grâce à la tarification transparente, le détail du prix avant de réserver leur billet. L'organisation du code en couches est le choix le plus structurant de notre projet. Elle nous a permis de répartir le travail, de tester chaque couche séparément et de limiter l'utilisation de l'API SNCF à deux besoins : récupérer les gares et calculer les temps de trajet. Les données propres à notre compagnie restent ainsi dans notre base, et l'application continue de fonctionner en grande partie même si l'API est indisponible. Sa fiabilité s'appuie sur 446 tests, qui couvrent 87 % du code, et sa sécurité sur l'authentification par token, le hachage des mots de passe et la vérification des droits d'accès par le backend.
+Nous pouvons donc répondre à la question posée en introduction. Les collaborateurs gèrent l'offre de la compagnie à partir des gares de la SNCF, et les clients connaissent, grâce à la tarification transparente, le détail du prix avant de réserver leur billet. L'organisation du code en couches est le choix le plus structurant de notre projet. Elle nous a permis de répartir le travail, de tester chaque couche séparément et de limiter l'utilisation de l'API SNCF à deux besoins : récupérer les gares et calculer les temps de trajet. Les données propres à notre compagnie restent ainsi dans notre base, et l'application continue de fonctionner en grande partie même si l'API est indisponible. Sa fiabilité s'appuie sur les tests, et sa sécurité sur l'authentification par token, le hachage des mots de passe et la vérification des droits d'accès par le backend.
 
 Ce travail nous a aussi appris à faire des choix de conception et à les remettre en question. Dans une première version, l'identifiant du client était envoyé dans les requêtes, et un client pouvait donc annuler la réservation de quelqu'un d'autre. Nous nous en sommes aperçus en testant les fonctionnalités une par une. Cela nous a montré qu'il est préférable de réfléchir aux droits d'accès dès la conception, plutôt que de les ajouter à la fin.
 
 Notre application a toutefois des limites. Le token de connexion n'a pas de date d'expiration, un collaborateur peut changer l'heure d'un trajet déjà réservé sans que les clients en soient prévenus, et la partie administrateur est encore peu testée. Une date d'expiration, des notifications et des tests automatiques sur une vraie base PostgreSQL amélioreraient donc la sécurité, le service rendu et la qualité.
 
-Enfin, plusieurs évolutions sont possibles, comme l'ajout de correspondances ou d'une carte de réduction, ou encore le remplacement de l'API SNCF par une autre source de données, comme Navitia.io. Grâce à l'organisation en couches, l'application pourrait être enrichie sans remettre en cause son architecture. Elle constitue donc une base solide, que cette nouvelle compagnie pourrait faire évoluer avec les besoins de ses utilisateurs.
+Enfin, plusieurs évolutions sont possibles, comme l'ajout de correspondances ou d'une carte de réduction, ou encore le remplacement de l'API SNCF par une autre source de données, comme Navitia.io. Grâce à l'organisation en couches, l'application pourrait être enrichie sans remettre en cause son architecture. De plus, dans le cas de changements sur l'API SNCF, comme le changement de l'identifiant de certaines gares ayant eu lieu du 24 au 25 novembre, nous pouvons facilement modifier certaines parties du code grâce à ladite organisation en couches et maintenir le bon fonctionnement de notre application. Elle constitue donc une base solide, que cette nouvelle compagnie pourrait faire évoluer avec les besoins de ses utilisateurs.
+
+\clearpage
+
+# Notes individuelles
+
+## Note individuelle de Nathan TIATIA
+
+Le projet informatique aura été l’occasion de découvrir de nouvelles façons d’envisager la programmation. D’une part, ce projet m'a permis d’améliorer mes compétences en informatique. Notamment dans l’application pratique de l’enseignement de complément d’informatique. J’ai pu travailler notamment sur la couche DAO et Service durant l’écriture du code, me faisant assimiler les bons réflexes pour ces types de programmation. Le début fut tout de même assez laborieux pour ma part: le temps d’assimiler concrètement les objectifs du projets, ses moyens de réalisations, ou encore la mise en place du git, dossier du projet et de la base PostgreSQL. Néanmoins le groupe m’a toujours aidé dans les diverses interrogations que j’avais. Mon travail par la suite s’est davantage concentré sur les tests DAO, Services et Objets. J’ai pu reprendre à mon compte des connaissances acquises avec le projet informatique de l’année dernière. D’autre part, ce projet fut aussi pour moi l’occasion de travailler en équipe. Tout d’abord, l’ambiance au sein de notre groupe était excellente et a facilité la communication et la division du travail en groupe. Néanmoins un problème a pu freiner notre travail: la taille de notre groupe. Malgré cet obstacle, nous avons pu satisfaire les attentes de ce projet et travailler efficacement.
+
+\clearpage
+
+## Note individuelle de Satya KREMER
+
+Cette expérience de projet informatique était très enrichissante, notamment sur le point technique. J’ai pu apprendre les caractéristiques majeures d’une application, son architecture, et le fonctionnement d’une API. Je pense pouvoir me resservir de ces connaissances dans d’autres projets personnels, ou même professionnels si l’occasion se présente un jour. J’ai particulièrement apprécié comprendre le fonctionnement des liens entre une base de données et une application, ou encore entre un utilisateur et une API.
+La partie portant sur le Swagger était également très intéressante, avoir une véritable interface devant soi, bien que précaire, avec laquelle je pouvais interagir et voir les résultats du travail accompli par l’équipe était assez ludique.
+
+Enfin, j’ai pu me rendre compte de l’utilité de l’IA dans certains cas, et de ses limites dans d’autres. En effet, les décisions prises par l’équipe étaient souvent plus pertinentes et bien plus réalisables que celles que proposait l’IA, mais les revues d’erreurs de syntaxe ou manque de cohérence de cette dernière était très pratique pour gagner du temps, et corriger des erreurs “grossières” rapidement.
+
+Pour l’organisation du projet, je suis satisfait de ce que nous avons réalisé avec l’équipe. Les différentes réunions ont permis une bonne répartition des tâches, et chacun était investi dans le projet, malgré une taille de groupe un peu trop grande pour ce type de projet selon moi. Dans l’ensemble le travail était fait, même si malheureusement non renseigné sur le suivi certaines fois. 
+
+Personnellement, je pensais au départ que mon implication dans le travail de groupe n’était pas suffisante, je trouve que je n’ai pas assez participé à la conception du rapport d’analyse. Cependant, je suis content d’avoir pu mieux m’exprimer sur la partie technique/programmation du projet en tant que Tech leader, de même pour le rapport final.
+
+La plus grande difficulté de ce projet fût la cohérence du travail général, car chacun avait son style de rédaction et une appétence différente avec l’informatique. Sur ce dernier point, je suis content d’avoir pu être utile.
+
+Dans l’ensemble, mon ressenti sur le projet est très positif, malgré quelques difficultées de temps à autre, mais que nous avons, je trouve, bien su appréhender. J’ai pu beaucoup apprendre durant ce projet, tant sur le plan technique que sur le travail au sein d’une équipe de développement.
+
+\clearpage
+
+## Note individuelle d'Adam BENAMER
+
+Ce projet m'a d'abord permis d'y voir plus clair sur l'architecture générale d'une API et sur le rôle de chacune de ses parties. Le backend est la partie serveur qui traite les requêtes et gère les données. Les contrôleurs reçoivent les requêtes HTTP et renvoient les réponses. Les services appliquent les règles métier de l'application. Les DAO communiquent avec la base de données.
+
+J'ai particulièrement aimé travailler sur les endpoints et utiliser Swagger. Pouvoir tester directement la création d'une ligne ou d'un train, ou la réservation d'un trajet, rendait le travail beaucoup plus concret : on voyait immédiatement si ce qu'on avait codé fonctionnait vraiment.
+
+Sur le plan humain, j'ai globalement aimé travailler avec mon groupe. Tout le monde était sérieux et investi, ce qui a rendu le travail agréable. Je pense cependant qu'un groupe de six personnes, c'est beaucoup. Il était difficile de bien répartir les tâches, et trouver des créneaux où tout le monde était disponible s'est souvent révélé compliqué. Heureusement, le temps banalisé dans l'emploi du temps et dédié au projet nous a permis de nous retrouver régulièrement. Être nombreux rendait aussi plus difficile la cohérence du code : chacun a ses habitudes, et sans conventions communes fixées dès le départ (format des docstrings, nommage des fonctions etc..), on se retrouve avec des styles différents d'un fichier à l'autre. Cela m'a montré l'importance de relire le code des autres. Un groupe plus petit serait sans doute plus efficace sur ces points. Être nombreux avait toutefois un avantage évident : la charge de travail de chacun s'en trouvait allégée.
+
+Enfin, les suivis hebdomadaires ont parfois été oubliés. Les remplir le jeudi soir n'était pas forcément idéal. Comme nos séances avaient souvent lieu le vendredi, il me semblerait plus logique de les rédiger le vendredi soir, quand le bilan de la semaine est encore frais. J'ai aussi parfois eu du mal à estimer le temps réellement consacré à chaque tâche.
+
+Pour conclure, ce projet a été une expérience enrichissante, tant sur le plan technique que sur celui du travail en équipe, dont j'ai mesuré les avantages comme les difficultés d'organisation.
+
+\clearpage
+
+## Note individuelle de Laurine LEROY
+
+
+\clearpage
+
+## Note individuelle de Nour NSIRI
+
+J'ai beaucoup apprécié ce projet, surtout parce qu'il m'a permis d'appliquer concrètement ce que nous avions vu en cours d'informatique. Jusque-là, les notions de conception, d'architecture en couches ou de tests restaient assez théoriques pour moi. Ce projet leur a donné un vrai sens : j'ai compris pourquoi on sépare la couche Service de la couche DAO, et à quoi sert un diagramme de classes bien pensé avant de commencer à coder.
+
+C'était aussi ma première expérience de travail en groupe en France, dans un cadre presque professionnel. Au début, ce n'était pas toujours facile : je devais m'exprimer et expliquer mes idées dans une langue qui n'est pas la mienne, et surtout comprendre la manière de travailler de mes camarades, qui était parfois différente de ce que je connaissais. Avec le temps, je me suis adaptée, j'ai pris confiance, et j'ai fini par trouver ma place dans l'équipe.
+
+Ce qui m'a le plus satisfaite, c'est d'avoir participé à toutes les étapes du projet : des premiers diagrammes jusqu'au frontend, en passant par le backend. C'était la première fois que je créais et manipulais un backend. J'ai découvert comment construire une API, la documenter avec Swagger, puis tester chaque route pour vérifier qu'elle répondait bien à ce qui était attendu. J'ai souvent dû chercher, me tromper et recommencer, mais c'est justement ce qui m'a le plus appris. Écrire des tests m'a aussi obligée à réfléchir aux cas limites et aux erreurs possibles, et pas seulement au cas où tout se passe bien.
+
+Ce projet m'a également appris à mieux gérer mon temps. Avec plusieurs étapes dépendantes les unes des autres et des échéances à respecter, il fallait s'organiser, avancer régulièrement et anticiper, pour ne pas tout faire dans l'urgence à la fin.
+
+La principale leçon que je retiens est que, même avec l'évolution rapide de l'intelligence artificielle, l'empreinte humaine reste essentielle. Un outil peut aider à écrire du code, mais il ne peut pas remplacer la compréhension du besoin, la réflexion sur la conception, ni la vigilance de celui qui teste, doute et vérifie que tout fonctionne vraiment.
+
+\clearpage
+
+## Note individuelle de Lou-Ann CLEMENT
+
+Au cours de ce projet, j’ai eu le rôle de cheffe de projet, un rôle que j’ai trouvé très utile au bon déroulement du projet, surtout dans un groupe nombreux. En effet, avoir une personne désignée pour l’organisation de réunions de travail a été un réel plus notamment lors de périodes chargées de partiels. Cette expérience en tant qu’élément médiateur du groupe m’a été très précieuse.
+
+La phase de constitution du dossier d’analyse était par exemple un peu plus difficile à gérer car ayant lieu en début d’année, à un moment où les différentes charges de travail des matières n’étaient pas forcément encore connues. Cependant, une fois entrés dans la phase de code, une organisation plus claire s’est établie. C’est aussi à ce moment-là que certaines tâches organisationnelles ont été prises en charge par le tech leader, Satya Kremer. Ayant plus de connaissances sur le déroulement d’un projet, la responsabilité de liste des tâches était alors partagée. Le rôle de répartition des tâches me revenait encore, et j’ai beaucoup aimé cet aspect un peu plus managérial du projet. Lors de mes projets précédents se déroulant en première année, j’étais dans des groupes de plus petite taille (trois ou quatre), et cette dimension un peu plus professionnalisante du travail plus structuré ayant lieu en plus grand groupe a été très enrichissante pour moi.
+La taille de notre groupe a donc été un enjeu tout autant qu’un point fort. En effet, notre équipe de six a pu accomplir de nombreux objectifs, mais l’organisation autour de l’équipe a aussi demandé une forte flexibilité de la part du groupe dans son ensemble. S’adapter aux emplois du temps de chacun était assez complexe, et des réunions se sont parfois déroulées en l’absence d’un membre de l’équipe, requérant ensuite un compte-rendu général et personnalisé pour la personne absente. Cela n’a eu lieu qu’une seule fois, mais les autres réunions n’en étaient pas moins complexes à caler lors d’une deuxième année déjà assez robuste en attendus.
+
+Au-delà du côté organisationnel et managérial dont j’ai déjà parlé, ce projet m’a réellement aidé à consolider mes acquis et développer mes connaissances en termes de code. Mettre en pratique des concepts vus en cours en dehors des paramètres précis des TPs a été très enrichissant, et m’a permis de comprendre plus en profondeur la nature exacte des liens entre couches de code. Notre groupe a notamment choisi lors du code initial des classes de séparer ces classes et d’en attribuer à chaque membre de l’équipe, pour qu’il ou elle puisse coder cette classe à travers les différentes couches. Lors de cet effort initial, ma tâche était notamment de coder les premières versions des tests, et cela m’a amené à relire les classes à travers les différentes couches pour vérifier leur cohérence, ce qui m’a fortement aidé dans la prise en main d’une architecture de code qui me semblait en début de semestre très complexe.
+
+Pour conclure, les enseignements que j’ai pu tirer de cette expérience étaient à la fois des compétences d’informatique pure et de management d’un projet. En tant que cheffe de projet, j’ai pu à la fois participer au code d’un projet plus complet et performant que ce que j’ai pu produire en première année, et apprendre à gérer une équipe assez large et demandant donc une organisation assez précise. Si je devais faire quelque chose différemment au cours de ce projet, ce serait de plus aller vers les membres individuels de mon équipe pour mieux connaître leurs potentiels freins et/ou obstacles lors de différentes phases, et ainsi mieux répartir la charge de travail ou les durées de traitement de certaines tâches. Néanmoins, je pense que le style plus général de communication que nous avons maintenu au cours du semestre a bien marché, et j’ai passé une très bonne première expérience de travail en équipe, grâce à mes coéquipiers qui ont toujours été réactifs, travailleurs et motivés.
 
 \clearpage
 
