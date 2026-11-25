@@ -359,7 +359,7 @@ Chaque objet a sa classe DAO correspondante, qui contient les opérations dont l
 
 Le dossier `utils` regroupe les outils communs aux autres couches :
 
-- **db_connexion.py** : la classe `DBConnexion` est le point d'accès à PostgreSQL. Elle utilise la bibliothèque psycopg2 et lit les informations de connexion rangées dans le fichier `.env` (hôte, port, base, utilisateur, mot de passe, schéma) ;
+- **db_connexion.py** : la classe `DBConnexion` est le point d'accès à PostgreSQL. Elle utilise la bibliothèque psycopg2 et lit les informations de connexion rangées dans le fichier `.env` (hôte, port, base, utilisateur, mot de passe, schéma) que l’on récupère à l’aide des fonctions du fichier env_var.py ;
 - **singleton.py** : la classe `Singleton`, sur laquelle s'appuie `DBConnexion`, garantit que l'application ne partage qu'une seule connexion à la base ;
 - **sncf_client.py** : la classe `SncfClient` regroupe tous les appels à l'API SNCF ;
 - **securite.py** : le hachage des mots de passe, la vérification du token et celle du grade ;
@@ -435,9 +435,9 @@ La base est décrite dans trois fichiers SQL, situés dans le dossier `data/` :
 
 - **init_bdd.sql** crée les six tables avec leurs contraintes ;
 - **admin.sql** crée trois comptes pour démontrer les fonctionnalités par grade (administrateur, collaborateur, client). Leurs mots de passe sont stockés sous forme hachée, comme pour un compte créé depuis l'application ;
-- **donnees_demo.sql** ajoute un jeu de données de démonstration : gares, lignes, trains, trajets et réservations. Les dates des trajets sont calculées à partir du jour de l'initialisation, afin qu'il y ait toujours des trajets à venir.
+- **donnees_demo.sql** ajoute un jeu de données de démonstration, le but étant de tester toutes les fonctionnalités de l'application. Le jeu de données est généré par des collaborateurs, en se basant sur des gares existantes de la SNCF. Les dates des trajets sont calculées à partir du jour de l'initialisation, afin qu'il y ait toujours des trajets à venir.
 
-Comme tout est décrit dans ces fichiers, n'importe quel membre de l'équipe peut recréer une base identique à partir de zéro. La classe `Reset_bdd` permet d'automatiser cela : elle supprime le schéma de travail, le recrée, puis exécute les trois fichiers cités précédemment. Via l'API, cette opération est réservée aux administrateurs.
+Comme tout est décrit dans ces fichiers, n'importe quel membre de l'équipe peut recréer une base identique à partir de zéro. La fonction Reset_bdd permet d’automatiser cette réinitialisation. C’est-à-dire qu’elle supprime le schéma de travail, le recrée, puis exécute les trois fichiers de code SQL cités précédemment. Cette opération est réservée aux administrateurs, via notre API. La réinitialisation nous aura été utile tout au long du développement du code de l’application. Elle nous permet d’effectuer plusieurs tests manuels, de corriger rapidement une base devenue incohérente et de préparer un environnement propre avant une démonstration.
 
 Elle nous aura été utile tout au long du développement, pour effectuer plusieurs tests manuels, corriger rapidement une base devenue incohérente et préparer un environnement propre avant une démonstration.
 
