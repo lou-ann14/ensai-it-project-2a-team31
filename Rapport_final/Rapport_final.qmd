@@ -304,7 +304,7 @@ Voici plus en détail les classes des différentes couches du backend. La figure
 ```{=latex}
 \begin{figure}[!htbp]
 \centering
-\makebox[\textwidth][c]{\includegraphics[width=1.18\textwidth]{images/diagramme_classes_objets_v4.png}}
+\makebox[\textwidth][c]{\includegraphics[width=1.18\textwidth]{images/diagramme_classes_objets.png}}
 \caption{Diagramme de classes des objets métier}
 \label{fig-objets}
 \end{figure}
@@ -319,7 +319,7 @@ Pour plus de lisibilité, nous avons séparé les services et les DAO en deux di
 
 La figure \ref{fig-services} présente les classes de la couche service et leurs méthodes. Les DAO y sont seulement rappelés par leur nom, puisqu'ils sont détaillés dans le diagramme suivant.
 
-![Diagramme de classes des services](images/diagramme_classes_services.png){#fig-services fig-pos="!htbp" fig-align="center" width="94%"}
+![Diagramme de classes des services](images/diagramme_classes_services (1).png){#fig-services fig-pos="!htbp" fig-align="center" width="94%"}
 
 La figure \ref{fig-dao} détaille de la même façon les classes DAO, ainsi que les utilitaires `DBConnexion`, `Singleton` et `SncfClient`. Une vue d'ensemble de toutes ces classes est donnée en annexe 1.
 
@@ -843,6 +843,16 @@ Pour conclure, ce projet a été une expérience enrichissante, tant sur le plan
 
 ## Note individuelle de Laurine LEROY
 
+J’ai apprécié travailler sur ce projet informatique car il m’a permis de progresser en programmation Python et de mieux comprendre concrètement la structuration d’un projet en couches.
+
+Durant les premières semaines du projet, j’avais d’abord rencontré des difficultés à appréhender les interactions entre les différentes couches, et notamment à comprendre comment les fonctionnalités devaient être implémentées et articulées entre elles. J’ai trouvé que le projet informatique de l’année précédente ne m’avait pas nécessairement donné les repères suffisants pour aborder ce type de travail, et je me suis donc sentie assez perdue au début. Cependant, j’ai pu par la suite participer à l’écriture de différentes couches, que ce soit par le développement de classes, la réalisation de tests ou encore la relecture du code pour comprendre les interactions entre les composants, ce qui m’a permis de mieux comprendre cette architecture. J’ai également pris conscience de l’importance de la phase de modélisation en amont de l’implémentation.
+
+J’ai particulièrement apprécié découvrir comment développer une interface permettant à l’utilisateur d’interagir avec l’application, plus particulièrement à travers le Swagger. C’était un aspect que je n’avais pas eu l’occasion d'aborder lors du projet de l’année précédente et que j’ai trouvé particulièrement intéressant.
+
+En revanche, je n’ai pas directement participé à la mise en place de la connexion avec l’API SNCF ni à la configuration de la base de données. Ces aspects du projet restent donc moins familiers pour moi et j’aurais apprécié avoir l’occasion de les approfondir davantage.
+
+Enfin, j’ai trouvé que nous avions globalement réussi à nous organiser efficacement et à répartir les tâches de manière satisfaisante tout au long du projet. Il y a néanmoins eu quelques difficultés de communication à certains moments, ce qui peut aussi s’expliquer par la complexité de la coordination d’un groupe de six personnes. Cette expérience m’a ainsi permis de prendre conscience de l’importance de la communication et de la coordination lors d’un projet collectif.
+
 
 \clearpage
 
@@ -882,8 +892,8 @@ La figure \ref{fig-complet} donne une vue d'ensemble des services, des DAO et de
 ```{=latex}
 \begin{figure}[H]
 \centering
-\makebox[\textwidth][c]{\includegraphics[height=0.77\textheight,trim=60 65 60 60,clip]{images/diagramme_classes_complet.pdf}}
-\caption{Diagramme de classes complet des services, des DAO et des utilitaires}
+\includegraphics[angle=90, width=0.6\textwidth]{images/diagramme_classes_complet.png}
+\caption{Diagramme de classe des services, DAO et objets}
 \label{fig-complet}
 \end{figure}
 ```
