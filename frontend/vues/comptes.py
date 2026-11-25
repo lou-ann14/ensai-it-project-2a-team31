@@ -1,7 +1,6 @@
-import streamlit as st
-
 import api
 import commun
+import streamlit as st
 
 GRADES = ["CLIENT", "COLLABORATEUR", "ADMIN"]
 

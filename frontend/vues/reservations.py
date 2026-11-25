@@ -1,9 +1,8 @@
 from datetime import datetime
 
-import streamlit as st
-
 import api
 import commun
+import streamlit as st
 
 st.title("Mes réservations")
 

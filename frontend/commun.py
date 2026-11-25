@@ -2,9 +2,8 @@
 
 from datetime import datetime
 
-import streamlit as st
-
 import api
+import streamlit as st
 import style
 
 COEFFICIENT_PREMIERE_CLASSE = 1.5  # identique à reservations_service.py

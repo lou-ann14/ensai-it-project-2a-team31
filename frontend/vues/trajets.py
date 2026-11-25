@@ -1,9 +1,8 @@
 from datetime import date, datetime, time, timedelta
 
-import streamlit as st
-
 import api
 import commun
+import streamlit as st
 
 st.title("Trajets")
 st.caption("L'heure d'arrivée et le temps de trajet sont calculés automatiquement par l'API SNCF.")

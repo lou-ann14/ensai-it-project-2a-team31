@@ -15,9 +15,8 @@ with (
 
 def test_reset_refuse_pour_un_non_admin():
     """Un compte non ADMIN reçoit une 403 et la base n'est PAS réinitialisée"""
-    with patch("main.Reset_bdd") as reset:
-        with pytest.raises(HTTPException) as erreur:
-            main.reset_database(token=MagicMock(grade="CLIENT"))
+    with patch("main.Reset_bdd") as reset, pytest.raises(HTTPException) as erreur:
+        main.reset_database(token=MagicMock(grade="CLIENT"))
 
     assert erreur.value.status_code == 403
     reset.return_value.demarrer.assert_not_called()
