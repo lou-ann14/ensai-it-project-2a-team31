@@ -144,11 +144,11 @@ lang: fr
 \raggedright
 \textbf{Étudiants :}\\[0.15cm]
 Adam \textsc{\rmfamily Benamer}\\
-Satya \textsc{\rmfamily Kremer}\\
-Nathan \textsc{\rmfamily Tiatia}\\
-Laurine \textsc{\rmfamily Leroy}\\
 Lou-Ann \textsc{\rmfamily Clement}\\
-Nour \textsc{\rmfamily Nsiri}
+Satya \textsc{\rmfamily Kremer}\\
+Laurine \textsc{\rmfamily Leroy}\\
+Nour \textsc{\rmfamily Nsiri}\\
+Nathan \textsc{\rmfamily Tiatia}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.45\textwidth}
 \raggedleft
@@ -260,9 +260,13 @@ Pour améliorer la communication et la collaboration du groupe, nous avons utili
 
 La figure \ref{fig-gantt} présente le planning prévisionnel du projet, avec l'enchaînement des tâches et les échéances à respecter.
 
-![Diagramme de Gantt prévisionnel du projet](images/Diagramme_Gantt V2.png){#fig-gantt fig-pos="!htbp" fig-align="center" width="110%" height="35%"}
+![Diagramme de Gantt prévisionnel du projet](images/diagramme_gantt_v3.png){#fig-gantt fig-pos="!htbp" fig-align="center" width="100%"}
 
-Ce diagramme, réalisé lors de la phase d'analyse, prévoyait de développer l'application couche par couche, avec une période de tests après chaque étape. Le projet s'est en réalité déroulé un peu différemment : nous avons plutôt réparti les classes aux différents membres du groupe pour que celles-ci soient codées à travers toutes les couches, tandis que les tests étaient écrits en même temps. Puis en novembre nous nous sommes concentrés sur le lien avec l'API externe ainsi que la configuration du swagger, tout en corrigeant les erreurs présentes dans le code. Enfin, le rapport et la correction finale des erreurs de code ont eu lieu de mi à fin novembre.
+Ce diagramme, réalisé lors de la phase d'analyse, prévoyait de développer l'application couche par couche, avec une période de tests après chaque étape. Le projet s'est en réalité déroulé un peu différemment :
+
+- **Développement des classes** : nous avons plutôt réparti les classes aux différents membres du groupe pour que celles-ci soient codées à travers toutes les couches, tandis que les tests étaient écrits en même temps. Ce travail a concerné les objets, les DAO et les services, en parallèle de la mise en place de la base de données et du lancement de l'API.
+- **Lien avec l'API externe et Swagger** : puis en novembre nous nous sommes concentrés sur le lien avec l'API externe ainsi que la configuration du swagger, tout en corrigeant les erreurs présentes dans le code. Le lien avec l'API SNCF a porté sur la recherche des gares et le calcul de la durée des trajets, et la connexion des utilisateurs a été mise en place à la même période. Le front end a ensuite été ajouté.
+- **Rapport et corrections finales** : enfin, le rapport et la correction finale des erreurs de code ont eu lieu de mi à fin novembre. Les fichiers README ont également été complétés et les diagrammes du dossier d'analyse corrigés à cette occasion.
 
 \clearpage
 
@@ -319,7 +323,14 @@ Pour plus de lisibilité, nous avons séparé les services et les DAO en deux di
 
 La figure \ref{fig-services} présente les classes de la couche service et leurs méthodes. Les DAO y sont seulement rappelés par leur nom, puisqu'ils sont détaillés dans le diagramme suivant.
 
-![Diagramme de classes des services](images/diagramme_classes_services (1).png){#fig-services fig-pos="!htbp" fig-align="center" width="94%"}
+```{=latex}
+\begin{figure}[!htbp]
+\centering
+\makebox[\textwidth][c]{\includegraphics[width=1.2\textwidth]{images/diagramme_classes_services_v2.png}}
+\caption{Diagramme de classes des services}
+\label{fig-services}
+\end{figure}
+```
 
 La figure \ref{fig-dao} détaille de la même façon les classes DAO, ainsi que les utilitaires `DBConnexion`, `Singleton` et `SncfClient`. Une vue d'ensemble de toutes ces classes est donnée en annexe 1.
 
@@ -883,16 +894,29 @@ Pour conclure, les enseignements que j’ai pu tirer de cette expérience étaie
 
 \clearpage
 
+```{=latex}
+% Image placee sur toute la hauteur de la page, le titre occupe la zone vide en haut a droite
+\noindent\hspace*{-8mm}\raisebox{0pt}[0pt][0pt]{\raisebox{-0.935\textheight}{\includegraphics[angle=90, totalheight=0.95\textheight]{images/diagramme_classes_complet.png}}}\par\vspace{-1.5\baselineskip}
+\begingroup
+\renewcommand{\sectionlinesformat}[4]{\hspace*{40mm}#3#4}
+```
+
 # Annexes
 
 ## Annexe 1 : Diagramme de classes complet
 
+```{=latex}
+\begingroup\leftskip=55mm
+```
+
 La figure \ref{fig-complet} donne une vue d'ensemble des services, des DAO et des utilitaires, ainsi que de leurs liens. Les méthodes ajoutées par la suite figurent dans les figures \ref{fig-services} et \ref{fig-dao}.
 
 ```{=latex}
+\par\endgroup
+\endgroup
+\vfill
 \begin{figure}[H]
 \centering
-\includegraphics[angle=90, width=0.6\textwidth]{images/diagramme_classes_complet.png}
 \caption{Diagramme de classe des services, DAO et objets}
 \label{fig-complet}
 \end{figure}
