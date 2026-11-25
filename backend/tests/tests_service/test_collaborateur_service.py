@@ -5,7 +5,9 @@ import pytest
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
-from src.Classes.classes_service.utilisateurs_service.collaborateur_service import CollaborateurService
+from src.Classes.classes_service.utilisateurs_service.collaborateur_service import (
+    CollaborateurService,
+)
 
 # Les services appelés par CollaborateurService sont simulés : aucun appel réel n'est fait.
 

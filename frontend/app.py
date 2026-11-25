@@ -6,10 +6,9 @@ Lancement (depuis la racine du dépôt) :
 
 from html import escape
 
-import streamlit as st
-
 import api
 import commun
+import streamlit as st
 import style
 
 st.set_page_config(page_title="Concurrent SNCF", page_icon=":material/train:", layout="wide")

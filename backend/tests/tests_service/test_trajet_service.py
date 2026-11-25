@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -761,10 +761,9 @@ def test_modifier_trajet_deja_parti_refuse(mocks):
 
 def test_date_avec_fuseau_horaire():
     """Une date recue avec un fuseau (ex. '...Z') est comparee sans erreur"""
-    from datetime import timezone
-    TrajetService()._verifier_donnees(1, 1, datetime(2030, 1, 1, 8, 0, tzinfo=timezone.utc), 10.0)
+    TrajetService()._verifier_donnees(1, 1, datetime(2030, 1, 1, 8, 0, tzinfo=UTC), 10.0)
     with pytest.raises(ValueError, match="dans le futur"):
-        TrajetService()._verifier_donnees(1, 1, datetime(2020, 1, 1, 8, 0, tzinfo=timezone.utc), 10.0)
+        TrajetService()._verifier_donnees(1, 1, datetime(2020, 1, 1, 8, 0, tzinfo=UTC), 10.0)
 
 
 # tests : modification d'un trajet qui a des reservations

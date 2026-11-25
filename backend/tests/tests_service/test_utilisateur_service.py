@@ -2,7 +2,9 @@ from unittest.mock import patch
 
 import pytest
 from src.Classes.classes_objets.utilisateurs.utilisateur import Utilisateur
-from src.Classes.classes_service.utilisateurs_service.utilisateur_service import UtilisateurService
+from src.Classes.classes_service.utilisateurs_service.utilisateur_service import (
+    UtilisateurService,
+)
 from src.utils.securite import hash_password
 
 # La base est simulée : aucun appel réel n'est fait.
