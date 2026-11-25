@@ -251,7 +251,7 @@ Les tâches étaient réparties lors de réunions de travail : les diagrammes et
 
 Pour améliorer la communication et la collaboration du groupe, nous avons utilisé :
 
-- **WhatsApp**, régulièrement, pour échanger en dehors des réunions ;
+- **Des plate-formes en ligne**, régulièrement, pour échanger en dehors des réunions et maintenir une communication continue ;
 - **Google Drive**, pour centraliser diagrammes et retours du tuteur notamment ;
 - **GitHub**, pour partager le code, ce qui nous a permis de travailler en parallèle et de garder une trace de chaque modification ;
 - **le dossier suivi-folder** de notre dépôt, dans lequel était déposé chaque semaine un compte rendu indiquant les tâches réalisées par chacun, le temps passé et les priorités à venir.
@@ -262,7 +262,7 @@ La figure \ref{fig-gantt} présente le planning prévisionnel du projet, avec l'
 
 ![Diagramme de Gantt prévisionnel du projet](images/Diagramme_Gantt V2.png){#fig-gantt fig-pos="!htbp" fig-align="center" width="110%" height="35%"}
 
-Ce diagramme, réalisé lors de la phase d'analyse, prévoyait de développer l'application couche par couche, avec une période de tests après chaque étape. La fin du projet s'est étalée un peu plus longtemps que prévu : la rédaction du rapport et les dernières corrections du code se sont poursuivies jusqu'à la semaine du rendu.
+Ce diagramme, réalisé lors de la phase d'analyse, prévoyait de développer l'application couche par couche, avec une période de tests après chaque étape. Le projet s'est en réalité déroulé un peu différemment : nous avons plutôt réparti les classes aux différents membres du groupe pour que celles-ci soient codées à travers toutes les couches, tandis que les tests étaient écrits en même temps. Puis en novembre nous nous sommes concentrés sur le lien avec l'API externe ainsi que la configuration du swagger, tout en corrigeant les erreurs présentes dans le code. Enfin, le rapport et la correction finale des erreurs de code ont eu lieu de mi à fin novembre.
 
 \clearpage
 
