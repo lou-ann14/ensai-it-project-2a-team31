@@ -260,14 +260,7 @@ Pour améliorer la communication et la collaboration du groupe, nous avons utili
 
 La figure \ref{fig-gantt} présente le planning prévisionnel du projet, avec l'enchaînement des tâches et les échéances à respecter.
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\makebox[\textwidth][c]{\includegraphics[width=0.97\textwidth]{images/diagramme_gantt.png}}
-\caption{Diagramme de Gantt prévisionnel du projet}
-\label{fig-gantt}
-\end{figure}
-```
+![Diagramme de Gantt prévisionnel du projet](images/Diagramme_Gantt V2.png){#fig-gantt fig-pos="!htbp" fig-align="center" width="110%" height="35%"}
 
 Ce diagramme, réalisé lors de la phase d'analyse, prévoyait de développer l'application couche par couche, avec une période de tests après chaque étape. La fin du projet s'est étalée un peu plus longtemps que prévu : la rédaction du rapport et les dernières corrections du code se sont poursuivies jusqu'à la semaine du rendu.
 
