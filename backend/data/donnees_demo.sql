@@ -3,11 +3,11 @@
 -- Les dates sont calculées à partir du jour de l'initialisation : il y a toujours des trajets à venir.
 
 INSERT INTO gares(id_sncf, nom, ville) VALUES
-('stop_area:SNCF:87471003', 'Rennes', 'Rennes'),
-('stop_area:SNCF:87481002', 'Nantes', 'Nantes'),
-('stop_area:SNCF:87391003', 'Paris - Montparnasse - Hall 1 & 2', 'Paris'),
-('stop_area:SNCF:87581009', 'Bordeaux Saint-Jean', 'Bordeaux'),
-('stop_area:SNCF:87396002', 'Le Mans', 'Le Mans');
+('stop_area:SNC:FR::LMU:7bdfb4d0-cb0a-11e8-8bfa-f784c1c7c611:', 'Rennes', 'Rennes'),
+('stop_area:SNC:FR::LMU:9841ca00-cb0a-11e8-8bfa-f784c1c7c611:', 'Nantes', 'Nantes'),
+('stop_area:SNC:FR::LMU:95203eb0-cb0a-11e8-8bfa-f784c1c7c611:', 'Paris Montparnasse Hall 1 - 2', 'Paris'),
+('stop_area:SNC:FR::LMU:730a5a90-cb0a-11e8-8bfa-f784c1c7c611:', 'Bordeaux Saint-Jean', 'Bordeaux'),
+('stop_area:SNC:FR::LMU:8ef85130-cb0a-11e8-8bfa-f784c1c7c611:', 'Le Mans', 'Le Mans');
 
 -- Rennes -> Le Mans n'a pas de trajet (exemple de recherche sans résultat)
 INSERT INTO lignes(id_gare_depart, id_gare_arrivee, id_collaborateur)
@@ -15,10 +15,10 @@ SELECT depart.id_gare, arrivee.id_gare, collaborateur.id
   FROM (VALUES
         (1, 'Rennes', 'Nantes'),
         (2, 'Nantes', 'Rennes'),
-        (3, 'Rennes', 'Paris - Montparnasse - Hall 1 & 2'),
-        (4, 'Paris - Montparnasse - Hall 1 & 2', 'Rennes'),
-        (5, 'Nantes', 'Paris - Montparnasse - Hall 1 & 2'),
-        (6, 'Paris - Montparnasse - Hall 1 & 2', 'Bordeaux Saint-Jean'),
+        (3, 'Rennes', 'Paris Montparnasse Hall 1 - 2'),
+        (4, 'Paris Montparnasse Hall 1 - 2', 'Rennes'),
+        (5, 'Nantes', 'Paris Montparnasse Hall 1 - 2'),
+        (6, 'Paris Montparnasse Hall 1 - 2', 'Bordeaux Saint-Jean'),
         (7, 'Rennes', 'Le Mans')
        ) AS demo(rang, gare_depart, gare_arrivee)
   JOIN gares depart ON depart.nom = demo.gare_depart
@@ -44,17 +44,17 @@ SELECT ligne.id_ligne,
        demo.tarif
   FROM (VALUES
         ('Rennes', 'Nantes', 5710, -10, TIME '08:30', 77, 20),
-        ('Rennes', 'Paris - Montparnasse - Hall 1 & 2', 8501, -5, TIME '07:30', 95, 46),
+        ('Rennes', 'Paris Montparnasse Hall 1 - 2', 8501, -5, TIME '07:30', 95, 46),
         ('Rennes', 'Nantes', 5710, 3, TIME '08:30', 77, 20),
         ('Nantes', 'Rennes', 5710, 3, TIME '17:30', 76, 20),
         ('Rennes', 'Nantes', 5720, 4, TIME '12:15', 77, 16),
         ('Nantes', 'Rennes', 5720, 4, TIME '18:00', 76, 16),
-        ('Rennes', 'Paris - Montparnasse - Hall 1 & 2', 8501, 5, TIME '07:30', 95, 46),
-        ('Paris - Montparnasse - Hall 1 & 2', 'Rennes', 8501, 5, TIME '18:30', 102, 52),
-        ('Nantes', 'Paris - Montparnasse - Hall 1 & 2', 8502, 6, TIME '09:00', 138, 48),
-        ('Paris - Montparnasse - Hall 1 & 2', 'Bordeaux Saint-Jean', 8502, 7, TIME '10:00', 137, 54),
+        ('Rennes', 'Paris Montparnasse Hall 1 - 2', 8501, 5, TIME '07:30', 95, 46),
+        ('Paris Montparnasse Hall 1 - 2', 'Rennes', 8501, 5, TIME '18:30', 102, 52),
+        ('Nantes', 'Paris Montparnasse Hall 1 - 2', 8502, 6, TIME '09:00', 138, 48),
+        ('Paris Montparnasse Hall 1 - 2', 'Bordeaux Saint-Jean', 8502, 7, TIME '10:00', 137, 54),
         ('Rennes', 'Nantes', 5710, 14, TIME '08:30', 77, 18),
-        ('Rennes', 'Paris - Montparnasse - Hall 1 & 2', 8501, 20, TIME '07:30', 95, 38)
+        ('Rennes', 'Paris Montparnasse Hall 1 - 2', 8501, 20, TIME '07:30', 95, 38)
        ) AS demo(gare_depart, gare_arrivee, num_train, jours, heure, duree, tarif)
   JOIN gares depart ON depart.nom = demo.gare_depart
   JOIN gares arrivee ON arrivee.nom = demo.gare_arrivee

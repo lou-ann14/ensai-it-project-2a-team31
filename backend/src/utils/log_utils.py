@@ -227,5 +227,5 @@ class LogMiddleware(BaseHTTPMiddleware):
             return response
 
         except Exception as e:
-            logging.error(f"{method} {path} - FAILED [Status: 500] Error: {str(e)}")
+            logging.error(f"{method} {path} - FAILED [Status: 500] Error: {e!s}")
             raise e

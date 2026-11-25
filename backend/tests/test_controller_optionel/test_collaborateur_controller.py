@@ -5,11 +5,11 @@ import pytest
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
-from src.Classes.controller import administrateur_controller, collaborateur_controller
 from src.Classes.classes_objets.gare import Gare
 from src.Classes.classes_objets.ligne import Ligne
 from src.Classes.classes_objets.train import Train
 from src.Classes.classes_objets.trajet import Trajet
+from src.Classes.controller import administrateur_controller, collaborateur_controller
 from src.schema.collaborateur_schema import TrajetCreationModel, TrajetModificationModel
 from src.schema.train_schema import TrainBaseModel
 from src.utils.securite import verif_token
